@@ -2,7 +2,7 @@ import React from 'react';
 
 const Hero = () => {
   return (
-    <section id="home" className="bg-gradient-to-r from-primary to-secondary text-primary-foreground min-h-screen flex items-center">
+    <section id="home" className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-44 flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full">
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
           Your trusted tech solution partner
