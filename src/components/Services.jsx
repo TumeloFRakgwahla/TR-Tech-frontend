@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Laptop, Code, Palette } from 'lucide-react';
+import { Smartphone, Laptop, Code, Palette, Wrench, ShoppingCart, Phone } from 'lucide-react';
 
 const Services = () => {
   const services = [
@@ -44,9 +44,14 @@ const Services = () => {
                 <service.icon className="text-2xl" />
               </div>
               <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
-              <p className="text-muted-foreground">{service.description}</p>
+              <p className="text-muted-foreground mb-4">{service.description}</p>
             </div>
           ))}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
+          <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary flex items-center gap-2">
+            View All Services
+          </button>
         </div>
       </div>
     </section>
