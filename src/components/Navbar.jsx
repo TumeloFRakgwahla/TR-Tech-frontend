@@ -13,8 +13,8 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link to="/" className="hover:text-accent transition-colors">Home</Link>
             <Link to="/about" className="hover:text-accent transition-colors">About</Link>
-            <a href="#services" className="hover:text-accent transition-colors">Services</a>
-            <a href="#shop" className="hover:text-accent transition-colors">Shop</a>
+            <Link to="/services" className="hover:text-accent transition-colors">Services</Link>
+            <Link to="/shop" className="hover:text-accent transition-colors">Shop</Link>
             <a href="#book-repair" className="hover:text-accent transition-colors">Book Repair</a>
             <a href="#contact" className="hover:text-accent transition-colors">Contact</a>
             <button type="button" className="p-3 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors">
