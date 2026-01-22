@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   return (
@@ -10,9 +11,9 @@ const Navbar = () => {
             <img src="/TR_Tech_logo.png" alt="TR-Tech Logo" className="h-28 w-auto mr-4" />
           </div>
           <div className="flex items-center space-x-4">
-            <a href="#home" className="hover:text-accent transition-colors">Home</a>
-            <a href="#services" className="hover:text-accent transition-colors">About</a>
-            <a href="#contact" className="hover:text-accent transition-colors">Services</a>
+            <Link to="/" className="hover:text-accent transition-colors">Home</Link>
+            <Link to="/about" className="hover:text-accent transition-colors">About</Link>
+            <a href="#services" className="hover:text-accent transition-colors">Services</a>
             <a href="#shop" className="hover:text-accent transition-colors">Shop</a>
             <a href="#book-repair" className="hover:text-accent transition-colors">Book Repair</a>
             <a href="#contact" className="hover:text-accent transition-colors">Contact</a>
