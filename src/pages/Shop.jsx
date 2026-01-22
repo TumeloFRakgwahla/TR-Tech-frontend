@@ -258,26 +258,34 @@ const Shop = () => {
           </div>
         </section>
 
-        {/* Call to Action */}
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Need Help Choosing?
-            </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Our experts are here to help you find the perfect tech products for your needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary">
-                Contact Support
-              </button>
-              <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary">
-                View All Categories
-              </button>
+        {/* Trust Section */}
+        <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <h3 className="font-bold text-2xl text-[#22c55e] mb-2">✓</h3>
+              <h4 className="font-bold mb-2 text-[#0a1f3d]">Quality Assured</h4>
+              <p className="text-sm text-gray-600">
+                All products tested and verified
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold text-2xl text-[#22c55e] mb-2">✓</h3>
+              <h4 className="font-bold mb-2 text-[#0a1f3d]">Warranty Included</h4>
+              <p className="text-sm text-gray-600">
+                Every purchase comes with warranty
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold text-2xl text-[#22c55e] mb-2">✓</h3>
+              <h4 className="font-bold mb-2 text-[#0a1f3d]">Secure Checkout</h4>
+              <p className="text-sm text-gray-600">
+                Safe and convenient WhatsApp checkout
+              </p>
             </div>
           </div>
-        </section>
-
+        </div>
+      </section>
       </div>
       <Footer />
     </div>
