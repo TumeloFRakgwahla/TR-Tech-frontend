@@ -61,6 +61,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center">
+          <hr className="border-white mb-4" />
           <p className="text-primary-foreground/80">
             © 2024 TR-Tech Repairs & Designs. All rights reserved.
           </p>
