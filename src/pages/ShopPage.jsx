@@ -183,7 +183,7 @@ const Shop = () => {
                   onClick={() => setSelectedCondition(condition)}
                   className={`px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-sm capitalize ${
                     selectedCondition === condition
-                      ? 'bg-green-600 text-white shadow-md'
+                      ? 'bg-primary text-primary-foreground shadow-md'
                       : 'bg-background text-foreground hover:bg-green-50 hover:shadow-md'
                   }`}
                 >
@@ -263,21 +263,21 @@ const Shop = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
-              <h3 className="font-bold text-2xl text-[#22c55e] mb-2">✓</h3>
+              <h3 className="font-bold text-2xl text-black mb-2">✓</h3>
               <h4 className="font-bold mb-2 text-[#0a1f3d]">Quality Assured</h4>
               <p className="text-sm text-gray-600">
                 All products tested and verified
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-2xl text-[#22c55e] mb-2">✓</h3>
+              <h3 className="font-bold text-2xl text-black mb-2">✓</h3>
               <h4 className="font-bold mb-2 text-[#0a1f3d]">Warranty Included</h4>
               <p className="text-sm text-gray-600">
                 Every purchase comes with warranty
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-2xl text-[#22c55e] mb-2">✓</h3>
+              <h3 className="font-bold text-2xl text-black mb-2">✓</h3>
               <h4 className="font-bold mb-2 text-[#0a1f3d]">Secure Checkout</h4>
               <p className="text-sm text-gray-600">
                 Safe and convenient WhatsApp checkout
