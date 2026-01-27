@@ -71,7 +71,7 @@ Additional Info: ${formData.additionalInfo || 'N/A'}
     <div className="min-h-screen">
       <Navbar />
 
-      <div className="pt-28">
+      <div className="pt-20 md:pt-25">
      {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
         <div className="container mx-auto px-4">

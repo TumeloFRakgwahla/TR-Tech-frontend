@@ -9,23 +9,25 @@
  * Uses React Router's Link component for client-side navigation without page reloads.
  */
 
-import React from 'react';
-import { ShoppingCart } from 'lucide-react'; // Icon from Lucide React library
+import React, { useState } from 'react';
+import { ShoppingCart, Menu, X } from 'lucide-react'; // Icons from Lucide React library
 import { Link } from 'react-router-dom'; // For navigation links
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     // Fixed navigation bar with primary color background and shadow
     <nav className="bg-primary text-primary-foreground shadow-lg fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-8xl mx-auto px-8 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-25">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20 md:h-25">
           {/* Logo section on the left */}
           <div className="flex items-center">
-            <img src="/TR_Tech_logo.png" alt="TR-Tech Logo" className="h-28 w-auto mr-4" />
+            <img src="/TR_Tech_logo.png" alt="TR-Tech Logo" className="h-16 md:h-28 w-auto mr-2 md:mr-4" />
           </div>
 
-          {/* Navigation links and cart button on the right */}
-          <div className="flex items-center space-x-4">
+          {/* Desktop Navigation links and cart button */}
+          <div className="hidden md:flex items-center space-x-4">
             {/* Navigation links using React Router Link components */}
             <Link to="/" className="hover:text-accent transition-colors">Home</Link>
             <Link to="/about" className="hover:text-accent transition-colors">About</Link>
@@ -39,7 +41,34 @@ const Navbar = () => {
               <ShoppingCart className="h-5 w-6" />
             </button>
           </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button type="button" className="p-3 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors mr-2">
+              <ShoppingCart className="h-5 w-6" />
+            </button>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-primary border-t border-primary-foreground/20">
+              <Link to="/" className="block px-3 py-2 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Home</Link>
+              <Link to="/about" className="block px-3 py-2 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>About</Link>
+              <Link to="/services" className="block px-3 py-2 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Services</Link>
+              <Link to="/shop" className="block px-3 py-2 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Shop</Link>
+              <Link to="/book-repair" className="block px-3 py-2 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Book Repair</Link>
+              <Link to="/contact" className="block px-3 py-2 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
