@@ -13,8 +13,8 @@ import React from 'react';
 
 const Hero = () => {
   return (
-    // Hero section with gradient background, centered content, and large padding
-    <section id="home" className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-44 flex items-center">
+    // Hero section with gradient background, centered content, and responsive padding
+    <section id="home" className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20 md:py-44 flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full">
         {/* Main headline */}
         <h1 className="text-4xl md:text-6xl font-bold mb-6">

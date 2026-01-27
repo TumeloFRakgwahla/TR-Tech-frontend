@@ -29,8 +29,10 @@ const Home = () => {
       {/* Fixed navigation bar at the top */}
       <Navbar />
 
-      {/* Hero section - main banner with call-to-action */}
-      <Hero />
+      <div className="pt-20 md:pt-25">
+        {/* Hero section - main banner with call-to-action */}
+        <Hero />
+      </div>
 
       {/* Services section - showcase what we offer */}
       <Services />
