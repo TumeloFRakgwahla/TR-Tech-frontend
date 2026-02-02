@@ -16,6 +16,8 @@ import Services from './pages/ServicesPage';
 import Shop from './pages/ShopPage';
 import Contact from './pages/ContactPage';
 import { RepairsPage } from './pages/RepairsPage';
+import AdminLogin from './pages/Admin/AdminLoginPage';
+import AdminDashboard from './pages/Admin/AdminDashboardPage';
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         <Route path="/shop" element={<Shop />} />       {/* Online shop */}
         <Route path="/book-repair" element={<RepairsPage />} /> {/* Repair booking */}
         <Route path="/contact" element={<Contact />} /> {/* Contact information */}
+        <Route path="/admin/login" element={<AdminLogin />} /> {/* Admin login */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Admin dashboard */}
       </Routes>
     </Router>
   );
