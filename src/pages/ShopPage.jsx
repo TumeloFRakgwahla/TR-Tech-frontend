@@ -3,10 +3,13 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Smartphone, Headphones, Battery, Cable, HardDrive, Monitor, Star, ShoppingCart } from 'lucide-react';
 import { Button } from "../components/button.jsx";
+import { CartProvider, useCart } from '../components/CartContext';
+import { CartDrawer } from '../components/CartDrawer';
 
-const Shop = () => {
+function ShopContent() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCondition, setSelectedCondition] = useState('all');
+  const { addToCart, totalItems } = useCart();
 
   const categories = [
     { id: 'all', name: 'All Products', icon: ShoppingCart },
@@ -242,7 +245,11 @@ const Shop = () => {
                       )}
                     </div>
 
-                    <Button size="lg" className="w-full flex items-center justify-center gap-2">
+                    <Button 
+                      size="lg" 
+                      className="w-full hover:bg-slate-800 hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-300"
+                      onClick={() => addToCart(product)}
+                    >
                       <ShoppingCart className="h-5 w-5" />
                       Add to Cart
                     </Button>
@@ -285,6 +292,10 @@ const Shop = () => {
       <Footer />
     </div>
   );
+}
+
+const Shop = () => {
+  return <ShopContent />;
 };
 
 export default Shop;
