@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Smartphone, Headphones, Battery, Cable, HardDrive, Monitor, Star, ShoppingCart } from 'lucide-react';
+import { Button } from "../components/button.jsx";
 
 const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -164,31 +165,25 @@ const Shop = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap justify-center gap-3">
               {categories.map((category) => (
-                <button
+                <Button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-sm ${
-                    selectedCategory === category.id
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'bg-background text-foreground hover:bg-primary/10 hover:shadow-md'
-                  }`}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  className="flex items-center gap-2"
                 >
                   <category.icon className="h-4 w-4" />
                   <span className="text-sm">{category.name}</span>
-                </button>
+                </Button>
               ))}
               {['all', 'new', 'pre-owned'].map((condition) => (
-                <button
+                <Button
                   key={condition}
                   onClick={() => setSelectedCondition(condition)}
-                  className={`px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-sm capitalize ${
-                    selectedCondition === condition
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'bg-background text-foreground hover:bg-green-50 hover:shadow-md'
-                  }`}
+                  variant={selectedCondition === condition ? "default" : "outline"}
+                  className="capitalize"
                 >
                   <span className="text-sm">{condition === 'all' ? 'All' : condition === 'new' ? 'New' : 'Pre-Owned'}</span>
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -247,10 +242,10 @@ const Shop = () => {
                       )}
                     </div>
 
-                    <button className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                    <Button size="lg" className="w-full flex items-center justify-center gap-2">
                       <ShoppingCart className="h-5 w-5" />
                       Add to Cart
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}

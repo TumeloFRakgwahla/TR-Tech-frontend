@@ -16,6 +16,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
+import { Button } from "../components/button.jsx";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -200,12 +201,9 @@ ${formData.message}
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-                  >
+                  <Button type="submit" size="lg" className="w-full">
                     Send Message via WhatsApp
-                  </button>
+                  </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
                     You'll be redirected to WhatsApp to send your message
@@ -294,13 +292,14 @@ ${formData.message}
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Click the WhatsApp button below to start a conversation with us instantly!
             </p>
-            <button
+            <Button 
               onClick={() => window.open('https://wa.me/27791002552')}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
             >
-              <MessageCircle className="mr-2 h-5 w-5 inline" />
+              <MessageCircle className="mr-2 h-5 w-5" />
               Chat on WhatsApp
-            </button>
+            </Button>
           </div>
         </section>
 

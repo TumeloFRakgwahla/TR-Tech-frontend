@@ -10,6 +10,8 @@
  */
 
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from "../components/button.jsx";
 
 const Hero = () => {
   return (
@@ -30,19 +32,19 @@ const Hero = () => {
         {/* Call-to-action buttons arranged in a responsive flex layout */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
           {/* Primary action button - white background */}
-          <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 border-2 border-white hover:border-primary">
-            Book Repair
-          </button>
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+            <Link to="/book-repair">Book Repair</Link>
+          </Button>
 
           {/* Secondary action button - outlined style */}
-          <button className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-110 hover:-translate-y-1">
-            Shop Now
-          </button>
+          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+            <Link to="/shop">Shop Now</Link>
+          </Button>
 
           {/* Tertiary action button - gradient background */}
-          <button className="bg-gradient-to-r from-accent to-accent/80 text-accent-foreground px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 hover:from-accent/90 hover:to-accent/60">
-            Contact Us
-          </button>
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+            <Link to="/contact">Contact Us</Link>
+          </Button>
         </div>
       </div>
     </section>
