@@ -54,8 +54,10 @@ export const SidebarMenuItem = ({ children }) => (
 export const SidebarMenuButton = ({ children, isActive, onClick }) => (
   <button
     onClick={onClick}
-    className={`w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition-all duration-200 flex items-center ${
-      isActive ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:text-white'
+    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center cursor-pointer ${
+      isActive 
+        ? 'bg-blue-600 text-white shadow-md scale-[1.02]' 
+        : 'text-slate-300 hover:bg-slate-700/80 hover:text-white hover:scale-[1.02] hover:shadow-lg'
     }`}
   >
     {children}

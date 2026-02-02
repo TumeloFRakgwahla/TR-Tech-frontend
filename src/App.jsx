@@ -18,6 +18,9 @@ import Contact from './pages/ContactPage';
 import { RepairsPage } from './pages/RepairsPage';
 import AdminLogin from './pages/Admin/AdminLoginPage';
 import AdminDashboard from './pages/Admin/AdminDashboardPage';
+import AdminProducts from './pages/Admin/AdminProductsPage';
+import AdminRepairs from './pages/Admin/AdminRepairsPage';
+import AdminOrders from './pages/Admin/AdminOrdersPage';
 
 function App() {
   return (
@@ -34,6 +37,10 @@ function App() {
         <Route path="/contact" element={<Contact />} /> {/* Contact information */}
         <Route path="/admin/login" element={<AdminLogin />} /> {/* Admin login */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Admin dashboard */}
+        <Route path="/admin" element={<AdminDashboard />} /> {/* Admin dashboard */}
+        <Route path="/admin/products" element={<AdminProducts />} /> {/* Admin products */}
+        <Route path="/admin/repairs" element={<AdminRepairs />} /> {/* Admin repairs */}
+        <Route path="/admin/orders" element={<AdminOrders />} /> {/* Admin orders */}
       </Routes>
     </Router>
   );
