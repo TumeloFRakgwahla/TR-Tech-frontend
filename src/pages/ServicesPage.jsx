@@ -98,34 +98,42 @@ const Services = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {services.map((service, index) => (
-                <div key={index} className="bg-card text-card-foreground p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mr-4">
+                <div key={index} className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow flex flex-col h-full">
+                  {/* Header with Icon and Title */}
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                       <service.icon className="text-xl" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold">{service.title}</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold">{service.title}</h3>
                       <p className="text-primary font-medium">{service.price}</p>
                     </div>
                   </div>
 
-                  <p className="text-muted-foreground mb-6">{service.description}</p>
+                  {/* Description */}
+                  <p className="text-muted-foreground mb-4 flex-grow-0">{service.description}</p>
 
-                  <div className="mb-6">
+                  {/* Features List */}
+                  <div className="mb-6 flex-grow-0">
                     <h4 className="font-semibold mb-3">What's Included:</h4>
                     <ul className="space-y-2">
                       {service.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center text-sm text-muted-foreground">
-                          <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                          {feature}
+                        <li key={idx} className="flex items-start text-sm text-muted-foreground">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <Button size="lg" className="w-full">
-                    Get Started
-                  </Button>
+                  {/* Button at bottom */}
+                  <div className="mt-auto">
+                    <Button size="lg" className="w-full hover:bg-slate-800 hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-300">
+                      <Link to="/book-repair">
+                      Book Now
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -170,13 +178,13 @@ const Services = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-primary hover:text-white font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-white hover:border-white flex items-center gap-2">
+              <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
                 <Link to="/book-repair">
                   <Wrench className="h-5 w-5" />
                   Book a Repair
                 </Link>
               </Button>
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-primary hover:text-white font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-white hover:border-white flex items-center gap-2">
+              <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
                 <Link to="/shop">
                   <ShoppingCart className="h-5 w-5" />
                   Shop Now
