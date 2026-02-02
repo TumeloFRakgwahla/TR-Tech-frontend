@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { toast } from 'sonner';
 import { Wrench, CheckCircle, MessageCircle } from 'lucide-react';
+import { Button } from "../components/button.jsx";
 
 export function RepairsPage() {
   const [formData, setFormData] = useState({
@@ -219,12 +220,13 @@ Additional Info: ${formData.additionalInfo || 'N/A'}
                   />
                 </div>
 
-                <button
+                <Button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-lg transition-colors"
+                  size="lg"
+                  className="w-full"
                 >
                   Submit Repair Request via WhatsApp
-                </button>
+                </Button>
 
                 <p className="text-xs text-muted-foreground text-center">
                   By submitting this form, you'll be redirected to WhatsApp to complete your booking

@@ -9,7 +9,9 @@
  */
 
 import React from 'react';
-import { Wrench, ShoppingCart, MessageCircle } from 'lucide-react'; // Icons for buttons
+import { Link } from 'react-router-dom';
+import { Wrench, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Button } from "./button.jsx"; // Icons for buttons
 
 const CTA = () => {
   return (
@@ -29,16 +31,20 @@ const CTA = () => {
         {/* Action buttons in responsive layout */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
           {/* Repair booking button with wrench icon */}
-          <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
-            Book a Repair
-          </button>
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+            <Link to="/book-repair">
+              <Wrench className="h-5 w-5 mr-2" />
+              Book a Repair
+            </Link>
+          </Button>
 
           {/* Shopping button with cart icon */}
-          <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Shop Now
-          </button>
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+            <Link to="/shop">
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              Shop Now
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

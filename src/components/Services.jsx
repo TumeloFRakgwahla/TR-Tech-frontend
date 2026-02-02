@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Smartphone, Laptop, Code, Palette, Wrench, ShoppingCart, Phone } from 'lucide-react';
+import { Button } from "./button.jsx";
 
 const Services = () => {
   const services = [
@@ -49,9 +51,9 @@ const Services = () => {
           ))}
         </div>
         <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
-          <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary flex items-center gap-2">
-            View All Services
-          </button>
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+            <Link to="/services">View All Services</Link>
+          </Button>
         </div>
       </div>
     </section>

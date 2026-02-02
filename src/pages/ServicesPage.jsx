@@ -1,7 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import {Wrench, ShoppingCart, Smartphone, Laptop, Code, Palette, Settings, CheckCircle, Clock, Shield, Star } from 'lucide-react';
+import { Button } from "../components/button.jsx";
 
 const Services = () => {
   const services = [
@@ -121,9 +123,9 @@ const Services = () => {
                     </ul>
                   </div>
 
-                  <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+                  <Button size="lg" className="w-full">
                     Get Started
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -168,14 +170,18 @@ const Services = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary flex items-center gap-2">
-                <Wrench className="h-5 w-5" />
-                Book a Repair
-              </button>
-              <button className="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white hover:border-primary flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                Shop Now
-              </button>
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-primary hover:text-white font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-white hover:border-white flex items-center gap-2">
+                <Link to="/book-repair">
+                  <Wrench className="h-5 w-5" />
+                  Book a Repair
+                </Link>
+              </Button>
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-primary hover:text-white font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-white hover:border-white flex items-center gap-2">
+                <Link to="/shop">
+                  <ShoppingCart className="h-5 w-5" />
+                  Shop Now
+                </Link>
+              </Button>
             </div>
           </div>
         </section>
