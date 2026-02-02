@@ -21,27 +21,30 @@ import AdminDashboard from './pages/Admin/AdminDashboardPage';
 import AdminProducts from './pages/Admin/AdminProductsPage';
 import AdminRepairs from './pages/Admin/AdminRepairsPage';
 import AdminOrders from './pages/Admin/AdminOrdersPage';
+import { CartProvider } from './components/CartContext';
 
 function App() {
   return (
     // BrowserRouter enables client-side routing for the entire app
     <Router>
-      {/* Routes component contains all our route definitions */}
-      <Routes>
-        {/* Each Route maps a URL path to a React component */}
-        <Route path="/" element={<Home />} />           {/* Homepage */}
-        <Route path="/about" element={<About />} />     {/* About Us page */}
-        <Route path="/services" element={<Services />} /> {/* Services offered */}
-        <Route path="/shop" element={<Shop />} />       {/* Online shop */}
-        <Route path="/book-repair" element={<RepairsPage />} /> {/* Repair booking */}
-        <Route path="/contact" element={<Contact />} /> {/* Contact information */}
-        <Route path="/admin/login" element={<AdminLogin />} /> {/* Admin login */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Admin dashboard */}
-        <Route path="/admin" element={<AdminDashboard />} /> {/* Admin dashboard */}
-        <Route path="/admin/products" element={<AdminProducts />} /> {/* Admin products */}
-        <Route path="/admin/repairs" element={<AdminRepairs />} /> {/* Admin repairs */}
-        <Route path="/admin/orders" element={<AdminOrders />} /> {/* Admin orders */}
-      </Routes>
+      <CartProvider>
+        {/* Routes component contains all our route definitions */}
+        <Routes>
+          {/* Each Route maps a URL path to a React component */}
+          <Route path="/" element={<Home />} />           {/* Homepage */}
+          <Route path="/about" element={<About />} />     {/* About Us page */}
+          <Route path="/services" element={<Services />} /> {/* Services offered */}
+          <Route path="/shop" element={<Shop />} />       {/* Online shop */}
+          <Route path="/book-repair" element={<RepairsPage />} /> {/* Repair booking */}
+          <Route path="/contact" element={<Contact />} /> {/* Contact information */}
+          <Route path="/admin/login" element={<AdminLogin />} /> {/* Admin login */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Admin dashboard */}
+          <Route path="/admin" element={<AdminDashboard />} /> {/* Admin dashboard */}
+          <Route path="/admin/products" element={<AdminProducts />} /> {/* Admin products */}
+          <Route path="/admin/repairs" element={<AdminRepairs />} /> {/* Admin repairs */}
+          <Route path="/admin/orders" element={<AdminOrders />} /> {/* Admin orders */}
+        </Routes>
+      </CartProvider>
     </Router>
   );
 }

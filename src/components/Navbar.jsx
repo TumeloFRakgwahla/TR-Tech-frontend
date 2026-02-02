@@ -10,8 +10,27 @@
  */
 
 import React, { useState } from 'react';
-import { ShoppingCart, Menu, X } from 'lucide-react'; // Icons from Lucide React library
-import { Link } from 'react-router-dom'; // For navigation links
+import { ShoppingCart, Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CartDrawer } from './CartDrawer';
+import { useCart } from './CartContext';
+
+const CartButton = () => {
+  const { totalItems } = useCart();
+  
+  return (
+    <CartDrawer>
+      <button type="button" className="p-2 sm:p-3 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors relative touch-manipulation">
+        <ShoppingCart className="h-5 w-5 sm:h-6" />
+        {totalItems > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {totalItems}
+          </span>
+        )}
+      </button>
+    </CartDrawer>
+  );
+};
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,20 +55,17 @@ const Navbar = () => {
             <Link to="/book-repair" className="hover:text-accent transition-colors">Book Repair</Link>
             <Link to="/contact" className="hover:text-accent transition-colors">Contact</Link>
 
-            {/* Shopping cart button - currently just a visual element */}
-            <button type="button" className="p-3 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors">
-              <ShoppingCart className="h-5 w-6" />
-            </button>
+            {/* Shopping cart button */}
+            <CartButton />
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button type="button" className="p-3 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors mr-2">
-              <ShoppingCart className="h-5 w-6" />
-            </button>
+            {/* Mobile cart button */}
+            <CartButton />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 bg-white text-primary hover:bg-gray-100 rounded-md transition-colors ml-2"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
