@@ -32,7 +32,7 @@ export function CartDrawer({ children }) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="fixed right-0 top-0 z-50 h-full w-[90vw] max-w-[380px] border-l bg-background shadow-lg duration-200 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right flex flex-col">
         {/* Header */}
-        <DialogHeader className="flex-shrink-0 pb-4 border-b text-center !text-center">
+        <DialogHeader className="flex-shrink-0 pb-4 border-b !text-center">
           <DialogTitle className="text-xl font-semibold">Shopping Cart</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             {cart.length} item{cart.length !== 1 ? 's' : ''} in your cart

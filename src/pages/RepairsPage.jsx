@@ -223,7 +223,7 @@ Additional Info: ${formData.additionalInfo || 'N/A'}
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full"
+                  className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300"
                 >
                   Submit Repair Request via WhatsApp
                 </Button>
