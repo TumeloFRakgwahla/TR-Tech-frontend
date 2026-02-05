@@ -32,17 +32,17 @@ const Hero = () => {
         {/* Call-to-action buttons arranged in a responsive flex layout */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
           {/* Primary action button - white background */}
-          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
             <Link to="/book-repair">Book Repair</Link>
           </Button>
 
           {/* Secondary action button - outlined style */}
-          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
             <Link to="/shop">Shop Now</Link>
           </Button>
 
           {/* Tertiary action button - gradient background */}
-          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
             <Link to="/contact">Contact Us</Link>
           </Button>
         </div>

@@ -31,7 +31,7 @@ const CTA = () => {
         {/* Action buttons in responsive layout */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
           {/* Repair booking button with wrench icon */}
-          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
             <Link to="/book-repair">
               <Wrench className="h-5 w-5 mr-2" />
               Book a Repair
@@ -39,7 +39,7 @@ const CTA = () => {
           </Button>
 
           {/* Shopping button with cart icon */}
-          <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
             <Link to="/shop">
               <ShoppingCart className="h-5 w-5 mr-2" />
               Shop Now
