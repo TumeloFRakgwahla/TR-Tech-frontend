@@ -1,6 +1,4 @@
-import { products } from '../../data/products';
-import { repairRequests } from '../../data/repairs';
-import { orders } from '../../data/orders';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   SidebarProvider,
@@ -21,36 +19,89 @@ import {
   CardDescription,
   CardContent,
 } from '../../components/card';
+import { productsAPI, ordersAPI, repairsAPI } from '../../services/api';
+
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch data from APIs
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [productsRes, ordersRes, repairsRes] = await Promise.all([
+          productsAPI.getAll(),
+          ordersAPI.getAll(),
+          repairsAPI.getAll(),
+        ]);
+
+        if (productsRes.success) {
+          setProducts(productsRes.data);
+        }
+        if (ordersRes.success) {
+          setOrders(ordersRes.data);
+        }
+        if (repairsRes.success) {
+          setRepairs(repairsRes.data);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Calculate metrics
   const totalRevenue = orders
-    .filter((o) => o.paymentStatus === 'Paid')
-    .reduce((sum, o) => sum + o.total, 0);
+    .filter((o) => o.status === 'Completed')
+    .reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0);
     
   const totalOrders = orders.length;
-  const activeRepairs = repairRequests.filter(
+  const activeRepairs = repairs.filter(
     (r) => r.status === 'Pending' || r.status === 'In Progress'
   ).length;
   const totalProducts = products.length;
 
-  // Sales trend data - Last 7 days revenue performance
-  const salesData = [
-    { day: 'Mon', sales: 12000 },
-    { day: 'Tue', sales: 18000 },
-    { day: 'Wed', sales: 15000 },
-    { day: 'Thu', sales: 22000 },
-    { day: 'Fri', sales: 28000 },
-    { day: 'Sat', sales: 36000 },
-    { day: 'Sun', sales: 24000 },
-  ];
+  // Sales trend data - Last 7 days revenue from real orders
+  const getLast7DaysSales = () => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const result = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dayName = days[date.getDay()];
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const daySales = orders
+        .filter(o => {
+          if (!o.createdAt) return false;
+          const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
+          return orderDate === dateStr && o.status === 'Completed';
+        })
+        .reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0);
+      
+      result.push({ day: dayName, sales: daySales });
+    }
+    return result;
+  };
+  
+  const salesData = getLast7DaysSales();
 
   const COLORS = {
     Pending: '#ca8a04',
     Processing: '#2563eb',
-    'In Progress': '#2563eb',
     Shipped: '#9333ea',
     Delivered: '#16a34a',
     Completed: '#16a34a',
@@ -58,34 +109,43 @@ export function AdminDashboardPage() {
   };
 
 
-  // Order status distribution - Current order status breakdown
-  const orderStatusData = [
-    { name: 'Delivered', value: 4, percentage: 33 },
-    { name: 'Processing', value: 2, percentage: 17 },
-    { name: 'Pending', value: 2, percentage: 17 },
-    { name: 'Shipped', value: 2, percentage: 17 },
-    { name: 'Cancelled', value: 2, percentage: 17 },
-  ];
+  // Order status distribution - Dynamic from real orders data
+  const getOrderStatusData = () => {
+    const statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled'];
+    const total = orders.length || 1; // Avoid division by zero
+    
+    return statuses.map(status => {
+      const value = orders.filter(o => o.status === status).length;
+      return {
+        name: status,
+        value,
+        percentage: Math.round((value / total) * 100)
+      };
+    }).filter(item => item.value > 0);
+  };
+  
+  const orderStatusData = getOrderStatusData();
 
-  // Repair status distribution - Current repair request status
+  // Repair status distribution - Dynamic from repairs data (only show items with value > 0)
   const repairStatusData = [
-    { name: 'Pending', value: 2 },
-    { name: 'In Progress', value: 3 },
-    { name: 'Completed', value: 2 },
-    { name: 'Cancelled', value: 1 },
-  ];
+    { name: 'Pending', value: repairs.filter(r => r.status === 'Pending').length },
+    { name: 'In Progress', value: repairs.filter(r => r.status === 'In Progress').length },
+    { name: 'Completed', value: repairs.filter(r => r.status === 'Completed').length },
+    { name: 'Cancelled', value: repairs.filter(r => r.status === 'Cancelled').length },
+  ].filter(item => item.value > 0);
 
   // Recent orders
   const recentOrders = [...orders]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     .slice(0, 5);
 
-  // Recent repairs
-  const recentRepairs = [...repairRequests]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  // Recent repairs - Use real data from API
+  const recentRepairs = [...repairs]
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     .slice(0, 5);
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-ZA', {
       month: 'short',
       day: 'numeric',
@@ -194,7 +254,6 @@ export function AdminDashboardPage() {
 
           <main className="pt-20 bg-slate-900 min-h-screen p-6 overflow-auto">
             <div className="space-y-6 p-6">
-
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 text-white shadow-lg">
@@ -452,7 +511,9 @@ export function AdminDashboardPage() {
                 {/* Pie slices */}
                 {(() => {
                   let cumulativePercentage = 0;
-                  return orderStatusData.map((item, index) => {
+                  // Only render slices with percentage > 0
+                  const visibleData = orderStatusData.filter(item => item.percentage > 0);
+                  return visibleData.map((item, index) => {
                     const startAngle = (cumulativePercentage / 100) * 360;
                     const endAngle = ((cumulativePercentage + item.percentage) / 100) * 360;
                     cumulativePercentage += item.percentage;
@@ -497,37 +558,41 @@ export function AdminDashboardPage() {
                           style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))' }}
                         />
 
-                        {/* Combined name and percentage label inside slice */}
-                        <text
-                          x={labelX}
-                          y={labelY}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fill="#ffffff"
-                          fontSize="13"
-                          fontWeight="700"
-                          style={{
-                            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
-                          }}
-                        >
-                          {item.name}
-                        </text>
-                        <text
-                          x={labelX}
-                          y={labelY + 16}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fill="#ffffff"
-                          fontSize="15"
-                          fontWeight="800"
-                          style={{
-                            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
-                          }}
-                        >
-                          {item.percentage}%
-                        </text>
+                        {/* Combined name and percentage label inside slice - only show if percentage > 0 */}
+                        {item.percentage > 0 && (
+                          <>
+                            <text
+                              x={labelX}
+                              y={labelY}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              fill="#ffffff"
+                              fontSize="13"
+                              fontWeight="700"
+                              style={{
+                                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
+                              }}
+                            >
+                              {item.name}
+                            </text>
+                            <text
+                              x={labelX}
+                              y={labelY + 16}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              fill="#ffffff"
+                              fontSize="15"
+                              fontWeight="800"
+                              style={{
+                                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
+                              }}
+                            >
+                              {item.percentage}%
+                            </text>
+                          </>
+                        )}
                       </g>
                     );
                   });
@@ -605,21 +670,23 @@ export function AdminDashboardPage() {
                       }}
                     />
 
-                    {/* Value label on top of bar */}
-                    <text
-                      x={startX + barWidth / 2}
-                      y={barY - 12}
-                      textAnchor="middle"
-                      fill="#ffffff"
-                      fontSize="18"
-                      fontWeight="700"
-                      style={{
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
-                      }}
-                    >
-                      {item.value}
-                    </text>
+                    {/* Value label on top of bar - only show if value > 0 */}
+                    {item.value > 0 && (
+                      <text
+                        x={startX + barWidth / 2}
+                        y={barY - 12}
+                        textAnchor="middle"
+                        fill="#ffffff"
+                        fontSize="18"
+                        fontWeight="700"
+                        style={{
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))'
+                        }}
+                      >
+                        {item.value}
+                      </text>
+                    )}
 
                     {/* X-axis label */}
                     <text
@@ -663,16 +730,16 @@ export function AdminDashboardPage() {
                     <div className="space-y-4">
                       {recentOrders.map((order) => (
                         <div
-                          key={order.id}
+                          key={order._id || order.id}
                           className="flex items-center justify-between p-3 bg-slate-900 rounded-lg"
                         >
                           <div>
-                            <p className="font-medium text-white">{order.orderNumber}</p>
-                            <p className="text-sm text-slate-400">{order.customerName}</p>
+                            <p className="font-medium text-white">{order.orderNumber || '#' + (order._id || order.id).substring(0, 8)}</p>
+                            <p className="text-sm text-slate-400">{order.customer?.name || order.customerName || 'Unknown Customer'}</p>
                             <p className="text-xs text-slate-500">{formatDate(order.createdAt)}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-white">R {order.total.toLocaleString()}</p>
+                            <p className="font-medium text-white">R {(order.totalAmount || order.total || 0).toLocaleString()}</p>
                             <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full text-white"
                                   style={{ backgroundColor: COLORS[order.status] || COLORS.Pending }}>
                               {order.status}
@@ -704,14 +771,16 @@ export function AdminDashboardPage() {
                     <div className="space-y-4">
                       {recentRepairs.map((repair) => (
                         <div
-                          key={repair.id}
+                          key={repair._id || repair.id}
                           className="flex items-center justify-between p-3 bg-slate-900 rounded-lg"
                         >
                           <div>
                             <p className="font-medium text-white">
-                              {repair.brand} {repair.model}
+                              {(repair.device?.brand || repair.brand)} {(repair.device?.model || repair.model)}
                             </p>
-                            <p className="text-sm text-slate-400">{repair.customerName}</p>
+                            <p className="text-sm text-slate-400">
+                              {repair.customer?.name || repair.customerName || 'Unknown Customer'}
+                            </p>
                             <p className="text-xs text-slate-500">{formatDate(repair.createdAt)}</p>
                           </div>
                           <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full text-white"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -11,18 +11,34 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Plus, Trash2 } from 'lucide-react';
-import { products } from '../../data/products';
+import { productsAPI } from '../../services/api';
 
 export function CreateOrderForm({ onSubmit, onCancel }) {
+  const [products, setProducts] = useState([]);
   const [customerName, setCustomerName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
+  const [address, setAddress] = useState('');
   const [status, setStatus] = useState('Pending');
-  const [paymentStatus, setPaymentStatus] = useState('Pending');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [items, setItems] = useState([
     { productId: '', productName: '', quantity: 1, price: 0, image: '' },
   ]);
+
+  // Fetch products from backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await productsAPI.getAll();
+        if (response.success) {
+          setProducts(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const addItem = () => {
     setItems([
@@ -40,7 +56,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
     newItems[index] = { ...newItems[index], [field]: value };
 
     if (field === 'productId') {
-      const product = products.find((p) => p.id.toString() === value);
+      const product = products.find((p) => p._id.toString() === value);
       if (product) {
         newItems[index].productName = product.name;
         newItems[index].price = product.price;
@@ -57,16 +73,27 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Filter out empty items and format for backend
+    const validItems = items.filter((item) => item.productId);
+    
     onSubmit({
-      customerName,
-      email,
-      phone,
-      shippingAddress,
-      status,
-      paymentStatus,
-      items: items.filter((item) => item.productId),
-      subtotal: calculateTotal(),
-      total: calculateTotal(),
+      customer: {
+        name: customerName,
+        email: email,
+        phone: phone,
+        address: address,
+      },
+      status: status,
+      paymentMethod: paymentMethod,
+      paymentStatus: 'Paid', // Orders created from admin are considered paid
+      items: validItems.map((item) => ({
+        product: item.productId,
+        name: item.productName,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      totalAmount: calculateTotal(),
     });
   };
 
@@ -112,10 +139,10 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
 
       {/* Shipping Address */}
       <div className="space-y-2">
-        <Label className="text-white">Shipping Address</Label>
+        <Label className="text-white">Address</Label>
         <Textarea
-          value={shippingAddress}
-          onChange={(e) => setShippingAddress(e.target.value)}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
           placeholder="Enter shipping address"
           rows={3}
           className="bg-slate-900 border-slate-700 text-white"
@@ -167,7 +194,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
                   </SelectTrigger>
                   <SelectContent>
                     {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id.toString()}>
+                      <SelectItem key={product._id} value={product._id}>
                         {product.name} - R{product.price}
                       </SelectItem>
                     ))}
@@ -213,7 +240,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
       </div>
 
       {/* Status & Payment */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="status" className="text-white">Order Status</Label>
           <Select value={status} onValueChange={setStatus}>
@@ -225,13 +252,31 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
               <SelectItem value="Processing">Processing</SelectItem>
               <SelectItem value="Shipped">Shipped</SelectItem>
               <SelectItem value="Delivered">Delivered</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
               <SelectItem value="Cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
+          <Label htmlFor="paymentMethod" className="text-white">Payment Method</Label>
+          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+            <SelectTrigger id="paymentMethod" className="bg-slate-900 border-slate-700 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Cash">Cash</SelectItem>
+              <SelectItem value="Card">Card</SelectItem>
+              <SelectItem value="Transfer">Transfer</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="paymentStatus" className="text-white">Payment Status</Label>
-          <Select value={paymentStatus} onValueChange={setPaymentStatus}>
+          <Select 
+            value={items.length > 0 && items[0].productId ? 'Paid' : 'Pending'} 
+            onValueChange={() => {}}
+          >
             <SelectTrigger id="paymentStatus" className="bg-slate-900 border-slate-700 text-white">
               <SelectValue />
             </SelectTrigger>

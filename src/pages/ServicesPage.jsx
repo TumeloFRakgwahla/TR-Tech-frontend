@@ -1,48 +1,88 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import {Wrench, ShoppingCart, Smartphone, Laptop, Code, Palette, Settings, CheckCircle, Clock, Shield, Star } from 'lucide-react';
 import { Button } from "../components/button.jsx";
+import { servicesAPI } from '../services/api';
 
 const Services = () => {
-  const services = [
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Icon mapping
+  const iconMap = {
+    Smartphone,
+    Laptop,
+    Code,
+    Palette,
+    Settings,
+    Wrench,
+  };
+
+  // Fetch services from API
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        const response = await servicesAPI.getAll();
+        if (response.success) {
+          setServices(response.data);
+        } else {
+          setError(response.message);
+        }
+      } catch (err) {
+        console.error('Error fetching services:', err);
+        setError('Failed to load services');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // Default services if API fails or returns empty
+  const defaultServices = [
     {
       title: 'Phone Repairs',
-      icon: Smartphone,
+      icon: 'Smartphone',
       description: 'Expert repair services for all smartphone brands including screen replacement, battery replacement, charging port repairs, and software issues.',
       features: ['Screen replacement', 'Battery replacement', 'Charging port repair', 'Software troubleshooting', 'Water damage repair'],
       price: 'From R150'
     },
     {
       title: 'Laptop & Computer Repairs',
-      icon: Laptop,
+      icon: 'Laptop',
       description: 'Comprehensive laptop and desktop repair services including hardware upgrades, virus removal, data recovery, and performance optimization.',
       features: ['Hardware diagnostics', 'Virus removal', 'Data recovery', 'Performance optimization', 'Hardware upgrades'],
       price: 'From R200'
     },
     {
       title: 'Software Solutions',
-      icon: Code,
+      icon: 'Code',
       description: 'Custom software development, website creation, app development, and IT consulting services tailored to your business needs.',
       features: ['Custom software development', 'Website design', 'Mobile app development', 'IT consulting', 'System integration'],
       price: 'Quote based'
     },
     {
       title: 'Graphic Design',
-      icon: Palette,
+      icon: 'Palette',
       description: 'Professional graphic design services including logo design, branding, marketing materials, and digital artwork creation.',
       features: ['Logo design', 'Brand identity', 'Marketing materials', 'Social media graphics', 'Print design'],
       price: 'From R300'
     },
     {
       title: 'Software Troubleshooting',
-      icon: Settings,
+      icon: 'Settings',
       description: 'Expert software troubleshooting and optimization services for operating systems, applications, and system performance issues.',
       features: ['OS optimization', 'Virus/malware removal', 'Driver updates', 'Software installation', 'Performance tuning'],
       price: 'From R100'
     }
   ];
+
+  const displayServices = services.length > 0 ? services : defaultServices;
 
   const process = [
     {
@@ -97,45 +137,63 @@ const Services = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service, index) => (
-                <div key={index} className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow flex flex-col h-full">
-                  {/* Header with Icon and Title */}
-                  <div className="flex items-start mb-4">
-                    <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                      <service.icon className="text-xl" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-semibold">{service.title}</h3>
-                      <p className="text-primary font-medium">{service.price}</p>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-muted-foreground mb-4 flex-grow-0">{service.description}</p>
-
-                  {/* Features List */}
-                  <div className="mb-6 flex-grow-0">
-                    <h4 className="font-semibold mb-3">What's Included:</h4>
-                    <ul className="space-y-2">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start text-sm text-muted-foreground">
-                          <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Button at bottom */}
-                  <div className="mt-auto">
-                    <Button size="lg" className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
-                      <Link to="/book-repair">
-                      Book Now
-                      </Link>
-                    </Button>
-                  </div>
+              {loading ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-4 text-muted-foreground">Loading services...</p>
                 </div>
-              ))}
+              ) : error ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-red-500 mb-4">{error}</p>
+                </div>
+              ) : displayServices.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No services found</p>
+                </div>
+              ) : (
+                displayServices.map((service, index) => {
+                  const IconComponent = iconMap[service.icon] || Wrench;
+                  return (
+                    <div key={service._id || service.title || index} className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow flex flex-col h-full">
+                      {/* Header with Icon and Title */}
+                      <div className="flex items-start mb-4">
+                        <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                          <IconComponent className="text-xl" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl md:text-2xl font-semibold">{service.title}</h3>
+                          <p className="text-primary font-medium">{service.price || 'Quote based'}</p>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-muted-foreground mb-4 flex-grow-0">{service.description}</p>
+
+                      {/* Features List */}
+                      <div className="mb-6 flex-grow-0">
+                        <h4 className="font-semibold mb-3">What's Included:</h4>
+                        <ul className="space-y-2">
+                          {(service.features || []).map((feature, idx) => (
+                            <li key={idx} className="flex items-start text-sm text-muted-foreground">
+                              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Button at bottom */}
+                      <div className="mt-auto">
+                        <Button size="lg" className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+                          <Link to="/book-repair">
+                          Book Now
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </section>

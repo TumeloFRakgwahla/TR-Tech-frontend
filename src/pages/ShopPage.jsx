@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Smartphone, Headphones, Battery, Cable, HardDrive, Monitor, Star, ShoppingCart } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { CartProvider, useCart } from '../components/CartContext';
 import { CartDrawer } from '../components/CartDrawer';
+import { productsAPI } from '../services/api';
 
 function ShopContent() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCondition, setSelectedCondition] = useState('all');
   const { addToCart, totalItems } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const categories = [
     { id: 'all', name: 'All Products', icon: ShoppingCart },
@@ -20,116 +24,27 @@ function ShopContent() {
     { id: 'screens', name: 'Screens', icon: Monitor }
   ];
 
-  const products = [
-    {
-      id: 1,
-      name: 'Wireless Earbuds Pro',
-      category: 'accessories',
-      condition: 'new',
-      price: 899,
-      originalPrice: 1299,
-      rating: 4.5,
-      reviews: 128,
-      image: '/api/placeholder/300/300',
-      description: 'Premium wireless earbuds with noise cancellation'
-    },
-    {
-      id: 2,
-      name: 'Phone Battery 4000mAh',
-      category: 'batteries',
-      condition: 'new',
-      price: 299,
-      originalPrice: 399,
-      rating: 4.2,
-      reviews: 89,
-      image: '/api/placeholder/300/300',
-      description: 'High-capacity replacement battery for smartphones'
-    },
-    {
-      id: 3,
-      name: 'USB-C Charging Cable',
-      category: 'cables',
-      condition: 'new',
-      price: 149,
-      originalPrice: 199,
-      rating: 4.8,
-      reviews: 256,
-      image: '/api/placeholder/300/300',
-      description: 'Fast charging USB-C cable, 2m length'
-    },
-    {
-      id: 4,
-      name: '256GB MicroSD Card',
-      category: 'storage',
-      condition: 'new',
-      price: 599,
-      originalPrice: 799,
-      rating: 4.6,
-      reviews: 167,
-      image: '/api/placeholder/300/300',
-      description: 'Class 10 microSD card for expanded storage'
-    },
-    {
-      id: 5,
-      name: 'iPhone Screen Protector',
-      category: 'accessories',
-      condition: 'new',
-      price: 199,
-      originalPrice: 299,
-      rating: 4.4,
-      reviews: 203,
-      image: '/api/placeholder/300/300',
-      description: 'Tempered glass screen protector with privacy'
-    },
-    {
-      id: 6,
-      name: 'Laptop Battery 6-Cell',
-      category: 'batteries',
-      condition: 'pre-owned',
-      price: 899,
-      originalPrice: 1199,
-      rating: 4.3,
-      reviews: 78,
-      image: '/api/placeholder/300/300',
-      description: 'Replacement battery for various laptop models'
-    },
-    {
-      id: 7,
-      name: 'HDMI Cable 4K',
-      category: 'cables',
-      condition: 'new',
-      price: 249,
-      originalPrice: 349,
-      rating: 4.7,
-      reviews: 145,
-      image: '/api/placeholder/300/300',
-      description: 'High-speed HDMI cable for 4K displays'
-    },
-    {
-      id: 8,
-      name: '2TB External Hard Drive',
-      category: 'storage',
-      condition: 'pre-owned',
-      price: 1899,
-      originalPrice: 2299,
-      rating: 4.5,
-      reviews: 92,
-      image: '/api/placeholder/300/300',
-      description: 'Portable external hard drive with USB 3.0'
-    },
-    {
-      id: 9,
-      name: 'Phone Stand & Holder',
-      category: 'accessories',
-      condition: 'new',
-      price: 99,
-      originalPrice: 149,
-      rating: 4.1,
-      reviews: 134,
-      image: '/api/placeholder/300/300',
-      description: 'Adjustable phone stand for desk and car use'
-    }
-  ];
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productsAPI.getAll();
+        if (response.success) {
+          setProducts(response.data);
+        } else {
+          setError(response.message);
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter(product => {
     const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
@@ -205,57 +120,84 @@ function ShopContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-                  <div className="aspect-square bg-muted flex items-center justify-center">
-                    <div className="text-6xl text-muted-foreground">
-                      {/* Placeholder for product image */}
-                      <Smartphone className="h-24 w-24" />
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-3">{product.description}</p>
-
-                    <div className="flex items-center mb-3">
-                      <div className="flex items-center mr-2">
-                        {renderStars(product.rating)}
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        ({product.reviews})
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-primary">
-                          R{product.price}
-                        </span>
-                        {product.originalPrice > product.price && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            R{product.originalPrice}
-                          </span>
-                        )}
-                      </div>
-                      {product.originalPrice > product.price && (
-                        <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                          {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
-                        </span>
+              {loading ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-4 text-muted-foreground">Loading products...</p>
+                </div>
+              ) : error ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-red-500 mb-4">{error}</p>
+                  <Button onClick={() => window.location.reload()}>Retry</Button>
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No products found</p>
+                </div>
+              ) : (
+                filteredProducts.map((product) => (
+                  <div key={product._id || product.id} className="bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                    <div className="aspect-square bg-muted flex items-center justify-center">
+                      {product.image ? (
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.parentElement.innerHTML = '<Smartphone className="h-24 w-24 text-muted-foreground" />';
+                          }}
+                        />
+                      ) : (
+                        <div className="text-6xl text-muted-foreground">
+                          <Smartphone className="h-24 w-24" />
+                        </div>
                       )}
                     </div>
 
-                    <Button 
-                      size="lg" 
-                      className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300"
-                      onClick={() => addToCart(product)}
-                    >
-                      <ShoppingCart className="h-5 w-5" />
-                      Add to Cart
-                    </Button>
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
+                      <p className="text-muted-foreground text-sm mb-3">{product.description}</p>
+
+                      <div className="flex items-center mb-3">
+                        <div className="flex items-center mr-2">
+                          {renderStars(product.rating || 0)}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          ({product.reviews || 0})
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-primary">
+                            R{product.price?.toLocaleString() || 0}
+                          </span>
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <span className="text-sm text-muted-foreground line-through">
+                              R{product.originalPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
+                            {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
+                          </span>
+                        )}
+                      </div>
+
+                      <Button 
+                        size="lg" 
+                        className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300"
+                        onClick={() => addToCart(product)}
+                      >
+                        <ShoppingCart className="h-5 w-5" />
+                        Add to Cart
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </section>

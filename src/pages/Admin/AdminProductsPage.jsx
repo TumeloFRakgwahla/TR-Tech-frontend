@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   SidebarProvider,
@@ -40,56 +40,96 @@ import { Button } from '../../components/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { products as initialProducts } from '../../data/products';
+import { productsAPI } from '../../services/api';
 
 export function AdminProductsPage() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterCondition, setFilterCondition] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteProduct, setDeleteProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const categories = ['Phones', 'Laptops', 'Tablets', 'Accessories', 'Parts', 'Tools'];
-  const conditions = ['New', 'Pre-Owned'];
+  const categories = ['Accessories', 'Parts', 'Tools', 'Other'];
+  const conditions = ['New', 'Used', 'Refurbished'];
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productsAPI.getAll();
+        if (response.success) {
+          setProducts(response.data);
+        } else {
+          setError(response.message);
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ((product.description || '').toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
     const matchesCondition = filterCondition === 'all' || product.condition === filterCondition;
     return matchesSearch && matchesCategory && matchesCondition;
   });
 
-  const handleDeleteProduct = (product) => {
-    setProducts(products.filter((p) => p.id !== product.id));
-    setDeleteProduct(null);
-    alert('Product deleted successfully');
+  const handleDeleteProduct = async (product) => {
+    try {
+      await productsAPI.delete(product._id || product.id);
+      setProducts(products.filter((p) => (p._id || p.id) !== (product._id || product.id)));
+      setDeleteProduct(null);
+      alert('Product deleted successfully');
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert('Failed to delete product');
+    }
   };
 
-  const handleAddProduct = (product) => {
-    const newProduct = {
-      ...product,
-      id: Date.now(),
-      stock: 0,
-      status: 'Active',
-      createdAt: new Date().toISOString(),
-    };
-    setProducts([...products, newProduct]);
-    setIsAddDialogOpen(false);
-    alert('Product added successfully');
+  const handleAddProduct = async (product) => {
+    try {
+      const response = await productsAPI.create(product);
+      if (response.success) {
+        setProducts([...products, response.data]);
+        setIsAddDialogOpen(false);
+        alert('Product added successfully');
+      }
+    } catch (err) {
+      console.error('Error adding product:', err);
+      alert('Failed to add product');
+    }
   };
 
-  const handleUpdateProduct = (updatedProduct) => {
-    setProducts(
-      products.map((p) =>
-        p.id === editingProduct.id ? { ...updatedProduct, id: p.id, stock: p.stock, status: p.status, createdAt: p.createdAt } : p
-      )
-    );
-    setEditingProduct(null);
-    alert('Product updated successfully');
+  const handleUpdateProduct = async (updatedProduct) => {
+    try {
+      const productId = editingProduct._id || editingProduct.id;
+      const response = await productsAPI.update(productId, updatedProduct);
+      if (response.success) {
+        setProducts(
+          products.map((p) =>
+            (p._id || p.id) === productId ? response.data : p
+          )
+        );
+        setEditingProduct(null);
+        alert('Product updated successfully');
+      }
+    } catch (err) {
+      console.error('Error updating product:', err);
+      alert('Failed to update product');
+    }
   };
 
   return (
@@ -251,75 +291,87 @@ export function AdminProductsPage() {
 
               {/* Products Table */}
               <div className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-slate-700 hover:bg-slate-700/50 bg-slate-900">
-                      <TableHead className="text-slate-300">Product</TableHead>
-                      <TableHead className="text-slate-300">Category</TableHead>
-                      <TableHead className="text-slate-300">Condition</TableHead>
-                      <TableHead className="text-slate-300">Price</TableHead>
-                      <TableHead className="text-slate-300 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.map((product) => (
-                      <TableRow key={product.id} className="border-slate-700 hover:bg-slate-700/50">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={product.image || 'https://via.placeholder.com/100'}
-                              alt={product.name}
-                              className="w-12 h-12 rounded object-cover"
-                            />
-                            <div>
-                              <p className="font-medium text-white">{product.name}</p>
-                              <p className="text-sm text-slate-400 line-clamp-1">
-                                {product.description}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-slate-300">{product.category}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={product.condition === 'New' ? 'default' : 'secondary'}
-                            className={
-                              product.condition === 'New'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-blue-600 text-white'
-                            }
-                          >
-                            {product.condition}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-white font-medium">
-                          R {product.price.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingProduct(product)}
-                              className="text-blue-400 hover:text-blue-300 hover:bg-slate-700"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeleteProduct(product)}
-                              className="text-red-400 hover:text-red-300 hover:bg-slate-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {loading ? (
+                  <div className="text-center py-12 text-slate-400">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-4">Loading products...</p>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-12 text-red-400">
+                    <p>{error}</p>
+                    <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700 hover:bg-slate-700/50 bg-slate-900">
+                        <TableHead className="text-slate-300">Product</TableHead>
+                        <TableHead className="text-slate-300">Category</TableHead>
+                        <TableHead className="text-slate-300">Condition</TableHead>
+                        <TableHead className="text-slate-300">Price</TableHead>
+                        <TableHead className="text-slate-300 text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredProducts.length === 0 && (
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProducts.map((product) => (
+                        <TableRow key={product._id || product.id} className="border-slate-700 hover:bg-slate-700/50">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={product.image || 'https://placehold.co/100x100/3b82f6/white?text=Product'}
+                                alt={product.name}
+                                className="w-12 h-12 rounded object-cover"
+                              />
+                              <div>
+                                <p className="font-medium text-white">{product.name}</p>
+                                <p className="text-sm text-slate-400 line-clamp-1">
+                                  {product.description}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-slate-300">{product.category}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={product.condition === 'New' ? 'default' : 'secondary'}
+                              className={
+                                product.condition === 'New'
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-blue-600 text-white'
+                              }
+                            >
+                              {product.condition}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-white font-medium">
+                            R {product.price?.toLocaleString() || 0}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingProduct(product)}
+                                className="text-blue-400 hover:text-blue-300 hover:bg-slate-700"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteProduct(product)}
+                                className="text-red-400 hover:text-red-300 hover:bg-slate-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+                {filteredProducts.length === 0 && !loading && !error && (
                   <div className="text-center py-12 text-slate-400">
                     No products found
                   </div>
