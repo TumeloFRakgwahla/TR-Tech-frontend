@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   SidebarProvider,
@@ -40,7 +40,7 @@ import {
 import { Badge } from '../../components/badge';
 import { Textarea } from '../../components/ui/textarea';
 import { Search, Eye, Phone, Mail, MapPin, Plus } from 'lucide-react';
-import { orders as initialOrders } from '../../data/orders';
+import { ordersAPI } from '../../services/api';
 import { Separator } from '../../components/ui/separator';
 import { CreateOrderForm } from '../../components/admin/CreateOrderForm';
 
@@ -49,50 +49,82 @@ const statusColors = {
   Processing: 'bg-blue-600',
   Shipped: 'bg-purple-600',
   Delivered: 'bg-green-600',
+  Completed: 'bg-green-600',
   Cancelled: 'bg-red-600',
 };
 
 const paymentStatusColors = {
-  Pending: 'bg-yellow-600',
-  Paid: 'bg-green-600',
-  Refunded: 'bg-red-600',
+  Cash: 'bg-blue-600',
+  Card: 'bg-green-600',
+  Transfer: 'bg-purple-600',
+  Other: 'bg-gray-600',
 };
 
 export function AdminOrdersPage() {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPayment, setFilterPayment] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isAddOrderOpen, setIsAddOrderOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await ordersAPI.getAll();
+        if (response.success) {
+          setOrders(response.data);
+        } else {
+          setError(response.message);
+        }
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError('Failed to load orders');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.email.toLowerCase().includes(searchTerm.toLowerCase());
+      (order._id?.slice(-6) || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customer?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
-    const matchesPayment = filterPayment === 'all' || order.paymentStatus === filterPayment;
+    const matchesPayment = filterPayment === 'all' || order.paymentMethod === filterPayment;
     return matchesSearch && matchesStatus && matchesPayment;
   });
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(
-      orders.map((order) =>
-        order.id === orderId
-          ? {
-              ...order,
-              status: newStatus,
-              updatedAt: new Date().toISOString(),
-            }
-          : order
-      )
-    );
-    alert('Order status updated');
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const response = await ordersAPI.updateStatus(orderId, newStatus);
+      if (response.success) {
+        setOrders(
+          orders.map((order) =>
+            (order._id || order.id) === orderId
+              ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
+              : order
+          )
+        );
+        alert('Order status updated');
+      }
+    } catch (err) {
+      console.error('Error updating order status:', err);
+      alert('Failed to update order status');
+    }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString('en-ZA', {
       year: 'numeric',
       month: 'short',
@@ -109,23 +141,22 @@ export function AdminOrdersPage() {
     shipped: orders.filter((o) => o.status === 'Shipped').length,
     delivered: orders.filter((o) => o.status === 'Delivered').length,
     totalRevenue: orders
-      .filter((o) => o.paymentStatus === 'Paid')
-      .reduce((sum, o) => sum + o.total, 0),
+      .filter((o) => o.status === 'Completed')
+      .reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0),
   };
 
-  const handleAddOrder = (newOrder) => {
-    const orderNumber = `ORD-2026-${String(orders.length + 1).padStart(3, '0')}`;
-    const now = new Date().toISOString();
-    const order = {
-      ...newOrder,
-      id: Date.now().toString(),
-      orderNumber,
-      createdAt: now,
-      updatedAt: now,
-    };
-    setOrders([order, ...orders]);
-    setIsAddOrderOpen(false);
-    alert('Order created successfully');
+  const handleAddOrder = async (newOrder) => {
+    try {
+      const response = await ordersAPI.create(newOrder);
+      if (response.success) {
+        setOrders([response.data, ...orders]);
+        setIsAddOrderOpen(false);
+        alert('Order created successfully');
+      }
+    } catch (err) {
+      console.error('Error creating order:', err);
+      alert('Failed to create order');
+    }
   };
 
   const handleLogout = () => {
@@ -245,8 +276,12 @@ export function AdminOrdersPage() {
                       </DialogDescription>
                     </DialogHeader>
                     <CreateOrderForm
+                      key={formKey}
                       onSubmit={handleAddOrder}
-                      onCancel={() => setIsAddOrderOpen(false)}
+                      onCancel={() => {
+                        setIsAddOrderOpen(false);
+                        setFormKey(prev => prev + 1);
+                      }}
                     />
                   </DialogContent>
                 </Dialog>
@@ -304,6 +339,7 @@ export function AdminOrdersPage() {
                       <SelectItem value="Processing">Processing</SelectItem>
                       <SelectItem value="Shipped">Shipped</SelectItem>
                       <SelectItem value="Delivered">Delivered</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
                       <SelectItem value="Cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
@@ -312,10 +348,11 @@ export function AdminOrdersPage() {
                       <SelectValue placeholder="All Payment Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Payment Status</SelectItem>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Paid">Paid</SelectItem>
-                      <SelectItem value="Refunded">Refunded</SelectItem>
+                      <SelectItem value="all">All Payment Methods</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Card">Card</SelectItem>
+                      <SelectItem value="Transfer">Transfer</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -338,19 +375,19 @@ export function AdminOrdersPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredOrders.map((order) => (
-                      <TableRow key={order.id} className="border-slate-700 hover:bg-slate-700/50">
-                        <TableCell className="font-mono text-slate-300">{order.orderNumber}</TableCell>
+                      <TableRow key={order._id} className="border-slate-700 hover:bg-slate-700/50">
+                        <TableCell className="font-mono text-slate-300">#{order._id?.slice(-6).toUpperCase() || 'N/A'}</TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-white">{order.customerName}</p>
-                            <p className="text-sm text-slate-400">{order.email}</p>
+                            <p className="font-medium text-white">{order.customer?.name || 'N/A'}</p>
+                            <p className="text-sm text-slate-400">{order.customer?.email || 'N/A'}</p>
                           </div>
                         </TableCell>
                         <TableCell className="text-slate-300">
-                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                          {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}
                         </TableCell>
                         <TableCell className="text-white font-medium">
-                          R {order.total.toLocaleString()}
+                          R {(order.totalAmount || 0).toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <Badge className={`${statusColors[order.status] || 'bg-gray-600'} text-white`}>
@@ -358,8 +395,8 @@ export function AdminOrdersPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${paymentStatusColors[order.paymentStatus] || 'bg-gray-600'} text-white`}>
-                            {order.paymentStatus}
+                          <Badge className={`${paymentStatusColors[order.paymentMethod] || 'bg-gray-600'} text-white`}>
+                            {order.paymentMethod}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-slate-400 text-sm">
@@ -400,7 +437,7 @@ export function AdminOrdersPage() {
               <OrderDetailsView
                 order={selectedOrder}
                 onUpdateStatus={(status) => {
-                  updateOrderStatus(selectedOrder.id, status);
+                  updateOrderStatus(selectedOrder._id, status);
                   setSelectedOrder({ ...selectedOrder, status });
                 }}
                 onClose={() => setSelectedOrder(null)}
@@ -459,7 +496,7 @@ function OrderDetailsView({ order, onUpdateStatus, onClose }) {
             {order.items.map((item, index) => (
               <div key={index} className="flex items-center gap-4 p-4">
                 <img
-                  src={item.image || 'https://via.placeholder.com/100'}
+                  src={item.image || 'https://placehold.co/100x100/3b82f6/white?text=Item'}
                   alt={item.productName}
                   className="w-16 h-16 rounded object-cover"
                 />
@@ -480,11 +517,11 @@ function OrderDetailsView({ order, onUpdateStatus, onClose }) {
           <div className="p-4 space-y-2">
             <div className="flex justify-between text-white">
               <span>Subtotal</span>
-              <span>R {order.subtotal.toLocaleString()}</span>
+              <span>R {(order.totalAmount || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-white">
               <span>Total</span>
-              <span>R {order.total.toLocaleString()}</span>
+              <span>R {(order.totalAmount || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -503,6 +540,7 @@ function OrderDetailsView({ order, onUpdateStatus, onClose }) {
               <SelectItem value="Processing">Processing</SelectItem>
               <SelectItem value="Shipped">Shipped</SelectItem>
               <SelectItem value="Delivered">Delivered</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
               <SelectItem value="Cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
@@ -511,8 +549,8 @@ function OrderDetailsView({ order, onUpdateStatus, onClose }) {
         <div className="space-y-2">
           <Label className="text-white">Payment Status</Label>
           <div className="flex items-center h-10 px-3 rounded-md border border-slate-700 bg-slate-900">
-            <Badge className={`${paymentStatusColors[order.paymentStatus] || 'bg-gray-600'} text-white`}>
-              {order.paymentStatus}
+            <Badge className={`${paymentStatusColors[order.paymentMethod] || 'bg-gray-600'} text-white`}>
+              {order.paymentMethod}
             </Badge>
           </div>
         </div>

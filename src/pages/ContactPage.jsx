@@ -17,6 +17,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
 import { Button } from "../components/button.jsx";
+import { contactAPI } from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name || !formData.message) {
@@ -39,7 +40,13 @@ const Contact = () => {
       return;
     }
 
-    const message = `
+    try {
+      // Submit to backend API
+      const response = await contactAPI.submit(formData);
+      
+      if (response.success) {
+        // Also open WhatsApp for convenience
+        const message = `
 Hi! Contact Form Submission:
 
 Name: ${formData.name}
@@ -49,12 +56,19 @@ Subject: ${formData.subject}
 
 Message:
 ${formData.message}
-    `.trim();
+        `.trim();
 
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/27791002552?text=${encodedMessage}`, '_blank');
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/27791002552?text=${encodedMessage}`, '_blank');
 
-    alert('Redirecting to WhatsApp...');
+        alert('Message sent successfully!');
+      } else {
+        alert('Failed to send message. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      alert('An error occurred. Please try again or contact us directly.');
+    }
 
     // Reset form
     setFormData({

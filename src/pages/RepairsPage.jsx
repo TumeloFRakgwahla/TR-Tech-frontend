@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import { toast } from 'sonner';
 import { Wrench, CheckCircle, MessageCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
+import { repairsAPI } from '../services/api';
 
 export function RepairsPage() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ export function RepairsPage() {
     issue: '',
     additionalInfo: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const deviceTypes = [
     'Smartphone',
@@ -29,7 +31,7 @@ export function RepairsPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name || !formData.phone || !formData.deviceType || !formData.issue) {
@@ -37,23 +39,39 @@ export function RepairsPage() {
       return;
     }
 
-    const message = `
-Hi! I'd like to book a repair:
+    setIsLoading(true);
 
-Name: ${formData.name}
-Email: ${formData.email}
-Phone: ${formData.phone}
-Device Type: ${formData.deviceType}
-Brand: ${formData.brand}
-Model: ${formData.model}
-Issue: ${formData.issue}
-Additional Info: ${formData.additionalInfo || 'N/A'}
-    `.trim();
+    try {
+      // Submit to backend API first
+      const response = await repairsAPI.create({
+        customer: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        },
+        device: {
+          type: formData.deviceType,
+          brand: formData.brand,
+          model: formData.model,
+        },
+        issue: formData.issue,
+        additionalInfo: formData.additionalInfo,
+      });
 
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/27791002552?text=${encodedMessage}`, '_blank');
+      if (response.success) {
+        // Also open WhatsApp for convenience
+        const message = `Hi! I've just submitted a repair request (ID: ${response.data._id}). ${formData.issue}`;
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/27791002552?text=${encodedMessage}`, '_blank');
 
-    toast.success('Redirecting to WhatsApp...');
+        toast.success('Repair request submitted successfully!');
+      }
+    } catch (err) {
+      console.error('Error submitting repair request:', err);
+      toast.error('Failed to submit repair request. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
 
     // Reset form
     setFormData({
@@ -223,9 +241,10 @@ Additional Info: ${formData.additionalInfo || 'N/A'}
                 <Button
                   type="submit"
                   size="lg"
+                  disabled={isLoading}
                   className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300"
                 >
-                  Submit Repair Request via WhatsApp
+                  {isLoading ? 'Submitting...' : 'Submit Repair Request via WhatsApp'}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center">

@@ -130,17 +130,17 @@ export function CartDrawer({ children }) {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="space-y-2">
+                <div className="space-y-2 p-3">
                   <Button
                     onClick={handleCheckout}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11"
+                    className="w-full bg-white border-2 border-black  hover:bg-black/90 hover:text-white text-black h-11"
                   >
                     Checkout via WhatsApp
                   </Button>
                   <Button
                     onClick={clearCart}
                     variant="outline"
-                    className="w-full h-10"
+                    className="w-full bg-white border-2 border-black  hover:bg-black/90 hover:text-white text-black h-10"
                   >
                     Clear Cart
                   </Button>

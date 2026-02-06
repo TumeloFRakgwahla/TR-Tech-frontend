@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   SidebarProvider,
   Sidebar,
@@ -39,8 +40,8 @@ import {
 } from '../../components/ui/select';
 import { Badge } from '../../components/badge';
 import { Textarea } from '../../components/ui/textarea';
-import { Search, Eye, Phone, Mail, Plus } from 'lucide-react';
-import { repairRequests as initialRepairs } from '../../data/repairs';
+import { Search, Eye, Phone, Mail, Plus, Loader2 } from 'lucide-react';
+import { repairsAPI } from '../../services/api';
 
 const statusColors = {
   Pending: 'bg-yellow-600',
@@ -51,54 +52,89 @@ const statusColors = {
 
 export function AdminRepairsPage() {
   const navigate = useNavigate();
-  const [repairs, setRepairs] = useState(initialRepairs);
+  const [repairs, setRepairs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDevice, setFilterDevice] = useState('all');
   const [selectedRepair, setSelectedRepair] = useState(null);
   const [isAddRepairOpen, setIsAddRepairOpen] = useState(false);
 
-  const deviceTypes = Array.from(new Set(repairs.map((r) => r.deviceType)));
+  // Fetch repairs from backend
+  useEffect(() => {
+    fetchRepairs();
+  }, []);
+
+  const fetchRepairs = async () => {
+    try {
+      setIsLoading(true);
+      const response = await repairsAPI.getAll();
+      if (response.success) {
+        setRepairs(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching repairs:', error);
+      toast.error('Failed to load repairs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deviceTypes = Array.from(new Set(repairs.map((r) => r.device?.type || r.deviceType)));
 
   const filteredRepairs = repairs.filter((repair) => {
+    const customerName = repair.customer?.name || repair.customerName || '';
+    const deviceType = repair.device?.type || repair.deviceType || '';
+    const brand = repair.device?.brand || repair.brand || '';
+    const model = repair.device?.model || repair.model || '';
+    const id = repair._id || repair.id || '';
+
     const matchesSearch =
-      repair.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repair.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repair.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repair.id.toLowerCase().includes(searchTerm.toLowerCase());
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || repair.status === filterStatus;
-    const matchesDevice = filterDevice === 'all' || repair.deviceType === filterDevice;
+    const matchesDevice = filterDevice === 'all' || deviceType === filterDevice;
     return matchesSearch && matchesStatus && matchesDevice;
   });
 
-  const updateRepairStatus = (repairId, newStatus) => {
-    setRepairs(
-      repairs.map((repair) =>
-        repair.id === repairId
-          ? {
-              ...repair,
-              status: newStatus,
-              updatedAt: new Date().toISOString(),
-            }
-          : repair
-      )
-    );
-    alert('Repair status updated');
+  const updateRepairStatus = async (repairId, newStatus) => {
+    try {
+      const response = await repairsAPI.update(repairId, { status: newStatus });
+      if (response.success) {
+        setRepairs(
+          repairs.map((repair) =>
+            (repair._id || repair.id) === repairId
+              ? { ...repair, status: newStatus, updatedAt: new Date().toISOString() }
+              : repair
+          )
+        );
+        toast.success('Repair status updated');
+      }
+    } catch (error) {
+      console.error('Error updating repair status:', error);
+      toast.error('Failed to update repair status');
+    }
   };
 
-  const updateRepairNotes = (repairId, notes) => {
-    setRepairs(
-      repairs.map((repair) =>
-        repair.id === repairId
-          ? {
-              ...repair,
-              notes,
-              updatedAt: new Date().toISOString(),
-            }
-          : repair
-      )
-    );
-    alert('Notes updated successfully');
+  const updateRepairNotes = async (repairId, notes) => {
+    try {
+      const response = await repairsAPI.update(repairId, { notes });
+      if (response.success) {
+        setRepairs(
+          repairs.map((repair) =>
+            (repair._id || repair.id) === repairId
+              ? { ...repair, notes, updatedAt: new Date().toISOString() }
+              : repair
+          )
+        );
+        toast.success('Notes updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating repair notes:', error);
+      toast.error('Failed to update notes');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -118,17 +154,33 @@ export function AdminRepairsPage() {
     completed: repairs.filter((r) => r.status === 'Completed').length,
   };
 
-  const handleAddRepair = (newRepair) => {
-    const now = new Date().toISOString();
-    const repair = {
-      ...newRepair,
-      id: Date.now().toString(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    setRepairs([repair, ...repairs]);
-    setIsAddRepairOpen(false);
-    alert('Repair request created successfully');
+  const handleAddRepair = async (newRepair) => {
+    try {
+      const response = await repairsAPI.create({
+        customer: {
+          name: newRepair.customerName,
+          email: newRepair.email,
+          phone: newRepair.phone,
+        },
+        device: {
+          type: newRepair.deviceType,
+          brand: newRepair.brand,
+          model: newRepair.model,
+        },
+        issue: newRepair.issue,
+        status: newRepair.status,
+        notes: newRepair.notes,
+      });
+
+      if (response.success) {
+        setRepairs([response.data, ...repairs]);
+        setIsAddRepairOpen(false);
+        toast.success('Repair request created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating repair:', error);
+      toast.error('Failed to create repair request');
+    }
   };
 
   const handleLogout = () => {
@@ -314,60 +366,69 @@ export function AdminRepairsPage() {
 
               {/* Repairs Table */}
               <div className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-slate-700 hover:bg-slate-700/50 bg-slate-900">
-                      <TableHead className="text-slate-300">Request ID</TableHead>
-                      <TableHead className="text-slate-300">Customer</TableHead>
-                      <TableHead className="text-slate-300">Device</TableHead>
-                      <TableHead className="text-slate-300">Issue</TableHead>
-                      <TableHead className="text-slate-300">Status</TableHead>
-                      <TableHead className="text-slate-300">Created</TableHead>
-                      <TableHead className="text-slate-300 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRepairs.map((repair) => (
-                      <TableRow key={repair.id} className="border-slate-700 hover:bg-slate-700/50">
-                        <TableCell className="font-mono text-slate-300">#{repair.id}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-white">{repair.customerName}</p>
-                            <p className="text-sm text-slate-400">{repair.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-white">{repair.brand} {repair.model}</p>
-                            <p className="text-sm text-slate-400">{repair.deviceType}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-slate-300 max-w-xs truncate">
-                          {repair.issue}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${statusColors[repair.status] || 'bg-gray-600'} text-white`}>
-                            {repair.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-slate-400 text-sm">
-                          {formatDate(repair.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedRepair(repair)}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-slate-700"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <span className="ml-2 text-slate-400">Loading repairs...</span>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700 hover:bg-slate-700/50 bg-slate-900">
+                        <TableHead className="text-slate-300">Request ID</TableHead>
+                        <TableHead className="text-slate-300">Customer</TableHead>
+                        <TableHead className="text-slate-300">Device</TableHead>
+                        <TableHead className="text-slate-300">Issue</TableHead>
+                        <TableHead className="text-slate-300">Status</TableHead>
+                        <TableHead className="text-slate-300">Created</TableHead>
+                        <TableHead className="text-slate-300 text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredRepairs.length === 0 && (
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRepairs.map((repair) => (
+                        <TableRow key={repair._id || repair.id} className="border-slate-700 hover:bg-slate-700/50">
+                          <TableCell className="font-mono text-slate-300">
+                            #{repair._id ? repair._id.substring(0, 8) : repair.id}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-white">{repair.customer?.name || repair.customerName}</p>
+                              <p className="text-sm text-slate-400">{repair.customer?.email || repair.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="text-white">{repair.device?.brand || repair.brand} {repair.device?.model || repair.model}</p>
+                              <p className="text-sm text-slate-400">{repair.device?.type || repair.deviceType}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-slate-300 max-w-xs truncate">
+                            {repair.issue}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${statusColors[repair.status] || 'bg-gray-600'} text-white`}>
+                              {repair.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-slate-400 text-sm">
+                            {formatDate(repair.createdAt)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedRepair(repair)}
+                              className="text-blue-400 hover:text-blue-300 hover:bg-slate-700"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+                {!isLoading && filteredRepairs.length === 0 && (
                   <div className="text-center py-12 text-slate-400">No repair requests found</div>
                 )}
               </div>
@@ -380,7 +441,9 @@ export function AdminRepairsPage() {
           <Dialog open={!!selectedRepair} onOpenChange={() => setSelectedRepair(null)}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
               <DialogHeader>
-                <DialogTitle className="text-white">Repair Request #{selectedRepair.id}</DialogTitle>
+                <DialogTitle className="text-white">
+                  Repair Request #{selectedRepair._id ? selectedRepair._id.substring(0, 8) : selectedRepair.id}
+                </DialogTitle>
                 <DialogDescription className="text-slate-400">
                   View and update repair request details
                 </DialogDescription>
@@ -388,11 +451,13 @@ export function AdminRepairsPage() {
               <RepairDetailsForm
                 repair={selectedRepair}
                 onUpdateStatus={(status) => {
-                  updateRepairStatus(selectedRepair.id, status);
+                  const id = selectedRepair._id || selectedRepair.id;
+                  updateRepairStatus(id, status);
                   setSelectedRepair({ ...selectedRepair, status });
                 }}
                 onUpdateNotes={(notes) => {
-                  updateRepairNotes(selectedRepair.id, notes);
+                  const id = selectedRepair._id || selectedRepair.id;
+                  updateRepairNotes(id, notes);
                   setSelectedRepair({ ...selectedRepair, notes });
                 }}
                 onClose={() => setSelectedRepair(null)}
@@ -407,6 +472,25 @@ export function AdminRepairsPage() {
 
 function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
   const [notes, setNotes] = useState(repair.notes || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const repairId = repair._id || repair.id;
+
+  // Helper to get nested or flat property
+  const getCustomerName = () => repair.customer?.name || repair.customerName || '';
+  const getCustomerEmail = () => repair.customer?.email || repair.email || '';
+  const getCustomerPhone = () => repair.customer?.phone || repair.phone || '';
+  const getDeviceType = () => repair.device?.type || repair.deviceType || '';
+  const getDeviceBrand = () => repair.device?.brand || repair.brand || '';
+  const getDeviceModel = () => repair.device?.model || repair.model || '';
+
+  const handleSaveNotes = async () => {
+    setIsSaving(true);
+    try {
+      await onUpdateNotes(repairId, notes);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -416,20 +500,20 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <p className="text-sm text-slate-400">Name</p>
-            <p className="font-medium text-white">{repair.customerName}</p>
+            <p className="font-medium text-white">{getCustomerName()}</p>
           </div>
           <div>
             <p className="text-sm text-slate-400">Email</p>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-slate-400" />
-              <p className="font-medium text-white">{repair.email}</p>
+              <p className="font-medium text-white">{getCustomerEmail()}</p>
             </div>
           </div>
           <div className="md:col-span-2">
             <p className="text-sm text-slate-400">Phone</p>
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-slate-400" />
-              <p className="font-medium text-white">{repair.phone}</p>
+              <p className="font-medium text-white">{getCustomerPhone()}</p>
             </div>
           </div>
         </div>
@@ -441,15 +525,15 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <p className="text-sm text-slate-400">Device Type</p>
-            <p className="font-medium text-white">{repair.deviceType}</p>
+            <p className="font-medium text-white">{getDeviceType()}</p>
           </div>
           <div>
             <p className="text-sm text-slate-400">Brand</p>
-            <p className="font-medium text-white">{repair.brand}</p>
+            <p className="font-medium text-white">{getDeviceBrand()}</p>
           </div>
           <div className="md:col-span-2">
             <p className="text-sm text-slate-400">Model</p>
-            <p className="font-medium text-white">{repair.model}</p>
+            <p className="font-medium text-white">{getDeviceModel()}</p>
           </div>
         </div>
       </div>
@@ -462,10 +546,20 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
         </div>
       </div>
 
+      {/* Additional Info */}
+      {repair.additionalInfo && (
+        <div className="space-y-2">
+          <Label className="text-white">Additional Information</Label>
+          <div className="bg-slate-900 rounded-lg p-4">
+            <p className="text-white">{repair.additionalInfo}</p>
+          </div>
+        </div>
+      )}
+
       {/* Status Update */}
       <div className="space-y-2">
         <Label htmlFor="status" className="text-white">Status</Label>
-        <Select value={repair.status} onValueChange={onUpdateStatus}>
+        <Select value={repair.status} onValueChange={(status) => onUpdateStatus(repairId, status)}>
           <SelectTrigger id="status" className="bg-slate-900 border-slate-700 text-white">
             <SelectValue />
           </SelectTrigger>
@@ -491,6 +585,17 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
         />
       </div>
 
+      {/* Save Notes Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSaveNotes}
+          disabled={isSaving}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          {isSaving ? 'Saving...' : 'Save Notes'}
+        </Button>
+      </div>
+
       {/* Timestamps */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
         <div>
@@ -498,7 +603,7 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
           <p className="text-white">
             {new Date(repair.createdAt).toLocaleString('en-ZA', {
               year: 'numeric',
-              month: 'long',
+              month: 'short',
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
@@ -510,7 +615,7 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
           <p className="text-white">
             {new Date(repair.updatedAt).toLocaleString('en-ZA', {
               year: 'numeric',
-              month: 'long',
+              month: 'short',
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
@@ -520,18 +625,9 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2 pt-4">
+      <div className="flex justify-end pt-4">
         <Button variant="outline" onClick={onClose} className="border-slate-600 text-white hover:bg-slate-700">
           Close
-        </Button>
-        <Button
-          onClick={() => {
-            onUpdateNotes(notes);
-            onClose();
-          }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Save Changes
         </Button>
       </div>
     </div>
