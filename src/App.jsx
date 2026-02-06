@@ -22,12 +22,14 @@ import AdminProducts from './pages/Admin/AdminProductsPage';
 import AdminRepairs from './pages/Admin/AdminRepairsPage';
 import AdminOrders from './pages/Admin/AdminOrdersPage';
 import { CartProvider } from './components/CartContext';
+import { AuthProvider } from './components/AuthContext';
 
 function App() {
   return (
     // BrowserRouter enables client-side routing for the entire app
     <Router>
-      <CartProvider>
+      <AuthProvider>
+        <CartProvider>
         {/* Routes component contains all our route definitions */}
         <Routes>
           {/* Each Route maps a URL path to a React component */}
@@ -44,7 +46,8 @@ function App() {
           <Route path="/admin/repairs" element={<AdminRepairs />} /> {/* Admin repairs */}
           <Route path="/admin/orders" element={<AdminOrders />} /> {/* Admin orders */}
         </Routes>
-      </CartProvider>
+        </CartProvider>
+        </AuthProvider>
     </Router>
   );
 }

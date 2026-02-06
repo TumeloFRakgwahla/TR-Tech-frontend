@@ -229,11 +229,62 @@ export const healthCheck = async () => {
   return handleResponse(response);
 };
 
+/**
+ * Auth API
+ */
+export const authAPI = {
+  // Register a new user
+  register: async (userData) => {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    return handleResponse(response);
+  },
+
+  // Login user
+  login: async (credentials) => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    return handleResponse(response);
+  },
+
+  // Get current user profile
+  getMe: async () => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return handleResponse(response);
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE_URL}/auth/updateprofile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+    return handleResponse(response);
+  },
+};
+
 export default {
   products: productsAPI,
   services: servicesAPI,
   orders: ordersAPI,
   contact: contactAPI,
   repairs: repairsAPI,
+  auth: authAPI,
   healthCheck,
 };
