@@ -8,6 +8,7 @@ import { useCart } from './CartContext';
 import { AuthModal } from './AuthModal';
 import { toast } from 'sonner';
 import { ShoppingBag, User, MapPin, CreditCard, Check } from 'lucide-react';
+import { ordersAPI } from '../services/api';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
@@ -26,6 +27,7 @@ export function CheckoutModal({ open, onOpenChange }) {
     province: user?.address?.province || '',
     notes: '',
   });
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
 
   React.useEffect(() => {
     if (open) {
@@ -60,7 +62,13 @@ export function CheckoutModal({ open, onOpenChange }) {
     setDeliveryDetails({ ...deliveryDetails, [e.target.name]: e.target.value });
   };
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
+    // Validate cart is not empty
+    if (!cart || cart.length === 0) {
+      toast.error('Your cart is empty. Add items before checkout.');
+      return;
+    }
+
     if (!deliveryDetails.name || !deliveryDetails.email || !deliveryDetails.phone || !deliveryDetails.street || !deliveryDetails.city) {
       toast.error('Please fill in all required fields');
       return;
@@ -68,29 +76,69 @@ export function CheckoutModal({ open, onOpenChange }) {
 
     setLoading(true);
 
-    // Simulate order submission and redirect to WhatsApp
-    setTimeout(() => {
-      const orderDetails = cart
-        .map((item) => `${item.name} (${item.condition}) x${item.quantity} - R${(item.price * item.quantity).toFixed(2)}`)
-        .join('\n');
+    try {
+      // Prepare order data
+      const orderData = {
+        items: cart.map(item => ({
+          product: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          condition: item.condition
+        })),
+        customer: {
+          name: deliveryDetails.name,
+          email: deliveryDetails.email,
+          phone: deliveryDetails.phone,
+          address: {
+            street: deliveryDetails.street,
+            city: deliveryDetails.city,
+            postalCode: deliveryDetails.postalCode,
+            province: deliveryDetails.province
+          }
+        },
+        totalAmount: totalPrice,
+        paymentMethod: paymentMethod,
+        status: 'Pending',
+        paymentStatus: 'Pending',
+        notes: deliveryDetails.notes
+      };
 
-      const message = encodeURIComponent(
-        `Hi! I'd like to place an order:\n\n` +
-        `Customer: ${deliveryDetails.name}\n` +
-        `Email: ${deliveryDetails.email}\n` +
-        `Phone: ${deliveryDetails.phone}\n` +
-        `Address: ${deliveryDetails.street}, ${deliveryDetails.city}, ${deliveryDetails.province} ${deliveryDetails.postalCode}\n\n` +
-        `ORDER DETAILS:\n${orderDetails}\n\n` +
-        `Total: R${totalPrice.toFixed(2)}\n\n` +
-        `Notes: ${deliveryDetails.notes || 'None'}`
-      );
+      // Save order to backend
+      const response = await ordersAPI.create(orderData);
+      
+      if (response.success) {
+        // After saving to backend, send order details via WhatsApp
+        const orderDetails = cart
+          .map((item) => `${item.name} (${item.condition}) x${item.quantity} - R${(item.price * item.quantity).toFixed(2)}`)
+          .join('\n');
 
-      window.open(`https://wa.me/27791002552?text=${message}`, '_blank');
-      toast.success('Order submitted! Redirecting to WhatsApp...');
-      clearCart();
+        const message = encodeURIComponent(
+          `Hi! I'd like to place an order:\n\n` +
+          `Order ID: ${response.data._id}\n\n` +
+          `Customer: ${deliveryDetails.name}\n` +
+          `Email: ${deliveryDetails.email}\n` +
+          `Phone: ${deliveryDetails.phone}\n` +
+          `Address: ${deliveryDetails.street}, ${deliveryDetails.city}, ${deliveryDetails.province} ${deliveryDetails.postalCode}\n\n` +
+          `ORDER DETAILS:\n${orderDetails}\n\n` +
+          `Payment Method: ${paymentMethod}\n` +
+          `Total: R${totalPrice.toFixed(2)}\n\n` +
+          `Notes: ${deliveryDetails.notes || 'None'}`
+        );
+
+        window.open(`https://wa.me/27791002552?text=${message}`, '_blank');
+        toast.success('Order submitted and saved! Redirecting to WhatsApp...');
+        clearCart();
+        onOpenChange(false);
+      } else {
+        toast.error(response.message || 'Failed to save order');
+      }
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      toast.error('Failed to submit order. Please try again.');
+    } finally {
       setLoading(false);
-      onOpenChange(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -109,8 +157,8 @@ export function CheckoutModal({ open, onOpenChange }) {
 
           {/* Progress Steps */}
           <div className="flex items-center justify-between mb-6">
-            {['Auth', 'Details', 'Confirm'].map((s, index) => {
-              const stepIndex = ['auth', 'details', 'confirmation'].indexOf(step);
+            {['Auth', 'Details', 'Payment', 'Confirm'].map((s, index) => {
+              const stepIndex = ['auth', 'details', 'payment', 'confirmation'].indexOf(step);
               const isActive = stepIndex >= index;
               const isCurrent = stepIndex === index;
 
@@ -130,7 +178,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                       {s}
                     </span>
                   </div>
-                  {index < 2 && (
+                  {index < 3 && (
                     <div className={`flex-1 h-0.5 mx-4 ${isActive ? 'bg-primary' : 'bg-muted'}`} />
                   )}
                 </React.Fragment>
@@ -286,10 +334,56 @@ export function CheckoutModal({ open, onOpenChange }) {
               <Button
                 className="w-full"
                 size="lg"
-                onClick={() => setStep('confirmation')}
+                onClick={() => setStep('payment')}
               >
-                Continue to Confirm
+                Continue to Payment
               </Button>
+            </div>
+          )}
+
+          {/* Payment Method Step */}
+          {step === 'payment' && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-2 mb-4">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-medium">Select Payment Method</h3>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {['Cash', 'Card', 'Transfer', 'Other'].map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setPaymentMethod(method)}
+                    className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+                      paymentMethod === method
+                        ? 'border-primary bg-primary/10'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <span className="font-medium">{method}</span>
+                    {paymentMethod === method && (
+                      <Check className="h-5 w-5 text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setStep('details')}
+                >
+                  Back
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => setStep('confirmation')}
+                >
+                  Continue to Confirm
+                </Button>
+              </div>
             </div>
           )}
 
@@ -327,6 +421,12 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <p className="text-sm">{deliveryDetails.phone}</p>
               </div>
 
+              {/* Payment Method */}
+              <div className="border rounded-lg p-4 space-y-2">
+                <h4 className="font-medium">Payment Method:</h4>
+                <p className="text-sm capitalize">{paymentMethod}</p>
+              </div>
+
               {/* Total */}
               <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
                 <span className="font-semibold">Total</span>
@@ -337,7 +437,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <Button
                   variant="outline"
                   className="flex-1"
-                  onClick={() => setStep('details')}
+                  onClick={() => setStep('payment')}
                 >
                   Back
                 </Button>

@@ -586,7 +586,7 @@ function OrderDetailsView({ order, onUpdateStatus, onClose }) {
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onClose} className="border-slate-600 text-white hover:bg-slate-700">
+        <Button variant="outline" onClick={onClose} className="bg-slate-600 hover:bg-slate-700 text-white">
           Close
         </Button>
       </div>

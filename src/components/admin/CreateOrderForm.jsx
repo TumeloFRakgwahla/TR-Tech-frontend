@@ -159,7 +159,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
             variant="outline"
             size="sm"
             onClick={addItem}
-            className="border-slate-600 text-white hover:bg-slate-800"
+            className="bg-slate-600 hover:bg-slate-700 text-white"
           >
             <Plus className="w-4 h-4 mr-1" />
             Add Item
@@ -291,7 +291,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} className="border-slate-600 text-white hover:bg-slate-700">
+        <Button type="button" variant="secondary" onClick={onCancel} className="bg-slate-600 hover:bg-slate-700 text-white">
           Cancel
         </Button>
         <Button type="submit" className="bg-green-600 hover:bg-green-700">
