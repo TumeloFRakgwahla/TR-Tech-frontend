@@ -12,6 +12,7 @@ import {
 } from '../ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { productsAPI } from '../../services/api';
+import { PAYMENT_STATUSES } from '../../constants';
 
 export function CreateOrderForm({ onSubmit, onCancel }) {
   const [products, setProducts] = useState([]);
@@ -21,6 +22,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
   const [address, setAddress] = useState('');
   const [status, setStatus] = useState('Pending');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [paymentStatus, setPaymentStatus] = useState('Pending');
   const [items, setItems] = useState([
     { productId: '', productName: '', quantity: 1, price: 0, image: '' },
   ]);
@@ -86,7 +88,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
       },
       status: status,
       paymentMethod: paymentMethod,
-      paymentStatus: 'Paid', // Orders created from admin are considered paid
+      paymentStatus: paymentStatus, // Configurable payment status
       items: validItems.map((item) => ({
         product: item.productId,
         name: item.productName,
@@ -274,16 +276,16 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
         <div className="space-y-2">
           <Label htmlFor="paymentStatus" className="text-white">Payment Status</Label>
           <Select 
-            value={items.length > 0 && items[0].productId ? 'Paid' : 'Pending'} 
-            onValueChange={() => {}}
+            value={paymentStatus} 
+            onValueChange={setPaymentStatus}
           >
             <SelectTrigger id="paymentStatus" className="bg-slate-900 border-slate-700 text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Paid">Paid</SelectItem>
-              <SelectItem value="Refunded">Refunded</SelectItem>
+              {PAYMENT_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>{status}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
