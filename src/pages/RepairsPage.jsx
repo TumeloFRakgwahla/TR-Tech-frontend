@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Wrench, CheckCircle, MessageCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { repairsAPI } from '../services/api';
+import { WHATSAPP_NUMBER } from '../constants';
 
 export function RepairsPage() {
   const [formData, setFormData] = useState({
@@ -62,9 +63,21 @@ export function RepairsPage() {
         // Also open WhatsApp for convenience
         const message = `Hi! I've just submitted a repair request (ID: ${response.data._id}). ${formData.issue}`;
         const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/27791002552?text=${encodedMessage}`, '_blank');
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
 
         toast.success('Repair request submitted successfully!');
+        
+        // Reset form only on success
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          deviceType: '',
+          brand: '',
+          model: '',
+          issue: '',
+          additionalInfo: '',
+        });
       }
     } catch (err) {
       console.error('Error submitting repair request:', err);
@@ -72,18 +85,6 @@ export function RepairsPage() {
     } finally {
       setIsLoading(false);
     }
-
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      deviceType: '',
-      brand: '',
-      model: '',
-      issue: '',
-      additionalInfo: '',
-    });
   };
 
   return (

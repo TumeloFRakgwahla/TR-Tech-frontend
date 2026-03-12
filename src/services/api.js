@@ -7,6 +7,9 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Helper function to get auth token
+const getAuthToken = () => localStorage.getItem('authToken');
+
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   const data = await response.json();
@@ -33,30 +36,42 @@ export const productsAPI = {
     return handleResponse(response);
   },
 
-  // Create new product
+  // Create new product (requires auth)
   create: async (productData) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/products`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify(productData),
     });
     return handleResponse(response);
   },
 
-  // Update product
+  // Update product (requires auth)
   update: async (id, productData) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/products/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify(productData),
     });
     return handleResponse(response);
   },
 
-  // Delete product
+  // Delete product (requires auth)
   delete: async (id) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/products/${id}`, {
       method: 'DELETE',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
     });
     return handleResponse(response);
   },
@@ -79,30 +94,42 @@ export const servicesAPI = {
     return handleResponse(response);
   },
 
-  // Create new service
+  // Create new service (requires auth)
   create: async (serviceData) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/services`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify(serviceData),
     });
     return handleResponse(response);
   },
 
-  // Update service
+  // Update service (requires auth)
   update: async (id, serviceData) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/services/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify(serviceData),
     });
     return handleResponse(response);
   },
 
-  // Delete service
+  // Delete service (requires auth)
   delete: async (id) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/services/${id}`, {
       method: 'DELETE',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
     });
     return handleResponse(response);
   },
@@ -112,16 +139,26 @@ export const servicesAPI = {
  * Orders API
  */
 export const ordersAPI = {
-  // Get all orders
+  // Get all orders (requires auth for admin)
   getAll: async (params = {}) => {
+    const token = getAuthToken();
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/orders${queryString ? `?${queryString}` : ''}`);
+    const response = await fetch(`${API_BASE_URL}/orders${queryString ? `?${queryString}` : ''}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+    });
     return handleResponse(response);
   },
 
-  // Get single order by ID
+  // Get single order by ID (requires auth)
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/orders/${id}`);
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+    });
     return handleResponse(response);
   },
 
@@ -135,20 +172,28 @@ export const ordersAPI = {
     return handleResponse(response);
   },
 
-  // Update order status
+  // Update order status (requires auth)
   updateStatus: async (id, status) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ status }),
     });
     return handleResponse(response);
   },
 
-  // Delete order
+  // Delete order (requires auth)
   delete: async (id) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
       method: 'DELETE',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
     });
     return handleResponse(response);
   },
@@ -168,9 +213,14 @@ export const contactAPI = {
     return handleResponse(response);
   },
 
-  // Get all contact messages (admin only)
+  // Get all contact messages (admin only - requires auth)
   getAll: async () => {
-    const response = await fetch(`${API_BASE_URL}/contact`);
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/contact`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+    });
     return handleResponse(response);
   },
 };
@@ -179,16 +229,26 @@ export const contactAPI = {
  * Repairs API
  */
 export const repairsAPI = {
-  // Get all repairs
+  // Get all repairs (requires auth for admin)
   getAll: async (params = {}) => {
+    const token = getAuthToken();
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/repairs${queryString ? `?${queryString}` : ''}`);
+    const response = await fetch(`${API_BASE_URL}/repairs${queryString ? `?${queryString}` : ''}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+    });
     return handleResponse(response);
   },
 
-  // Get single repair by ID
+  // Get single repair by ID (requires auth)
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/repairs/${id}`);
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+    });
     return handleResponse(response);
   },
 
@@ -202,20 +262,28 @@ export const repairsAPI = {
     return handleResponse(response);
   },
 
-  // Update repair
+  // Update repair (requires auth)
   update: async (id, repairData) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify(repairData),
     });
     return handleResponse(response);
   },
 
-  // Delete repair
+  // Delete repair (requires auth)
   delete: async (id) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
       method: 'DELETE',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
     });
     return handleResponse(response);
   },
@@ -283,22 +351,30 @@ export const authAPI = {
  * Upload API
  */
 export const uploadAPI = {
-  // Upload single image
+  // Upload single image (requires auth)
   uploadImage: async (file) => {
+    const token = getAuthToken();
     const formData = new FormData();
     formData.append('image', file);
     
     const response = await fetch(`${API_BASE_URL}/upload/image`, {
       method: 'POST',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: formData,
     });
     return handleResponse(response);
   },
 
-  // Delete image
+  // Delete image (requires auth)
   deleteImage: async (filename) => {
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/upload/image/${filename}`, {
       method: 'DELETE',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
     });
     return handleResponse(response);
   },
