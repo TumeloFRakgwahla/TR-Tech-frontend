@@ -279,6 +279,31 @@ export const authAPI = {
   },
 };
 
+/**
+ * Upload API
+ */
+export const uploadAPI = {
+  // Upload single image
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await fetch(`${API_BASE_URL}/upload/image`, {
+      method: 'POST',
+      body: formData,
+    });
+    return handleResponse(response);
+  },
+
+  // Delete image
+  deleteImage: async (filename) => {
+    const response = await fetch(`${API_BASE_URL}/upload/image/${filename}`, {
+      method: 'DELETE',
+    });
+    return handleResponse(response);
+  },
+};
+
 export default {
   products: productsAPI,
   services: servicesAPI,
@@ -286,5 +311,6 @@ export default {
   contact: contactAPI,
   repairs: repairsAPI,
   auth: authAPI,
+  upload: uploadAPI,
   healthCheck,
 };

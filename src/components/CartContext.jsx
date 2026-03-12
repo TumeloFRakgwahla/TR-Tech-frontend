@@ -6,24 +6,28 @@ const CartContext = createContext(undefined);
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
 
+  // Helper function to get product identifier
+  const getProductId = (product) => product._id || product.id;
+
   const addToCart = (product) => {
+    const productId = getProductId(product);
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find((item) => getProductId(item) === productId);
       if (existingItem) {
         toast.success('Quantity updated in cart');
         return prevCart.map((item) =>
-          item.id === product.id
+          getProductId(item) === productId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       toast.success('Added to cart');
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, id: productId, quantity: 1 }];
     });
   };
 
   const removeFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+    setCart((prevCart) => prevCart.filter((item) => getProductId(item) !== productId));
     toast.success('Removed from cart');
   };
 
@@ -34,7 +38,7 @@ export function CartProvider({ children }) {
     }
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
+        getProductId(item) === productId ? { ...item, quantity } : item
       )
     );
   };

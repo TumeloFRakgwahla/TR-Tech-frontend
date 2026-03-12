@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Smartphone, Headphones, Battery, Cable, HardDrive, Monitor, Star, ShoppingCart } from 'lucide-react';
+import { Smartphone, Headphones, Battery, Cable, HardDrive, Star, ShoppingCart } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { CartProvider, useCart } from '../components/CartContext';
 import { CartDrawer } from '../components/CartDrawer';
@@ -14,14 +14,31 @@ function ShopContent() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
+
+  // Map frontend category IDs to backend values
+  const categoryMap = {
+    'all': 'all',
+    'accessories': 'Accessories',
+    'parts': 'Parts',
+    'tools': 'Tools',
+    'other': 'Other'
+  };
+
+  // Map frontend condition IDs to backend values
+  const conditionMap = {
+    'all': 'all',
+    'new': 'New',
+    'used': 'Used',
+    'refurbished': 'Refurbished'
+  };
 
   const categories = [
     { id: 'all', name: 'All Products', icon: ShoppingCart },
     { id: 'accessories', name: 'Accessories', icon: Headphones },
-    { id: 'batteries', name: 'Batteries', icon: Battery },
-    { id: 'cables', name: 'Cables', icon: Cable },
-    { id: 'storage', name: 'Storage', icon: HardDrive },
-    { id: 'screens', name: 'Screens', icon: Monitor }
+    { id: 'parts', name: 'Parts', icon: Battery },
+    { id: 'tools', name: 'Tools', icon: Cable },
+    { id: 'other', name: 'Other', icon: HardDrive }
   ];
 
   // Fetch products from API
@@ -32,6 +49,8 @@ function ShopContent() {
         const response = await productsAPI.getAll();
         if (response.success) {
           setProducts(response.data);
+          // Clear image errors when products are refetched
+          setImageErrors({});
         } else {
           setError(response.message);
         }
@@ -47,8 +66,12 @@ function ShopContent() {
   }, []);
 
   const filteredProducts = products.filter(product => {
-    const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
-    const conditionMatch = selectedCondition === 'all' || product.condition === selectedCondition;
+    const backendCategory = categoryMap[selectedCategory] || selectedCategory;
+    const backendCondition = conditionMap[selectedCondition] || selectedCondition;
+    const categoryMatch = selectedCategory === 'all' || 
+      product.category?.toLowerCase() === backendCategory.toLowerCase();
+    const conditionMatch = selectedCondition === 'all' || 
+      product.condition?.toLowerCase() === backendCondition.toLowerCase();
     return categoryMatch && conditionMatch;
   });
 
@@ -93,14 +116,14 @@ function ShopContent() {
                   <span className="text-sm">{category.name}</span>
                 </Button>
               ))}
-              {['all', 'new', 'pre-owned'].map((condition) => (
+              {['all', 'new', 'used', 'refurbished'].map((condition) => (
                 <Button
                   key={condition}
                   onClick={() => setSelectedCondition(condition)}
                   variant={selectedCondition === condition ? "default" : "outline"}
                   className="capitalize"
                 >
-                  <span className="text-sm">{condition === 'all' ? 'All' : condition === 'new' ? 'New' : 'Pre-Owned'}</span>
+                  <span className="text-sm">{condition === 'all' ? 'All' : condition === 'new' ? 'New' : condition === 'used' ? 'Used' : 'Refurbished'}</span>
                 </Button>
               ))}
             </div>
@@ -138,14 +161,13 @@ function ShopContent() {
                 filteredProducts.map((product) => (
                   <div key={product._id || product.id} className="bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                     <div className="aspect-square bg-muted flex items-center justify-center">
-                      {product.image ? (
+                      {product.image && !imageErrors[product._id || product.id] ? (
                         <img 
                           src={product.image} 
                           alt={product.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.parentElement.innerHTML = '<Smartphone className="h-24 w-24 text-muted-foreground" />';
+                          className="max-w-full max-h-full object-contain"
+                          onError={() => {
+                            setImageErrors(prev => ({ ...prev, [product._id || product.id]: true }));
                           }}
                         />
                       ) : (

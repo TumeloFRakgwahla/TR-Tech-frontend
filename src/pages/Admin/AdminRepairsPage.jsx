@@ -40,8 +40,17 @@ import {
 } from '../../components/ui/select';
 import { Badge } from '../../components/badge';
 import { Textarea } from '../../components/ui/textarea';
-import { Search, Eye, Phone, Mail, Plus, Loader2 } from 'lucide-react';
-import { repairsAPI } from '../../services/api';
+import { Search, Eye, Phone, Mail, Plus, Loader2, Upload, X } from 'lucide-react';
+import { repairsAPI, uploadAPI } from '../../services/api';
+
+// Get API base URL from environment or use default
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getImageUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith('http')) return url;
+  // Remove /api from base URL for image uploads
+  return `${API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 const statusColors = {
   Pending: 'bg-yellow-600',
@@ -644,9 +653,51 @@ function AddRepairForm({ onSubmit, onClose }) {
   const [issue, setIssue] = useState('');
   const [status, setStatus] = useState('Pending');
   const [notes, setNotes] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle image upload to server
+  const uploadImage = async () => {
+    if (!selectedFile) return '';
+    
+    setIsUploading(true);
+    try {
+      const response = await uploadAPI.uploadImage(selectedFile);
+      if (response.success) {
+        return getImageUrl(response.url);
+      } else {
+        alert('Failed to upload image');
+        return '';
+      }
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('Failed to upload image');
+      return '';
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Upload image if selected
+    const imageUrl = await uploadImage();
+    
     onSubmit({
       customerName,
       email,
@@ -657,7 +708,14 @@ function AddRepairForm({ onSubmit, onClose }) {
       issue,
       status,
       notes,
+      image: imageUrl,
     });
+  };
+
+  // Clear selected file
+  const clearFile = () => {
+    setSelectedFile(null);
+    setImagePreview('');
   };
 
   return (
@@ -730,6 +788,49 @@ function AddRepairForm({ onSubmit, onClose }) {
         </div>
       </div>
 
+      {/* Device Image Upload */}
+      <div className="bg-slate-900 rounded-lg p-4 space-y-3">
+        <h3 className="font-semibold text-white">Device Image (Optional)</h3>
+        <div className="flex items-start gap-4">
+          <div className="flex-1">
+            <div className="relative border-2 border-dashed border-slate-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="text-center">
+                <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                <p className="text-sm text-slate-400">
+                  {selectedFile ? selectedFile.name : 'Click or drag to upload image'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+              </div>
+            </div>
+            {isUploading && (
+              <p className="text-sm text-blue-400 mt-2">Uploading image...</p>
+            )}
+          </div>
+          {imagePreview && (
+            <div className="relative w-24 h-24">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-full object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={clearFile}
+                className="absolute -top-2 -right-2 bg-red-600 rounded-full p-1"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Issue Description */}
       <div className="space-y-2">
         <Label className="text-white">Issue Description</Label>
@@ -773,7 +874,7 @@ function AddRepairForm({ onSubmit, onClose }) {
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onClose} className="border-slate-600 text-white hover:bg-slate-700">
+        <Button variant="outline" onClick={onClose} className="bg-slate-600 hover:bg-slate-700 text-white">
           Close
         </Button>
         <Button
