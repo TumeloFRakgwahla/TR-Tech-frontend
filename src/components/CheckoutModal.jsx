@@ -9,6 +9,7 @@ import { AuthModal } from './AuthModal';
 import { toast } from 'sonner';
 import { ShoppingBag, User, MapPin, CreditCard, Check } from 'lucide-react';
 import { ordersAPI } from '../services/api';
+import { WHATSAPP_NUMBER } from '../constants';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
@@ -80,7 +81,7 @@ export function CheckoutModal({ open, onOpenChange }) {
       // Prepare order data
       const orderData = {
         items: cart.map(item => ({
-          product: item.id,
+          product: item._id || item.id,
           name: item.name,
           quantity: item.quantity,
           price: item.price,
@@ -126,7 +127,7 @@ export function CheckoutModal({ open, onOpenChange }) {
           `Notes: ${deliveryDetails.notes || 'None'}`
         );
 
-        window.open(`https://wa.me/27791002552?text=${message}`, '_blank');
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
         toast.success('Order submitted and saved! Redirecting to WhatsApp...');
         clearCart();
         onOpenChange(false);
