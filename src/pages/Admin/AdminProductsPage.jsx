@@ -39,8 +39,17 @@ import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { productsAPI } from '../../services/api';
+import { Plus, Pencil, Trash2, Search, Upload, X } from 'lucide-react';
+import { productsAPI, uploadAPI } from '../../services/api';
+
+// Get API base URL from environment or use default
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getImageUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith('http')) return url;
+  // Remove /api from base URL for image uploads
+  return `${API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 export function AdminProductsPage() {
   const navigate = useNavigate();
@@ -410,9 +419,9 @@ export function AdminProductsPage() {
               </p>
               <div className="flex justify-end gap-2">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => setDeleteProduct(null)}
-                  className="border-slate-600 text-white hover:bg-slate-700"
+                  className="bg-slate-600 hover:bg-slate-700 text-white"
                 >
                   Cancel
                 </Button>
@@ -440,14 +449,110 @@ function ProductForm({ product, onSubmit, onCancel }) {
     description: product?.description || '',
     image: product?.image || '',
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(product?.image || '');
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle image upload to server
+  const uploadImage = async () => {
+    if (!selectedFile) return formData.image;
+    
+    setIsUploading(true);
+    try {
+      const response = await uploadAPI.uploadImage(selectedFile);
+      if (response.success) {
+        return getImageUrl(response.url);
+      } else {
+        alert('Failed to upload image');
+        return formData.image;
+      }
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('Failed to upload image');
+      return formData.image;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Upload image if selected
+    const imageUrl = await uploadImage();
+    
+    onSubmit({
+      ...formData,
+      image: imageUrl,
+    });
+  };
+
+  // Clear selected file
+  const clearFile = () => {
+    setSelectedFile(null);
+    setImagePreview(product?.image || '');
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Image Upload */}
+      <div className="space-y-2">
+        <Label className="text-white">Product Image</Label>
+        <div className="flex items-start gap-4">
+          <div className="flex-1">
+            <div className="relative border-2 border-dashed border-slate-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="text-center">
+                <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                <p className="text-sm text-slate-400">
+                  {selectedFile ? selectedFile.name : 'Click or drag to upload image'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+              </div>
+            </div>
+            {isUploading && (
+              <p className="text-sm text-blue-400 mt-2">Uploading image...</p>
+            )}
+          </div>
+          {imagePreview && (
+            <div className="relative w-24 h-24">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-full object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={clearFile}
+                className="absolute -top-2 -right-2 bg-red-600 rounded-full p-1"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Form Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-white">Product Name *</Label>
@@ -506,17 +611,6 @@ function ProductForm({ product, onSubmit, onCancel }) {
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="image" className="text-white">Image URL *</Label>
-        <Input
-          id="image"
-          value={formData.image}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          placeholder="https://example.com/image.jpg"
-          className="bg-slate-900 border-slate-700 text-white"
-          required
-        />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="description" className="text-white">Description *</Label>
         <Textarea
           id="description"
@@ -528,10 +622,10 @@ function ProductForm({ product, onSubmit, onCancel }) {
         />
       </div>
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} className="border-slate-600 text-white hover:bg-slate-700">
-          Cancel
+        <Button type="button" variant="secondary" onClick={onCancel} className="bg-slate-600 hover:bg-slate-700 text-white">
+          Close
         </Button>
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+        <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isUploading}>
           {product ? 'Update' : 'Add'} Product
         </Button>
       </div>
