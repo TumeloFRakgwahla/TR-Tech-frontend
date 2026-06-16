@@ -14,6 +14,7 @@ import Home from './pages/HomePage';
 import About from './pages/AboutPage';
 import Services from './pages/ServicesPage';
 import Shop from './pages/ShopPage';
+import ProductDetail from './pages/ProductDetailPage';
 import Contact from './pages/ContactPage';
 import { RepairsPage } from './pages/RepairsPage';
 import AdminLogin from './pages/Admin/AdminLoginPage';
@@ -37,6 +38,7 @@ function App() {
           <Route path="/about" element={<About />} />     {/* About Us page */}
           <Route path="/services" element={<Services />} /> {/* Services offered */}
           <Route path="/shop" element={<Shop />} />       {/* Online shop */}
+          <Route path="/products/:id" element={<ProductDetail />} /> {/* Product details */}
           <Route path="/book-repair" element={<RepairsPage />} /> {/* Repair booking */}
           <Route path="/contact" element={<Contact />} /> {/* Contact information */}
           <Route path="/admin/login" element={<AdminLogin />} /> {/* Admin login */}
