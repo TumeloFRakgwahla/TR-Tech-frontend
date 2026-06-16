@@ -318,6 +318,7 @@ export function AdminProductsPage() {
                         <TableHead className="text-slate-300">Category</TableHead>
                         <TableHead className="text-slate-300">Condition</TableHead>
                         <TableHead className="text-slate-300">Price</TableHead>
+                        <TableHead className="text-slate-300">Stock</TableHead>
                         <TableHead className="text-slate-300 text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -354,6 +355,11 @@ export function AdminProductsPage() {
                           </TableCell>
                           <TableCell className="text-white font-medium">
                             R {product.price?.toLocaleString() || 0}
+                          </TableCell>
+                          <TableCell className="text-white">
+                            <span className={product.stock === 0 ? 'text-red-400' : product.stock <= 5 ? 'text-orange-400' : 'text-green-400'}>
+                              {product.stock || 0}
+                            </span>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
@@ -444,6 +450,7 @@ function ProductForm({ product, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     name: product?.name || '',
     price: product?.price || 0,
+    stock: product?.stock || 0,
     category: product?.category || 'Accessories',
     condition: product?.condition || 'New',
     description: product?.description || '',
@@ -571,6 +578,18 @@ function ProductForm({ product, onSubmit, onCancel }) {
             type="number"
             value={formData.price}
             onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+            className="bg-slate-900 border-slate-700 text-white"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="stock" className="text-white">Stock Quantity *</Label>
+          <Input
+            id="stock"
+            type="number"
+            min="0"
+            value={formData.stock}
+            onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
             className="bg-slate-900 border-slate-700 text-white"
             required
           />

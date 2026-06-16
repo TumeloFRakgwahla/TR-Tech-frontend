@@ -31,6 +31,21 @@ export function CartProvider({ children }) {
 
   const addToCart = (product) => {
     const productId = getProductId(product);
+    
+    // Check if product has sufficient stock
+    const availableStock = product.stock || 0;
+    const currentQuantityInCart = cart.find((item) => getProductId(item) === productId)?.quantity || 0;
+    
+    if (availableStock === 0) {
+      toast.error(`${product.name} is out of stock`);
+      return;
+    }
+    
+    if (currentQuantityInCart >= availableStock) {
+      toast.error(`Cannot add more ${product.name}. Only ${availableStock} available in stock.`);
+      return;
+    }
+    
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => getProductId(item) === productId);
       if (existingItem) {

@@ -136,7 +136,12 @@ export function CheckoutModal({ open, onOpenChange }) {
       }
     } catch (error) {
       console.error('Error submitting order:', error);
-      toast.error('Failed to submit order. Please try again.');
+      // Show specific error message if available from backend
+      if (error.message && error.message.toLowerCase().includes('insufficient stock')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to submit order. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
