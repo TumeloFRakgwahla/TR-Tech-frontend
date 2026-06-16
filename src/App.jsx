@@ -1,4 +1,3 @@
-
 /**
  * Main App Component
  *
@@ -22,6 +21,15 @@ import AdminDashboard from './pages/Admin/AdminDashboardPage';
 import AdminProducts from './pages/Admin/AdminProductsPage';
 import AdminRepairs from './pages/Admin/AdminRepairsPage';
 import AdminOrders from './pages/Admin/AdminOrdersPage';
+import { AdminLayout } from './pages/Admin/AdminLayout';
+import { AdminDashboard as NewAdminDashboard } from './pages/Admin/AdminDashboard';
+import { ProductManagement } from './pages/Admin/ProductManagement';
+import { OrderManagement } from './pages/Admin/OrderManagement';
+import { CustomerManagement } from './pages/Admin/CustomerManagement';
+import { InventoryManagement } from './pages/Admin/InventoryManagement';
+import { MarketingManagement } from './pages/Admin/MarketingManagement';
+import { ReportsAnalytics } from './pages/Admin/ReportsAnalytics';
+import { UserManagement } from './pages/Admin/UserManagement';
 import { CartProvider } from './components/CartContext';
 import { AuthProvider } from './components/AuthContext';
 
@@ -42,8 +50,17 @@ function App() {
           <Route path="/book-repair" element={<RepairsPage />} /> {/* Repair booking */}
           <Route path="/contact" element={<Contact />} /> {/* Contact information */}
           <Route path="/admin/login" element={<AdminLogin />} /> {/* Admin login */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Admin dashboard */}
-          <Route path="/admin" element={<AdminDashboard />} /> {/* Admin dashboard */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<NewAdminDashboard />} />
+            <Route path="dashboard" element={<NewAdminDashboard />} />
+            <Route path="products" element={<ProductManagement />} />
+            <Route path="orders" element={<OrderManagement />} />
+            <Route path="customers" element={<CustomerManagement />} />
+            <Route path="inventory" element={<InventoryManagement />} />
+            <Route path="marketing" element={<MarketingManagement />} />
+            <Route path="reports" element={<ReportsAnalytics />} />
+            <Route path="users" element={<UserManagement />} />
+          </Route>
           <Route path="/admin/products" element={<AdminProducts />} /> {/* Admin products */}
           <Route path="/admin/repairs" element={<AdminRepairs />} /> {/* Admin repairs */}
           <Route path="/admin/orders" element={<AdminOrders />} /> {/* Admin orders */}
