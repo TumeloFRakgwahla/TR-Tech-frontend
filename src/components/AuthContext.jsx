@@ -1,16 +1,32 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { authAPI } from '../services/api';
 import { toast } from 'sonner';
 
 const AuthContext = createContext(undefined);
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+function setCookie(name, value, days = 7) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  const isProd = window.location.protocol === 'https:';
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Strict${isProd ? '; Secure' : ''}`;
+}
+
+function eraseCookie(name) {
+  document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Strict`;
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const token = localStorage.getItem('authToken');
+    const token = getCookie('authToken');
     if (token) {
       checkAuth();
     } else {
@@ -18,22 +34,22 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const data = await authAPI.getMe();
       setUser(data.user);
-    } catch (error) {
-      localStorage.removeItem('authToken');
+    } catch {
+      eraseCookie('authToken');
       setUser(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     try {
       const data = await authAPI.login({ email, password });
-      localStorage.setItem('authToken', data.token);
+      setCookie('authToken', data.token);
       setUser(data.user);
       toast.success('Login successful!');
       return { success: true };
@@ -41,12 +57,12 @@ export function AuthProvider({ children }) {
       toast.error(error.message || 'Login failed');
       return { success: false, error: error.message };
     }
-  };
+  }, []);
 
-  const register = async (userData) => {
+  const register = useCallback(async (userData) => {
     try {
       const data = await authAPI.register(userData);
-      localStorage.setItem('authToken', data.token);
+      setCookie('authToken', data.token);
       setUser(data.user);
       toast.success('Registration successful!');
       return { success: true };
@@ -54,33 +70,32 @@ export function AuthProvider({ children }) {
       toast.error(error.message || 'Registration failed');
       return { success: false, error: error.message };
     }
-  };
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem('authToken');
+  const logout = useCallback(() => {
+    eraseCookie('authToken');
     setUser(null);
     toast.success('Logged out successfully');
-  };
+  }, []);
 
-  const updateUser = (userData) => {
-    setUser((prev) => ({ ...prev, ...userData }));
-  };
+  const updateUser = useCallback((userData) => {
+    setUser((prev) => (prev ? { ...prev, ...userData } : null));
+  }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        register,
-        logout,
-        updateUser,
-        isAuthenticated: !!user,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      login,
+      register,
+      logout,
+      updateUser,
+      isAuthenticated: !!user,
+    }),
+    [user, loading, login, register, logout, updateUser]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
