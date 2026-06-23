@@ -18,6 +18,8 @@ import Footer from '../components/Footer';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { contactAPI } from '../services/api';
+import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
+import { WHATSAPP_NUMBER } from '../constants';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -45,21 +47,19 @@ const Contact = () => {
       const response = await contactAPI.submit(formData);
       
       if (response.success) {
-        // Also open WhatsApp for convenience
         const message = `
 Hi! Contact Form Submission:
 
-Name: ${formData.name}
-Email: ${formData.email}
-Phone: ${formData.phone}
-Subject: ${formData.subject}
+Name: ${sanitizeWhatsAppInput(formData.name)}
+Email: ${sanitizeWhatsAppInput(formData.email)}
+Phone: ${sanitizeWhatsAppInput(formData.phone)}
+Subject: ${sanitizeWhatsAppInput(formData.subject)}
 
 Message:
-${formData.message}
+${sanitizeWhatsAppInput(formData.message)}
         `.trim();
 
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/27791002552?text=${encodedMessage}`, '_blank');
+        window.open(createWhatsAppUrl(message, WHATSAPP_NUMBER), '_blank');
 
         alert('Message sent successfully!');
       } else {

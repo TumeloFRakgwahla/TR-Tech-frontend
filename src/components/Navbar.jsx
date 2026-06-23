@@ -42,7 +42,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20 md:h-25">
           {/* Logo section on the left */}
           <div className="flex items-center">
-            <img src="/TR_Tech_logo.png" alt="TR-Tech Logo" className="h-16 md:h-28 w-auto mr-2 md:mr-4" />
+            <img src="/TR_Tech_logo.png" alt="TR-Tech Logo" className="h-16 md:h-28 w-auto mr-2 md:mr-4" loading="lazy" decoding="async" />
           </div>
 
           {/* Desktop Navigation links and cart button */}

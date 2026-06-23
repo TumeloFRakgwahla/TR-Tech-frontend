@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Wrench, CheckCircle, MessageCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { repairsAPI } from '../services/api';
+import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
 import { WHATSAPP_NUMBER } from '../constants';
 
 export function RepairsPage() {
@@ -60,10 +61,8 @@ export function RepairsPage() {
       });
 
       if (response.success) {
-        // Also open WhatsApp for convenience
-        const message = `Hi! I've just submitted a repair request (ID: ${response.data._id}). ${formData.issue}`;
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
+        const message = `Hi! I've just submitted a repair request (ID: ${response.data._id}). ${sanitizeWhatsAppInput(formData.issue)}`;
+        window.open(createWhatsAppUrl(message, WHATSAPP_NUMBER), '_blank');
 
         toast.success('Repair request submitted successfully!');
         

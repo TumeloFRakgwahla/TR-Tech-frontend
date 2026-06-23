@@ -165,7 +165,10 @@ export function AuthModal({ open, onOpenChange }) {
                       value={formData.password}
                       onChange={handleChange}
                       required
-                      minLength={6}
+                      minLength={8}
+                      pattern="^(?=.*[a-zA-Z])(?=.*\d).+$"
+                      title="Password must be at least 8 characters and contain both letters and numbers"
+                      autoComplete="new-password"
                     />
                   </div>
                 </div>
