@@ -1,0 +1,796 @@
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '../../components/AuthContext';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../../components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
+import { Badge } from '../../components/ui/badge';
+import { Textarea } from '../../components/ui/textarea';
+import { Search, Phone, Mail, Plus, Loader2, Upload, X } from 'lucide-react';
+import { repairsAPI, uploadAPI } from '../../services/api';
+
+// Get API base URL from environment or use default
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getImageUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith('http')) return url;
+  // Remove /api from base URL for image uploads
+  return `${API_BASE_URL.replace('/api', '')}${url}`;
+};
+
+const statusColors = {
+  Pending: 'bg-yellow-600',
+  'In Progress': 'bg-blue-600',
+  Completed: 'bg-green-600',
+  Cancelled: 'bg-red-600',
+};
+
+export function AdminRepairsPage() {
+  const { user } = useAuth();
+  const [repairs, setRepairs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDevice, setFilterDevice] = useState('all');
+  const [selectedRepair, setSelectedRepair] = useState(null);
+  const [isAddRepairOpen, setIsAddRepairOpen] = useState(false);
+
+  // Fetch repairs from backend
+  useEffect(() => {
+    fetchRepairs();
+  }, []);
+
+  const fetchRepairs = async () => {
+    try {
+      setIsLoading(true);
+      const response = await repairsAPI.getAll();
+      if (response.success) {
+        setRepairs(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching repairs:', error);
+      toast.error('Failed to load repairs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deviceTypes = Array.from(new Set(repairs.map((r) => r.device?.type || r.deviceType)));
+
+  const filteredRepairs = repairs.filter((repair) => {
+    const customerName = repair.customer?.name || repair.customerName || '';
+    const deviceType = repair.device?.type || repair.deviceType || '';
+    const brand = repair.device?.brand || repair.brand || '';
+    const model = repair.device?.model || repair.model || '';
+    const id = repair._id || repair.id || '';
+
+    const matchesSearch =
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || repair.status === filterStatus;
+    const matchesDevice = filterDevice === 'all' || deviceType === filterDevice;
+    return matchesSearch && matchesStatus && matchesDevice;
+  });
+
+  const updateRepairStatus = async (repairId, newStatus) => {
+    try {
+      const response = await repairsAPI.update(repairId, { status: newStatus });
+      if (response.success) {
+        setRepairs(
+          repairs.map((repair) =>
+            (repair._id || repair.id) === repairId
+              ? { ...repair, status: newStatus, updatedAt: new Date().toISOString() }
+              : repair
+          )
+        );
+        toast.success('Repair status updated');
+      }
+    } catch (error) {
+      console.error('Error updating repair status:', error);
+      toast.error('Failed to update repair status');
+    }
+  };
+
+  const updateRepairNotes = async (repairId, notes) => {
+    try {
+      const response = await repairsAPI.update(repairId, { notes });
+      if (response.success) {
+        setRepairs(
+          repairs.map((repair) =>
+            (repair._id || repair.id) === repairId
+              ? { ...repair, notes, updatedAt: new Date().toISOString() }
+              : repair
+          )
+        );
+        toast.success('Notes updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating repair notes:', error);
+      toast.error('Failed to update notes');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('en-ZA', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const stats = {
+    total: repairs.length,
+    pending: repairs.filter((r) => r.status === 'Pending').length,
+    inProgress: repairs.filter((r) => r.status === 'In Progress').length,
+    completed: repairs.filter((r) => r.status === 'Completed').length,
+  };
+
+  const handleAddRepair = async (newRepair) => {
+    try {
+      const response = await repairsAPI.create({
+        customer: {
+          name: newRepair.customerName,
+          email: newRepair.email,
+          phone: newRepair.phone,
+        },
+        device: {
+          type: newRepair.deviceType,
+          brand: newRepair.brand,
+          model: newRepair.model,
+        },
+        issue: newRepair.issue,
+        status: newRepair.status,
+        notes: newRepair.notes,
+      });
+
+      if (response.success) {
+        setRepairs([response.data, ...repairs]);
+        setIsAddRepairOpen(false);
+        toast.success('Repair request created successfully');
+      }
+    } catch (error) {
+      console.error('Error creating repair:', error);
+      toast.error('Failed to create repair request');
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 py-4">
+        <div>
+          <p className="text-slate-400">Manage repair requests and track progress</p>
+        </div>
+        <Dialog open={isAddRepairOpen} onOpenChange={setIsAddRepairOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Repair
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">Add New Repair Request</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Enter details for the new repair request
+              </DialogDescription>
+            </DialogHeader>
+            <AddRepairForm onSubmit={handleAddRepair} onClose={() => setIsAddRepairOpen(false)} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Stats */}
+      <div className="grid md:grid-cols-4 gap-6 mb-6">
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">Total Requests</p>
+          <p className="text-3xl font-bold text-blue-400">{stats.total.toLocaleString()}</p>
+        </Card>
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">Pending</p>
+          <p className="text-3xl font-bold text-yellow-400">{stats.pending.toLocaleString()}</p>
+        </Card>
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">In Progress</p>
+          <p className="text-3xl font-bold text-blue-400">{stats.inProgress.toLocaleString()}</p>
+        </Card>
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">Completed</p>
+          <p className="text-3xl font-bold text-green-400">{stats.completed.toLocaleString()}</p>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card className="p-6 mb-6 bg-slate-800 border-slate-700">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+<Input
+               placeholder="Search repairs..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="pl-10 bg-slate-700 border-slate-600 text-white"
+             />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+<SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+               <SelectValue placeholder="All Statuses" />
+             </SelectTrigger>
+            <SelectContent className="bg-slate-700 border-slate-600">
+              <SelectItem value="all" className="text-white">All Statuses</SelectItem>
+              <SelectItem value="Pending" className="text-white">Pending</SelectItem>
+              <SelectItem value="In Progress" className="text-white">In Progress</SelectItem>
+              <SelectItem value="Completed" className="text-white">Completed</SelectItem>
+              <SelectItem value="Cancelled" className="text-white">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterDevice} onValueChange={setFilterDevice}>
+<SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+               <SelectValue placeholder="All Devices" />
+             </SelectTrigger>
+             <SelectContent className="bg-slate-700 border-slate-600">
+               <SelectItem value="all" className="text-white">All Devices</SelectItem>
+               {deviceTypes.map((device) => (
+                 <SelectItem key={device} value={device} className="text-white">
+                   {device}
+                 </SelectItem>
+               ))}
+             </SelectContent>
+          </Select>
+        </div>
+      </Card>
+
+      {/* Repairs Table */}
+      <Card className="bg-slate-800 border-slate-700 overflow-hidden">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-white" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-white">Request ID</TableHead>
+                <TableHead className="text-white">Customer</TableHead>
+                <TableHead className="text-white">Device</TableHead>
+                <TableHead className="text-white">Issue</TableHead>
+                <TableHead className="text-white">Status</TableHead>
+                <TableHead className="text-white">Created</TableHead>
+                <TableHead className="text-right text-white">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRepairs.map((repair) => (
+                <TableRow key={repair._id || repair.id}>
+                  <TableCell className="font-mono text-white">
+                    #{repair._id ? repair._id.substring(0, 8) : repair.id}
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium text-white">{repair.customer?.name || repair.customerName}</p>
+                      <p className="text-sm text-slate-400">{repair.customer?.email || repair.email}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="text-white">{repair.device?.brand || repair.brand} {repair.device?.model || repair.model}</p>
+                      <p className="text-sm text-slate-400">{repair.device?.type || repair.deviceType}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-white max-w-xs truncate">
+                    {repair.issue}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`${statusColors[repair.status] || 'bg-gray-600'} text-white`}>
+                      {repair.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-slate-400 text-sm">
+                    {formatDate(repair.createdAt)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedRepair(repair)}
+                      className="text-white hover:bg-slate-700"
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        {!isLoading && filteredRepairs.length === 0 && (
+          <div className="text-center py-12 text-slate-400">No repair requests found</div>
+        )}
+      </Card>
+
+      {/* Repair Details Dialog */}
+      {selectedRepair && (
+        <Dialog open={!!selectedRepair} onOpenChange={(open) => { if (!open) setSelectedRepair(null); }}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">
+                Repair Request #{selectedRepair._id ? selectedRepair._id.substring(0, 8) : selectedRepair.id}
+              </DialogTitle>
+              <DialogDescription className="text-slate-400">
+                View and update repair request details
+              </DialogDescription>
+            </DialogHeader>
+             <RepairDetailsForm
+              repair={selectedRepair}
+              onUpdateStatus={(id, status) => {
+                updateRepairStatus(id, status);
+                setSelectedRepair(prev => ({ ...prev, status }));
+              }}
+              onUpdateNotes={(notes) => {
+                const id = selectedRepair._id || selectedRepair.id;
+                updateRepairNotes(id, notes);
+                setSelectedRepair(prev => ({ ...prev, notes }));
+              }}
+              onClose={() => setSelectedRepair(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
+  const [notes, setNotes] = useState(repair.notes || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const repairId = repair._id || repair.id;
+
+  // Helper to get nested or flat property
+  const getCustomerName = () => repair.customer?.name || repair.customerName || '';
+  const getCustomerEmail = () => repair.customer?.email || repair.email || '';
+  const getCustomerPhone = () => repair.customer?.phone || repair.phone || '';
+  const getDeviceType = () => repair.device?.type || repair.deviceType || '';
+  const getDeviceBrand = () => repair.device?.brand || repair.brand || '';
+  const getDeviceModel = () => repair.device?.model || repair.model || '';
+
+  const handleSaveNotes = async () => {
+    setIsSaving(true);
+    try {
+      await onUpdateNotes(repairId, notes);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Customer Information */}
+      <Card className="bg-slate-900 border-slate-700">
+        <div className="p-4 space-y-3">
+          <h3 className="font-semibold text-white">Customer Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <p className="text-sm text-slate-400">Name</p>
+              <p className="font-medium text-white">{getCustomerName()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Email</p>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-slate-400" />
+                <p className="font-medium text-white">{getCustomerEmail()}</p>
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-slate-400">Phone</p>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-slate-400" />
+                <p className="font-medium text-white">{getCustomerPhone()}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Device Information */}
+      <Card className="bg-slate-900 border-slate-700">
+        <div className="p-4 space-y-3">
+          <h3 className="font-semibold text-white">Device Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <p className="text-sm text-slate-400">Device Type</p>
+              <p className="font-medium text-white">{getDeviceType()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Brand</p>
+              <p className="font-medium text-white">{getDeviceBrand()}</p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-slate-400">Model</p>
+              <p className="font-medium text-white">{getDeviceModel()}</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Issue Description */}
+      <div className="space-y-2">
+        <Label className="text-white">Issue Description</Label>
+        <Card className="bg-slate-900 border-slate-700">
+          <div className="p-4">
+            <p className="text-white">{repair.issue}</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Additional Info */}
+      {repair.additionalInfo && (
+        <div className="space-y-2">
+          <Label className="text-white">Additional Information</Label>
+          <Card className="bg-slate-900 border-slate-700">
+            <div className="p-4">
+              <p className="text-white">{repair.additionalInfo}</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
+{/* Status Update */}
+       <div className="space-y-2">
+         <Label htmlFor="status" className="text-white">Status</Label>
+         <Select value={repair.status} onValueChange={(status) => onUpdateStatus(repairId, status)}>
+           <SelectTrigger id="status" className="bg-slate-900 border-slate-700 text-white">
+             <SelectValue />
+           </SelectTrigger>
+           <SelectContent className="bg-slate-700 border-slate-600">
+             <SelectItem value="Pending" className="text-white">Pending</SelectItem>
+             <SelectItem value="In Progress" className="text-white">In Progress</SelectItem>
+             <SelectItem value="Completed" className="text-white">Completed</SelectItem>
+             <SelectItem value="Cancelled" className="text-white">Cancelled</SelectItem>
+           </SelectContent>
+         </Select>
+       </div>
+
+       {/* Notes */}
+       <div className="space-y-2">
+         <Label htmlFor="notes" className="text-white">Internal Notes</Label>
+        <Textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Add notes about repair progress, parts needed, etc."
+          rows={4}
+          className="bg-slate-900 border-slate-700 text-white"
+        />
+      </div>
+
+      {/* Save Notes Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSaveNotes}
+          disabled={isSaving}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          {isSaving ? 'Saving...' : 'Save Notes'}
+        </Button>
+      </div>
+
+      {/* Timestamps */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-slate-400">Created</p>
+          <p className="text-white">
+            {new Date(repair.createdAt).toLocaleString('en-ZA', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </p>
+        </div>
+        <div>
+          <p className="text-slate-400">Last Updated</p>
+          <p className="text-white">
+            {repair.updatedAt ? new Date(repair.updatedAt).toLocaleString('en-ZA', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }) : 'N/A'}
+          </p>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end pt-4">
+        <Button variant="outline" onClick={onClose} className="border-slate-600 text-white hover:bg-slate-700">
+          Close
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AddRepairForm({ onSubmit, onClose }) {
+  const [customerName, setCustomerName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [deviceType, setDeviceType] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [issue, setIssue] = useState('');
+  const [status, setStatus] = useState('Pending');
+  const [notes, setNotes] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle image upload to server
+  const uploadImage = async () => {
+    if (!selectedFile) return '';
+    
+    setIsUploading(true);
+    try {
+      const response = await uploadAPI.uploadImage(selectedFile);
+      if (response.success) {
+        return getImageUrl(response.url);
+      } else {
+        toast.error('Failed to upload image');
+        return '';
+      }
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      toast.error('Failed to upload image');
+      return '';
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Upload image if selected
+    const imageUrl = await uploadImage();
+    
+    onSubmit({
+      customerName,
+      email,
+      phone,
+      deviceType,
+      brand,
+      model,
+      issue,
+      status,
+      notes,
+      image: imageUrl,
+    });
+  };
+
+  // Clear selected file
+  const clearFile = () => {
+    setSelectedFile(null);
+    setImagePreview('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Customer Information */}
+      <Card className="bg-slate-900 border-slate-700">
+        <div className="p-4 space-y-3">
+          <h3 className="font-semibold text-white">Customer Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-white">Name</Label>
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Customer Name"
+                className="bg-slate-900 border-slate-700 text-white"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-white">Email</Label>
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Customer Email"
+                className="bg-slate-900 border-slate-700 text-white"
+                required
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label className="text-white">Phone</Label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Customer Phone"
+                className="bg-slate-900 border-slate-700 text-white"
+                required
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Device Information */}
+      <Card className="bg-slate-900 border-slate-700">
+        <div className="p-4 space-y-3">
+          <h3 className="font-semibold text-white">Device Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-white">Device Type</Label>
+              <Input
+                value={deviceType}
+                onChange={(e) => setDeviceType(e.target.value)}
+                placeholder="Device Type"
+                className="bg-slate-900 border-slate-700 text-white"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-white">Brand</Label>
+              <Input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="Brand"
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label className="text-white">Model</Label>
+              <Input
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Model"
+                className="bg-slate-900 border-slate-700 text-white"
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Device Image Upload */}
+      <Card className="bg-slate-900 border-slate-700">
+        <div className="p-4 space-y-3">
+          <h3 className="font-semibold text-white">Device Image (Optional)</h3>
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <div className="relative border-2 border-dashed border-slate-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="text-center">
+                  <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                  <p className="text-sm text-slate-400">
+                    {selectedFile ? selectedFile.name : 'Click or drag to upload image'}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+                </div>
+              </div>
+              {isUploading && (
+                <p className="text-sm text-blue-400 mt-2">Uploading image...</p>
+              )}
+            </div>
+            {imagePreview && (
+              <div className="relative w-24 h-24">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={clearFile}
+                  className="absolute -top-2 -right-2 bg-red-600 rounded-full p-1"
+                >
+                  <X className="w-3 h-3 text-white" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Issue Description */}
+      <div className="space-y-2">
+        <Label className="text-white">Issue Description</Label>
+        <Textarea
+          value={issue}
+          onChange={(e) => setIssue(e.target.value)}
+          placeholder="Describe the issue"
+          rows={4}
+          className="bg-slate-900 border-slate-700 text-white"
+          required
+        />
+      </div>
+
+{/* Status */}
+       <div className="space-y-2">
+         <Label htmlFor="status" className="text-white">Status</Label>
+         <Select value={status} onValueChange={setStatus}>
+           <SelectTrigger id="status" className="bg-slate-700 border-slate-600 text-white">
+             <SelectValue />
+           </SelectTrigger>
+           <SelectContent className="bg-slate-700 border-slate-600">
+             <SelectItem value="Pending" className="text-white">Pending</SelectItem>
+             <SelectItem value="In Progress" className="text-white">In Progress</SelectItem>
+             <SelectItem value="Completed" className="text-white">Completed</SelectItem>
+             <SelectItem value="Cancelled" className="text-white">Cancelled</SelectItem>
+           </SelectContent>
+         </Select>
+       </div>
+
+       {/* Notes */}
+      <div className="space-y-2">
+        <Label htmlFor="notes" className="text-white">Internal Notes</Label>
+        <Textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Add notes about repair progress, parts needed, etc."
+          rows={4}
+          className="bg-slate-900 border-slate-700 text-white"
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-2 pt-4">
+        <Button variant="outline" onClick={onClose} className="border-slate-600 text-white hover:bg-slate-700">
+          Close
+        </Button>
+        <Button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Add Repair
+        </Button>
+      </div>
+    </form>
+  );
+}
