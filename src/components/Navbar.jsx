@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Heart } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { MiniCart } from './MiniCart';
+import { useWishlist } from './WishlistContext';
 
 const NavLink = ({ to, children, className = '', onClick }) => {
   const location = useLocation();
@@ -26,6 +27,7 @@ const NavLink = ({ to, children, className = '', onClick }) => {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { wishlistCount } = useWishlist();
 
   useEffect(() => {
     if (isOpen) {
@@ -66,10 +68,29 @@ const Navbar = () => {
             >
               Book Repair
             </Link>
+            <Link
+              to="/wishlist"
+              className="relative cursor-pointer bg-white text-primary hover:bg-gray-200 hover:shadow-md rounded-md px-4 py-2 inline-flex items-center justify-center transition-all"
+            >
+              <Heart className="h-6 w-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <MiniCart />
           </div>
 
           <div className="md:hidden flex items-center">
+            <Link to="/wishlist" className="relative mr-2">
+              <Heart className="h-6 w-6" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-white text-primary text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <MiniCart />
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -99,6 +120,7 @@ const Navbar = () => {
                 <NavLink to="/about" className="block px-3 py-3 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>About</NavLink>
                 <NavLink to="/services" className="block px-3 py-3 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Services</NavLink>
                 <NavLink to="/shop" className="block px-3 py-3 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Shop</NavLink>
+                <NavLink to="/wishlist" className="block px-3 py-3 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Wishlist</NavLink>
                 <NavLink to="/contact" className="block px-3 py-3 hover:text-accent transition-colors" onClick={() => setIsOpen(false)}>Contact</NavLink>
                 <div className="px-3 py-2">
                   <Link

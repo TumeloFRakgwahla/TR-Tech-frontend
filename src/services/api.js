@@ -658,6 +658,50 @@ export const marketingAPI = {
   },
 };
 
+/**
+ * Wishlist API
+ */
+export const wishlistAPI = {
+  getAll: async () => {
+    const response = await fetch(`${API_BASE_URL}/wishlist`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  add: async (productId) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  remove: async (productId) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  check: async (productId) => {
+    const response = await fetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+};
+
 export default {
   products: productsAPI,
   services: servicesAPI,
@@ -668,5 +712,6 @@ export default {
   upload: uploadAPI,
   users: usersAPI,
   marketing: marketingAPI,
+  wishlist: wishlistAPI,
   healthCheck,
 };

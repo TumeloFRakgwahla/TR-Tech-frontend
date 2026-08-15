@@ -118,13 +118,6 @@ export function ProductDetailPage() {
     navigate('/checkout');
   }, [inStock, product, quantity, addToCart, navigate]);
 
-  const handleWishlist = useCallback(() => {
-    if (!product) return;
-    toast.info('Wishlist coming soon!', {
-      description: `"${product.name}" will be saved to your wishlist.`,
-    });
-  }, [product]);
-
   const decreaseQuantity = useCallback(() => {
     setQuantity((q) => Math.max(1, q - 1));
   }, []);
@@ -218,7 +211,6 @@ export function ProductDetailPage() {
             onIncrease={increaseQuantity}
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
-            onWishlist={handleWishlist}
           />
         </div>
 

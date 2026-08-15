@@ -205,13 +205,13 @@ const Services = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+              <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
                 <Link to="/book-repair">
                   <Wrench className="h-5 w-5" />
                   Book a Repair
                 </Link>
               </Button>
-              <Button asChild size="lg" className="bg-white text-primary border-2 border-white hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+              <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
                 <Link to="/shop">
                   <ShoppingCart className="h-5 w-5" />
                   Shop Now

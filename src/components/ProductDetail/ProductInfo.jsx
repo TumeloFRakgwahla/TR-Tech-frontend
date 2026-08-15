@@ -1,5 +1,6 @@
 import { Star, Minus, Plus, ShoppingCart, Heart, Check, TruckIcon, Shield, RotateCcw } from 'lucide-react';
 import { formatPrice } from './helpers';
+import { useWishlist } from '../WishlistContext';
 
 export function ProductInfo({
   product,
@@ -17,8 +18,9 @@ export function ProductInfo({
   onIncrease,
   onAddToCart,
   onBuyNow,
-  onWishlist,
 }) {
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const inWishlist = isInWishlist(product);
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -133,7 +135,7 @@ export function ProductInfo({
       <div className="flex gap-3">
         <button
           type="button"
-          className="min-h-[46px] flex-1 flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold px-5 rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+          className="flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-md border-2 border-black bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!inStock}
           onClick={onAddToCart}
         >
@@ -142,18 +144,22 @@ export function ProductInfo({
         </button>
         <button
           type="button"
-          className="min-h-[46px] w-[46px] flex items-center justify-center border border-border rounded-md hover:bg-muted/30 transition-colors disabled:opacity-40"
+          className={`min-h-[46px] w-[46px] flex items-center justify-center rounded-md border-2 border-black transition-colors disabled:opacity-40 ${
+  inWishlist
+    ? 'bg-red-50 text-red-500 hover:bg-red-100'
+    : 'bg-white hover:bg-muted/30'
+}`}
           disabled={!inStock}
-          onClick={onWishlist}
-          aria-label="Add to wishlist"
+          onClick={() => toggleWishlist(product)}
+          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
         >
-          <Heart className="h-4 w-4 text-muted-foreground" />
+          <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
         </button>
       </div>
 
       <button
         type="button"
-        className="w-full min-h-[46px] bg-secondary hover:bg-secondary/90 text-white text-sm font-semibold rounded-md transition-colors disabled:opacity-50"
+        className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-md border-2 border-black bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
         disabled={!inStock}
         onClick={onBuyNow}
       >

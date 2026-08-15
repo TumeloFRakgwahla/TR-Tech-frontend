@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import { CartProvider } from './components/CartContext';
+import { WishlistProvider } from './components/WishlistContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/HomePage';
 import About from './pages/AboutPage';
@@ -12,6 +13,7 @@ import Contact from './pages/ContactPage';
 import { RepairsPage } from './pages/RepairsPage';
 import Cart from './pages/CartPage';
 import Checkout from './pages/CheckoutPage';
+import Wishlist from './pages/WishlistPage';
 import AdminLogin from './pages/Admin/AdminLoginPage';
 import { AdminLayout } from './pages/Admin/AdminLayout';
 
@@ -54,18 +56,20 @@ function App() {
     <Router>
       <AuthProvider>
         <CartProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/book-repair" element={<RepairsPage />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
+          <WishlistProvider>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/book-repair" element={<RepairsPage />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
               <Route
                 path="/admin"
                 element={
@@ -87,7 +91,8 @@ function App() {
               </Route>
             </Routes>
           </Suspense>
-        </CartProvider>
+        </WishlistProvider>
+      </CartProvider>
       </AuthProvider>
     </Router>
   );

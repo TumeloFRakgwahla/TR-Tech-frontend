@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Smartphone, Star, ShoppingCart, SlidersHorizontal, Search, X } from 'lucide-react';
+import { Smartphone, Star, ShoppingCart, SlidersHorizontal, Search, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
+import { useWishlist } from '../components/WishlistContext';
 import { CartDrawer } from '../components/CartDrawer';
 import { productsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
@@ -93,6 +94,9 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
     setImageErrors(prev => ({ ...prev, [id]: true }));
   }, [id, setImageErrors]);
 
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const inWishlist = isInWishlist(product);
+
   return (
     <div className="bg-white rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col">
       <Link to={`/products/${id}`} className="block">
@@ -107,6 +111,22 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
               Flash Deal
             </span>
           )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product);
+            }}
+            className={`absolute top-2 right-2 z-10 p-2 rounded-full border transition-all ${
+              inWishlist
+                ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
+                : 'bg-white/90 border-border text-muted-foreground hover:text-red-500 hover:border-red-200'
+            }`}
+            aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+          </button>
           {product.image && !imageErrors[id] ? (
             <img
               src={getProductImageUrl(product.image)}
@@ -156,7 +176,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
           type="button"
           onClick={() => addToCart(product)}
           disabled={!product.stock || product.stock === 0}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border-2 border-primary bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted disabled:text-muted-foreground"
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           <span>{product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
