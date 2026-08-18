@@ -391,9 +391,6 @@ export const authAPI = {
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
       credentials: 'include',
     });
-    if (response.status === 401) {
-      return { success: false, user: null };
-    }
     return handleResponse(response);
   },
 

@@ -12,6 +12,7 @@ export function WishlistPage() {
   const { wishlist, removeFromWishlist, loading } = useWishlist();
   const [products, setProducts] = useState([]);
   const [fetching, setFetching] = useState(false);
+  const [removingIds, setRemovingIds] = useState(new Set());
 
   useEffect(() => {
     if (wishlist.length === 0) {
@@ -41,7 +42,17 @@ export function WishlistPage() {
   }, [wishlist]);
 
   const handleRemove = async (product) => {
-    await removeFromWishlist(product);
+    const productId = product._id || product.id;
+    setRemovingIds((prev) => new Set(prev).add(productId));
+    try {
+      await removeFromWishlist(product);
+    } finally {
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
+    }
   };
 
   if (loading || fetching) {
@@ -133,15 +144,20 @@ export function WishlistPage() {
                     </div>
                   </div>
                 </Link>
-                <div className="px-4 pb-4">
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(product)}
-                    className="w-full min-h-[40px] bg-white text-red-600 border-2 border-red-200 font-semibold text-sm rounded-md hover:bg-red-50 hover:border-red-300 transition-all duration-200"
-                  >
-                    Remove from Wishlist
-                  </button>
-                </div>
+      <div className="px-4 pb-4">
+        <button
+          type="button"
+          onClick={() => handleRemove(product)}
+          disabled={removingIds.has(product._id || product.id)}
+          className="w-full min-h-[40px] bg-white text-red-600 border-2 border-red-200 font-semibold text-sm rounded-md hover:bg-red-50 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
+        >
+          {removingIds.has(product._id || product.id) ? (
+            <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-current" />
+          ) : (
+            'Remove from Wishlist'
+          )}
+        </button>
+      </div>
               </div>
             ))}
           </div>

@@ -19,8 +19,9 @@ export function ProductInfo({
   onAddToCart,
   onBuyNow,
 }) {
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist, isToggling } = useWishlist();
   const inWishlist = isInWishlist(product);
+  const toggling = isToggling(product);
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -145,15 +146,20 @@ export function ProductInfo({
         <button
           type="button"
           className={`min-h-[46px] w-[46px] flex items-center justify-center rounded-md border-2 border-black transition-colors disabled:opacity-40 ${
-  inWishlist
-    ? 'bg-red-50 text-red-500 hover:bg-red-100'
-    : 'bg-white hover:bg-muted/30'
-}`}
-          disabled={!inStock}
+            inWishlist
+              ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
+              : 'bg-white hover:bg-muted/30'
+          } ${toggling ? 'opacity-50 cursor-wait' : ''}`}
+          disabled={!inStock || toggling}
           onClick={() => toggleWishlist(product)}
           aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-pressed={inWishlist}
         >
-          <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+          {toggling ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />
+          ) : (
+            <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+          )}
         </button>
       </div>
 

@@ -94,8 +94,9 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
     setImageErrors(prev => ({ ...prev, [id]: true }));
   }, [id, setImageErrors]);
 
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isInWishlist, isToggling } = useWishlist();
   const inWishlist = isInWishlist(product);
+  const toggling = isToggling(product);
 
   return (
     <div className="bg-white rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col">
@@ -118,14 +119,22 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
               e.stopPropagation();
               toggleWishlist(product);
             }}
+            disabled={toggling}
             className={`absolute top-2 right-2 z-10 p-2 rounded-full border transition-all ${
-              inWishlist
+              toggling
+                ? 'opacity-50 cursor-wait'
+                : inWishlist
                 ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
                 : 'bg-white/90 border-border text-muted-foreground hover:text-red-500 hover:border-red-200'
-            }`}
+            }}`}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-pressed={inWishlist}
           >
-            <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+            {toggling ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />
+            ) : (
+              <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+            )}
           </button>
           {product.image && !imageErrors[id] ? (
             <img

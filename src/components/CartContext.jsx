@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 
 const CART_STORAGE_KEY = 'trtech_cart';
@@ -15,6 +15,8 @@ export function CartProvider({ children }) {
       return [];
     }
   });
+  const cartRef = useRef(cart);
+  cartRef.current = cart;
 
   useEffect(() => {
     try {
@@ -26,33 +28,41 @@ export function CartProvider({ children }) {
 
   const getProductId = useCallback((product) => product._id || product.id, []);
 
-  const addToCart = useCallback((product) => {
+  const addToCart = useCallback((product, quantity = 1) => {
     const productId = getProductId(product);
     const availableStock = product.stock || 0;
-    const currentQuantityInCart = cart.find((item) => getProductId(item) === productId)?.quantity || 0;
-
-    if (availableStock === 0) {
-      toast.error(`${product.name} is out of stock`);
-      return;
-    }
-
-    if (currentQuantityInCart >= availableStock) {
-      toast.error(`Cannot add more ${product.name}. Only ${availableStock} available in stock.`);
-      return;
-    }
 
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => getProductId(item) === productId);
       if (existingItem) {
-        toast.success('Quantity updated in cart');
+        if (existingItem.quantity >= availableStock) {
+          return prevCart;
+        }
         return prevCart.map((item) =>
-          getProductId(item) === productId ? { ...item, quantity: item.quantity + 1 } : item
+          getProductId(item) === productId ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      toast.success('Added to cart');
-      return [...prevCart, { ...product, id: productId, quantity: 1 }];
+      if (availableStock === 0) {
+        return prevCart;
+      }
+      return [...prevCart, { ...product, id: productId, quantity }];
     });
-  }, [cart, getProductId]);
+
+    const existingItem = cartRef.current.find((item) => getProductId(item) === productId);
+    if (existingItem) {
+      if (existingItem.quantity >= availableStock) {
+        toast.error(`Cannot add more ${product.name}. Only ${availableStock} available in stock.`);
+        return;
+      }
+      toast.success('Quantity updated in cart');
+    } else {
+      if (availableStock === 0) {
+        toast.error(`${product.name} is out of stock`);
+        return;
+      }
+      toast.success('Added to cart');
+    }
+  }, [getProductId]);
 
   const removeFromCart = useCallback((productId) => {
     setCart((prevCart) => prevCart.filter((item) => getProductId(item) !== productId));

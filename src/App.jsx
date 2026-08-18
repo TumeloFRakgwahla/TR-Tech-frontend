@@ -1,8 +1,10 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { AuthProvider } from './components/AuthContext';
 import { CartProvider } from './components/CartContext';
 import { WishlistProvider } from './components/WishlistContext';
+import { AuthModalProvider } from './components/AuthModalContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/HomePage';
 import About from './pages/AboutPage';
@@ -56,9 +58,19 @@ function App() {
     <Router>
       <AuthProvider>
         <CartProvider>
-          <WishlistProvider>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
+          <AuthModalProvider>
+            <WishlistProvider>
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                toastOptions={{
+                  class: 'sonner-toast',
+                  duration: 4000,
+                }}
+              />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/services" element={<Services />} />
@@ -92,6 +104,7 @@ function App() {
             </Routes>
           </Suspense>
         </WishlistProvider>
+          </AuthModalProvider>
       </CartProvider>
       </AuthProvider>
     </Router>
