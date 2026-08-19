@@ -14,7 +14,6 @@
  * - Footer (contact info and links)
  */
 
-import React from 'react';
 import Navbar from '../components/Navbar';          // Navigation bar component
 import Hero from '../components/Hero';              // Main banner section
 import Services from '../components/Services';      // Services we offer
@@ -29,7 +28,7 @@ const Home = () => {
       {/* Fixed navigation bar at the top */}
       <Navbar />
 
-      <div className="pt-20 md:pt-25">
+      <div className="pt-10">
         {/* Hero section - main banner with call-to-action */}
         <Hero />
       </div>

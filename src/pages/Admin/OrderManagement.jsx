@@ -65,7 +65,7 @@ export function OrderManagement() {
     const q = searchQuery.toLowerCase();
     return orders.filter((order) => {
       const id = String(order._id || order.id || '').toLowerCase();
-      const customer = (order.customer?.name || order.customer || '').toLowerCase();
+      const customer = (order.customer?.name || '').toLowerCase();
       return id.includes(q) || customer.includes(q);
     });
   }, [orders, searchQuery]);
@@ -115,8 +115,7 @@ export function OrderManagement() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 text-white">Order Management</h1>
+      <div className="mb-4 py-4">
         <p className="text-slate-400">View and manage customer orders</p>
       </div>
 

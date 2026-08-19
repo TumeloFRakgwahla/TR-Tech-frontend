@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../../components/AuthContext';
 import { Card } from '../../components/ui/card';
@@ -31,7 +30,7 @@ import {
 } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
 import { Textarea } from '../../components/ui/textarea';
-import { Search, Eye, Phone, Mail, Plus, Loader2, Upload, X } from 'lucide-react';
+import { Search, Phone, Mail, Plus, Loader2, Upload, X } from 'lucide-react';
 import { repairsAPI, uploadAPI } from '../../services/api';
 
 // Get API base URL from environment or use default
@@ -185,9 +184,8 @@ export function AdminRepairsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4 py-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2 text-white">Repair Requests</h1>
           <p className="text-slate-400">Manage repair requests and track progress</p>
         </div>
         <Dialog open={isAddRepairOpen} onOpenChange={setIsAddRepairOpen}>
@@ -210,22 +208,22 @@ export function AdminRepairsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-800 border-slate-700">
-          <p className="text-slate-400 text-sm">Total Requests</p>
-          <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
+      <div className="grid md:grid-cols-4 gap-6 mb-6">
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">Total Requests</p>
+          <p className="text-3xl font-bold text-blue-400">{stats.total.toLocaleString()}</p>
         </Card>
-        <Card className="bg-slate-800 border-yellow-600/30">
-          <p className="text-slate-400 text-sm">Pending</p>
-          <p className="text-2xl font-bold text-yellow-500 mt-1">{stats.pending}</p>
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">Pending</p>
+          <p className="text-3xl font-bold text-yellow-400">{stats.pending.toLocaleString()}</p>
         </Card>
-        <Card className="bg-slate-800 border-blue-600/30">
-          <p className="text-slate-400 text-sm">In Progress</p>
-          <p className="text-2xl font-bold text-blue-500 mt-1">{stats.inProgress}</p>
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">In Progress</p>
+          <p className="text-3xl font-bold text-blue-400">{stats.inProgress.toLocaleString()}</p>
         </Card>
-        <Card className="bg-slate-800 border-green-600/30">
-          <p className="text-slate-400 text-sm">Completed</p>
-          <p className="text-2xl font-bold text-green-500 mt-1">{stats.completed}</p>
+        <Card className="p-6 bg-slate-800 border-slate-700">
+          <p className="text-slate-400 text-sm mb-1">Completed</p>
+          <p className="text-3xl font-bold text-green-400">{stats.completed.toLocaleString()}</p>
         </Card>
       </div>
 
@@ -234,37 +232,37 @@ export function AdminRepairsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <Input
-              placeholder="Search repairs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-slate-900 border-slate-700 text-white"
-            />
+<Input
+               placeholder="Search repairs..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="pl-10 bg-slate-700 border-slate-600 text-white"
+             />
           </div>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-600">
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
+<SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+               <SelectValue placeholder="All Statuses" />
+             </SelectTrigger>
+            <SelectContent className="bg-slate-700 border-slate-600">
+              <SelectItem value="all" className="text-white">All Statuses</SelectItem>
+              <SelectItem value="Pending" className="text-white">Pending</SelectItem>
+              <SelectItem value="In Progress" className="text-white">In Progress</SelectItem>
+              <SelectItem value="Completed" className="text-white">Completed</SelectItem>
+              <SelectItem value="Cancelled" className="text-white">Cancelled</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterDevice} onValueChange={setFilterDevice}>
-            <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-              <SelectValue placeholder="All Devices" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-600">
-              <SelectItem value="all">All Devices</SelectItem>
-              {deviceTypes.map((device) => (
-<SelectItem key={device} value={device} className="text-white">
-                      {device}
-                    </SelectItem>
-              ))}
-            </SelectContent>
+<SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+               <SelectValue placeholder="All Devices" />
+             </SelectTrigger>
+             <SelectContent className="bg-slate-700 border-slate-600">
+               <SelectItem value="all" className="text-white">All Devices</SelectItem>
+               {deviceTypes.map((device) => (
+                 <SelectItem key={device} value={device} className="text-white">
+                   {device}
+                 </SelectItem>
+               ))}
+             </SelectContent>
           </Select>
         </div>
       </Card>
@@ -273,26 +271,25 @@ export function AdminRepairsPage() {
       <Card className="bg-slate-800 border-slate-700 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-slate-400">Loading repairs...</span>
+            <Loader2 className="h-6 w-6 animate-spin text-white" />
           </div>
         ) : (
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700 hover:bg-slate-700/50 bg-slate-900">
-                <TableHead className="text-slate-300">Request ID</TableHead>
-                <TableHead className="text-slate-300">Customer</TableHead>
-                <TableHead className="text-slate-300">Device</TableHead>
-                <TableHead className="text-slate-300">Issue</TableHead>
-                <TableHead className="text-slate-300">Status</TableHead>
-                <TableHead className="text-slate-300">Created</TableHead>
-                <TableHead className="text-slate-300 text-right">Actions</TableHead>
+              <TableRow>
+                <TableHead className="text-white">Request ID</TableHead>
+                <TableHead className="text-white">Customer</TableHead>
+                <TableHead className="text-white">Device</TableHead>
+                <TableHead className="text-white">Issue</TableHead>
+                <TableHead className="text-white">Status</TableHead>
+                <TableHead className="text-white">Created</TableHead>
+                <TableHead className="text-right text-white">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRepairs.map((repair) => (
-                <TableRow key={repair._id || repair.id} className="border-slate-700 hover:bg-slate-700/50">
-                  <TableCell className="font-mono text-slate-300">
+                <TableRow key={repair._id || repair.id}>
+                  <TableCell className="font-mono text-white">
                     #{repair._id ? repair._id.substring(0, 8) : repair.id}
                   </TableCell>
                   <TableCell>
@@ -307,7 +304,7 @@ export function AdminRepairsPage() {
                       <p className="text-sm text-slate-400">{repair.device?.type || repair.deviceType}</p>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-300 max-w-xs truncate">
+                  <TableCell className="text-white max-w-xs truncate">
                     {repair.issue}
                   </TableCell>
                   <TableCell>
@@ -323,9 +320,9 @@ export function AdminRepairsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedRepair(repair)}
-                      className="text-blue-400 hover:text-blue-300 hover:bg-slate-700"
+                      className="text-white hover:bg-slate-700"
                     >
-                      <Eye className="w-4 h-4" />
+                      View
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -350,17 +347,16 @@ export function AdminRepairsPage() {
                 View and update repair request details
               </DialogDescription>
             </DialogHeader>
-            <RepairDetailsForm
+             <RepairDetailsForm
               repair={selectedRepair}
-              onUpdateStatus={(status) => {
-                const id = selectedRepair._id || selectedRepair.id;
+              onUpdateStatus={(id, status) => {
                 updateRepairStatus(id, status);
-                setSelectedRepair({ ...selectedRepair, status });
+                setSelectedRepair(prev => ({ ...prev, status }));
               }}
               onUpdateNotes={(notes) => {
                 const id = selectedRepair._id || selectedRepair.id;
                 updateRepairNotes(id, notes);
-                setSelectedRepair({ ...selectedRepair, notes });
+                setSelectedRepair(prev => ({ ...prev, notes }));
               }}
               onClose={() => setSelectedRepair(null)}
             />
@@ -465,25 +461,25 @@ function RepairDetailsForm({ repair, onUpdateStatus, onUpdateNotes, onClose }) {
         </div>
       )}
 
-      {/* Status Update */}
-      <div className="space-y-2">
-        <Label htmlFor="status" className="text-white">Status</Label>
-        <Select value={repair.status} onValueChange={(status) => onUpdateStatus(repairId, status)}>
-          <SelectTrigger id="status" className="bg-slate-900 border-slate-700 text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+{/* Status Update */}
+       <div className="space-y-2">
+         <Label htmlFor="status" className="text-white">Status</Label>
+         <Select value={repair.status} onValueChange={(status) => onUpdateStatus(repairId, status)}>
+           <SelectTrigger id="status" className="bg-slate-900 border-slate-700 text-white">
+             <SelectValue />
+           </SelectTrigger>
+           <SelectContent className="bg-slate-700 border-slate-600">
+             <SelectItem value="Pending" className="text-white">Pending</SelectItem>
+             <SelectItem value="In Progress" className="text-white">In Progress</SelectItem>
+             <SelectItem value="Completed" className="text-white">Completed</SelectItem>
+             <SelectItem value="Cancelled" className="text-white">Cancelled</SelectItem>
+           </SelectContent>
+         </Select>
+       </div>
 
-      {/* Notes */}
-      <div className="space-y-2">
-        <Label htmlFor="notes" className="text-white">Internal Notes</Label>
+       {/* Notes */}
+       <div className="space-y-2">
+         <Label htmlFor="notes" className="text-white">Internal Notes</Label>
         <Textarea
           id="notes"
           value={notes}
@@ -754,23 +750,23 @@ function AddRepairForm({ onSubmit, onClose }) {
         />
       </div>
 
-      {/* Status Update */}
-      <div className="space-y-2">
-        <Label htmlFor="status" className="text-white">Status</Label>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger id="status" className="bg-slate-900 border-slate-700 text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+{/* Status */}
+       <div className="space-y-2">
+         <Label htmlFor="status" className="text-white">Status</Label>
+         <Select value={status} onValueChange={setStatus}>
+           <SelectTrigger id="status" className="bg-slate-700 border-slate-600 text-white">
+             <SelectValue />
+           </SelectTrigger>
+           <SelectContent className="bg-slate-700 border-slate-600">
+             <SelectItem value="Pending" className="text-white">Pending</SelectItem>
+             <SelectItem value="In Progress" className="text-white">In Progress</SelectItem>
+             <SelectItem value="Completed" className="text-white">Completed</SelectItem>
+             <SelectItem value="Cancelled" className="text-white">Cancelled</SelectItem>
+           </SelectContent>
+         </Select>
+       </div>
 
-      {/* Notes */}
+       {/* Notes */}
       <div className="space-y-2">
         <Label htmlFor="notes" className="text-white">Internal Notes</Label>
         <Textarea

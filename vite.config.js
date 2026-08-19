@@ -8,6 +8,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
   build: {
     rollupOptions: {
       output: {
@@ -26,6 +31,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
         target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,

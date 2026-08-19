@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -19,19 +19,21 @@ import {
   DialogFooter,
   DialogTrigger,
 } from '../../components/ui/dialog';
-import { Plus, Search, Edit, Trash2, Loader2 } from 'lucide-react';
-import { productsAPI } from '../../services/api';
+import { Plus, Search, Edit, Trash2, Loader2, Upload, X, ImageIcon } from 'lucide-react';
+import { productsAPI, uploadAPI } from '../../services/api';
+import { getProductImageUrl } from '../../lib/imageUrl';
 import { toast } from 'sonner';
 
 const emptyProduct = {
   name: '',
   description: '',
-  category: 'Accessories',
+  category: 'Smartphones',
+  brand: 'Other',
   price: '',
   condition: 'New',
   stock: '',
   status: 'Active',
-  image: '',
+  images: [],
 };
 
 export function ProductManagement() {
@@ -43,6 +45,8 @@ export function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [form, setForm] = useState(emptyProduct);
   const [submitError, setSubmitError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const loadProducts = async () => {
     setIsLoading(true);
@@ -78,11 +82,12 @@ export function ProductManagement() {
       name: product.name || '',
       description: product.description || '',
       category: product.category || 'Accessories',
+      brand: product.brand || 'Other',
       price: product.price ?? '',
       condition: product.condition || 'New',
       stock: product.stock ?? '',
       status: product.status || 'Active',
-      image: product.image || '',
+      images: Array.isArray(product.images) && product.images.length > 0 ? product.images : (product.image ? [product.image] : []),
     });
     setSubmitError('');
     setDialogOpen(true);
@@ -99,6 +104,42 @@ export function ProductManagement() {
     }
   };
 
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    const remaining = 5 - form.images.length;
+    if (remaining <= 0) {
+      toast.error('Maximum of 5 images allowed');
+      return;
+    }
+    const toUpload = files.slice(0, remaining);
+
+    if (toUpload.length === 0) return;
+
+    setUploading(true);
+    try {
+      const res = await uploadAPI.uploadImages(toUpload);
+      if (res.success && res.images) {
+        setForm(prev => ({
+          ...prev,
+          images: [...prev.images, ...res.images.map(img => img.url)]
+        }));
+        toast.success(`${res.images.length} image(s) uploaded`);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = (index) => {
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -106,6 +147,8 @@ export function ProductManagement() {
       ...form,
       price: Number(form.price),
       stock: Number(form.stock),
+      images: form.images,
+      image: form.images[0] || form.image || 'https://placehold.co/100x100/3b82f6/white?text=TR'
     };
 
     try {
@@ -125,9 +168,8 @@ export function ProductManagement() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4 py-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2 text-white">Product Management</h1>
           <p className="text-slate-400">Manage your product catalog and inventory</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -150,13 +192,36 @@ export function ProductManagement() {
                 <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
                 <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
                   <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
-                    <option value="Accessories">Accessories</option>
-                    <option value="Parts">Parts</option>
-                    <option value="Tools">Tools</option>
+                    <option value="Smartphones">Smartphones</option>
+                    <option value="Laptops">Laptops</option>
+                    <option value="Laptop Accessories">Laptop Accessories</option>
+                    <option value="Mobile Accessories">Mobile Accessories</option>
+                    <option value="Gaming">Gaming</option>
+                    <option value="Networking">Networking</option>
+                    <option value="Printers">Printers</option>
+                    <option value="Storage Devices">Storage Devices</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Brand</label>
+                  <select value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
+                    <option value="Apple">Apple</option>
+                    <option value="Samsung">Samsung</option>
+                    <option value="HP">HP</option>
+                    <option value="Dell">Dell</option>
+                    <option value="Lenovo">Lenovo</option>
+                    <option value="Asus">Asus</option>
+                    <option value="Huawei">Huawei</option>
+                    <option value="Xiaomi">Xiaomi</option>
+                    <option value="Sony">Sony</option>
+                    <option value="LG">LG</option>
+                    <option value="Microsoft">Microsoft</option>
+                    <option value="Google">Google</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -180,8 +245,44 @@ export function ProductManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Image URL</label>
-                <Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://..." className="bg-slate-700 border-slate-600 text-white" />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Product Images (max 5)</label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || form.images.length >= 5}
+                    className="border-slate-600 text-white hover:bg-slate-700"
+                  >
+                    {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                    {uploading ? 'Uploading...' : 'Upload Images'}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <span className="text-xs text-slate-400">{form.images.length}/5 images</span>
+                </div>
+                {form.images.length > 0 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {form.images.map((img, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-slate-600">
+                        <img src={getProductImageUrl(img)} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 hover:bg-red-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
               <DialogFooter>
@@ -208,6 +309,7 @@ export function ProductManagement() {
             <TableRow>
               <TableHead className="text-white">Product</TableHead>
               <TableHead className="text-white">Category</TableHead>
+              <TableHead className="text-white">Brand</TableHead>
               <TableHead className="text-white">Condition</TableHead>
               <TableHead className="text-white">Price</TableHead>
               <TableHead className="text-white">Stock</TableHead>
@@ -218,19 +320,19 @@ export function ProductManagement() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-red-400">
+                <TableCell colSpan={8} className="text-center py-8 text-red-400">
                   {error}
                 </TableCell>
               </TableRow>
             ) : filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                   No products found
                 </TableCell>
               </TableRow>
@@ -239,7 +341,12 @@ export function ProductManagement() {
                 <TableRow key={product._id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <img src={product.image} alt={product.name} onError={(e) => { e.target.src = 'https://placehold.co/100x100/3b82f6/white?text=TR'; }} className="h-12 w-12 rounded-lg object-cover" />
+                      <img
+                        src={getProductImageUrl(product.images?.[0] || product.image)}
+                        alt={product.name}
+                        onError={(e) => { e.target.src = 'https://placehold.co/100x100/3b82f6/white?text=TR'; }}
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
                       <div>
                         <p className="font-semibold text-white">{product.name}</p>
                         <p className="text-sm text-slate-400">ID: {String(product._id).slice(-6)}</p>
@@ -247,6 +354,7 @@ export function ProductManagement() {
                     </div>
                   </TableCell>
                   <TableCell className="text-white">{product.category}</TableCell>
+                  <TableCell className="text-white">{product.brand}</TableCell>
                   <TableCell className="text-white">{product.condition}</TableCell>
                   <TableCell className="font-semibold text-green-400">R{Number(product.price).toLocaleString()}</TableCell>
                   <TableCell>

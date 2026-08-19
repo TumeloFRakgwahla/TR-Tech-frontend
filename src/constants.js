@@ -39,9 +39,31 @@ export const PAYMENT_STATUSES = [
 
 // Product Categories
 export const PRODUCT_CATEGORIES = [
-  'Accessories',
-  'Parts',
-  'Tools',
+  'Smartphones',
+  'Laptops',
+  'Laptop Accessories',
+  'Mobile Accessories',
+  'Gaming',
+  'Networking',
+  'Printers',
+  'Storage Devices',
+  'Other'
+];
+
+// Product Brands
+export const PRODUCT_BRANDS = [
+  'Apple',
+  'Samsung',
+  'HP',
+  'Dell',
+  'Lenovo',
+  'Asus',
+  'Huawei',
+  'Xiaomi',
+  'Sony',
+  'LG',
+  'Microsoft',
+  'Google',
   'Other'
 ];
 

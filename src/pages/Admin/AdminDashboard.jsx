@@ -26,6 +26,7 @@ import { ordersAPI, productsAPI } from '../../services/api';
 import { useAuth } from '../../components/AuthContext';
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { aggregateOrdersByMonth } from '../../utils/analytics';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -58,19 +59,8 @@ export function AdminDashboard() {
         setLowStockProducts(lowStockRes.data || []);
         setTopProducts(productsRes.data || []);
 
-        const monthMap = {};
-        (ordersRes.data || []).forEach((order) => {
-          const date = new Date(order.createdAt);
-          const key = date.toLocaleString('default', { month: 'short' });
-          if (!monthMap[key]) monthMap[key] = { month: key, revenue: 0, sales: 0 };
-          monthMap[key].revenue += Number(order.totalAmount) || 0;
-          monthMap[key].sales += (order.items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-        });
-        const sortedMonths = Object.values(monthMap).sort((a, b) => {
-          const order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          return order.indexOf(a.month) - order.indexOf(b.month);
-        });
-        setSalesData(sortedMonths);
+        const salesData = aggregateOrdersByMonth(ordersRes.data || []);
+        setSalesData(salesData);
       } catch (err) {
         if (!isMounted) return;
         setError(err.message || 'Failed to load dashboard data');
@@ -115,8 +105,7 @@ export function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 text-white">Dashboard</h1>
+      <div className="mb-4 py-4">
         <p className="text-slate-400">
           Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! Here's what's happening with your store today.
         </p>

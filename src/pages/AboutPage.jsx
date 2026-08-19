@@ -1,4 +1,3 @@
-import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import WhyChooseUs from '../components/Why-Choose-Us';
@@ -8,7 +7,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-20 md:pt-25">
+      <div className="pt-20">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
@@ -17,7 +16,7 @@ const About = () => {
             About TR-Tech
           </h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto">
-            Your trusted partner for tech repairs. graphic desgin, and quality tech products.
+             Your trusted partner for tech repairs, graphic design, and quality tech products.
           </p>
         </div>
       </section>
@@ -68,31 +67,31 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                <Users className="text-2xl" />
+                 <Users size={24} />
               </div>
               <h3 className="text-xl font-semibold mb-3">Customer First</h3>
               <p className="text-muted-foreground">Your satisfaction is our top priority. We listen, we deliver, we exceed expectations.</p>
             </div>
             <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                <Target className="text-2xl" />
+                 <Target size={24} />
               </div>
               <h3 className="text-xl font-semibold mb-3">Excellence</h3>
               <p className="text-muted-foreground">We strive for excellence in every repair, design and product we offer. Quality is never compromised.</p>
             </div>
             <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                <Award className="text-2xl" />
+                 <Award size={24} />
               </div>
               <h3 className="text-xl font-semibold mb-3">Expertise</h3>
               <p className="text-muted-foreground">Our team consists of certified technicians and experienced designers with years of industry knowledge.</p>
             </div>
             <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                <Heart className="text-2xl" />
+                 <Heart size={24} />
               </div>
               <h3 className="text-xl font-semibold mb-3">Integrity</h3>
-              <p className="text-muted-foreground">Honesty and transpareny guide our business. We provide fair pricing and genuines advice.</p>
+               <p className="text-muted-foreground">Honesty and transparency guide our business. We provide fair pricing and genuine advice.</p>
             </div>
           </div>
         </div>
@@ -118,42 +117,10 @@ const About = () => {
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-16 bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-center">Why Choose TR-Tech?</h2>
-          
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <h3 className="font-bold text-xl mb-3">✓ Certified Technicians</h3>
-              <p className="text-gray-200">
-                All our technicians are certified and continuously trained on the latest technologies and repair techniques.
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <h3 className="font-bold text-xl mb-3">✓ Quality Parts</h3>
-              <p className="text-gray-200">
-                We use only genuine or high-quality replacement parts to ensure your device performs like new.
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <h3 className="font-bold text-xl mb-3">✓ Warranty Coverage</h3>
-              <p className="text-gray-200">
-                All repairs come with a warranty, giving you peace of mind and confidence in our work.
-              </p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
-              <h3 className="font-bold text-xl mb-3">✓ Transparent Pricing</h3>
-              <p className="text-gray-200">
-                No hidden fees or surprises. We provide clear, upfront pricing before any work begins.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      </div>
+      <WhyChooseUs />
 
       <Footer />
+      </div>
     </div>
   );
 };

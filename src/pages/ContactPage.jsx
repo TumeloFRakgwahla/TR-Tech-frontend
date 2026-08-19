@@ -12,7 +12,7 @@
  * The form collects user information and opens WhatsApp with a pre-filled message.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
@@ -20,6 +20,7 @@ import { Button } from "../components/button.jsx";
 import { contactAPI } from '../services/api';
 import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
 import { WHATSAPP_NUMBER } from '../constants';
+import { toast } from 'sonner';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ const Contact = () => {
     phone: '',
     subject: '',
     message: '',
+    _honeypot: '',
   });
 
   const handleChange = (field, value) => {
@@ -37,15 +39,19 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData._honeypot) {
+      toast.error('Spam detected. Please do not fill out hidden fields.');
+      return;
+    }
+
     if (!formData.name || !formData.message) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
     try {
-      // Submit to backend API
       const response = await contactAPI.submit(formData);
-      
+
       if (response.success) {
         const message = `
 Hi! Contact Form Submission:
@@ -61,23 +67,23 @@ ${sanitizeWhatsAppInput(formData.message)}
 
         window.open(createWhatsAppUrl(message, WHATSAPP_NUMBER), '_blank');
 
-        alert('Message sent successfully!');
+        toast.success('Message sent successfully! Redirecting to WhatsApp...');
+
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+          _honeypot: '',
+        });
       } else {
-        alert('Failed to send message. Please try again.');
+        toast.error(response.message || 'Failed to send message. Please try again.');
       }
     } catch (err) {
       console.error('Error submitting contact form:', err);
-      alert('An error occurred. Please try again or contact us directly.');
+      toast.error('An error occurred. Please try again or contact us directly.');
     }
-
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: '',
-    });
   };
 
   const contactMethods = [
@@ -85,26 +91,26 @@ ${sanitizeWhatsAppInput(formData.message)}
       icon: Phone,
       title: 'Call Us',
       details: ['064 510 4733'],
-      action: () => window.open('tel:0645104733'),
+      action: () => { window.location.href = 'tel:0645104733'; },
     },
     {
       icon: MessageCircle,
       title: 'WhatsApp',
       details: ['079 100 2552'],
-      action: () => window.open('https://wa.me/27791002552'),
+      action: () => { window.location.href = 'https://wa.me/27791002552'; },
     },
     {
       icon: Mail,
       title: 'Email Us',
       details: ['trtechrepairsanddesigns', '@gmail.com'],
-      action: () => window.open('mailto:trtechrepairsanddesigns@gmail.com'),
+      action: () => { window.location.href = 'mailto:trtechrepairsanddesigns@gmail.com'; },
     },
   ];
 
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-20 md:pt-25">
+      <div className="pt-20">
 
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
@@ -200,22 +206,34 @@ ${sanitizeWhatsAppInput(formData.message)}
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-2">
-                      Message <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      id="message"
-                      value={formData.message}
-                      onChange={(e) => handleChange('message', e.target.value)}
-                      placeholder="Your message..."
-                      rows={6}
-                      required
-                      className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                    />
-                  </div>
+                   <div>
+                     <label htmlFor="message" className="block text-sm font-medium mb-2">
+                       Message <span className="text-red-500">*</span>
+                     </label>
+                     <textarea
+                       id="message"
+                       value={formData.message}
+                       onChange={(e) => handleChange('message', e.target.value)}
+                       placeholder="Your message..."
+                       rows={6}
+                       required
+                       className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                     />
+                   </div>
 
-                  <Button type="submit" size="lg" className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+                   <div className="hidden" aria-hidden="true">
+                     <label htmlFor="_honeypot">Do not fill out this field</label>
+                     <input
+                       id="_honeypot"
+                       name="_honeypot"
+                       value={formData._honeypot}
+                       onChange={(e) => handleChange('_honeypot', e.target.value)}
+                       tabIndex={-1}
+                       autoComplete="off"
+                     />
+                   </div>
+
+                   <Button type="submit" size="lg" className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
                     Send Message via WhatsApp
                   </Button>
 
@@ -272,24 +290,24 @@ ${sanitizeWhatsAppInput(formData.message)}
                     <p className="text-muted-foreground mb-6">
                       Stay updated with our latest products, services, and special offers on social media.
                     </p>
-                    <div className="flex gap-4">
-                      <a
-                        href="https://facebook.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
-                      >
-                        <Facebook className="h-6 w-6 text-primary-foreground" />
-                      </a>
-                      <a
-                        href="https://instagram.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
-                      >
-                        <Instagram className="h-6 w-6 text-primary-foreground" />
-                      </a>
-                    </div>
+                     <div className="flex gap-4">
+                       <a
+                         href="https://www.facebook.com/trtechrepairsanddesigns"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
+                       >
+                         <Facebook className="h-6 w-6 text-primary-foreground" />
+                       </a>
+                       <a
+                         href="https://www.instagram.com/trtechrepairsanddesigns"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
+                       >
+                         <Instagram className="h-6 w-6 text-primary-foreground" />
+                       </a>
+                     </div>
                   </div>
                 </div>
               </div>

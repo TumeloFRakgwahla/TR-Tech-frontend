@@ -61,7 +61,8 @@ export function RepairsPage() {
       });
 
       if (response.success) {
-        const message = `Hi! I've just submitted a repair request (ID: ${response.data._id}). ${sanitizeWhatsAppInput(formData.issue)}`;
+        const repairId = response.data?._id;
+        const message = `Hi! I've just submitted a repair request${repairId ? ` (ID: ${repairId})` : ''}. ${sanitizeWhatsAppInput(formData.issue)}`;
         window.open(createWhatsAppUrl(message, WHATSAPP_NUMBER), '_blank');
 
         toast.success('Repair request submitted successfully!');
@@ -77,6 +78,8 @@ export function RepairsPage() {
           issue: '',
           additionalInfo: '',
         });
+      } else {
+        toast.error(response.message || 'Failed to submit repair request. Please try again.');
       }
     } catch (err) {
       console.error('Error submitting repair request:', err);
@@ -90,12 +93,12 @@ export function RepairsPage() {
     <div className="min-h-screen">
       <Navbar />
 
-      <div className="pt-20 md:pt-25">
+      <div className="pt-20">
      {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <Wrench className="h-16 w-16 mx-auto mb-6 text-black" />
+            <Wrench className="h-16 w-16 mx-auto mb-6 text-white" />
             <h1 className="text-4xl md:text-5xl font-bold mb-6">Book a Repair</h1>
             <p className="text-xl opacity-90">
               Get your device fixed by our expert technicians
@@ -311,21 +314,21 @@ export function RepairsPage() {
             <h2 className="text-3xl font-bold mb-8 text-center">Why Book With TR-Tech?</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-black" />
+                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-white" />
                 <h3 className="font-bold text-lg mb-2">Expert Technicians</h3>
                 <p className="opacity-90 text-sm">
                   Certified professionals with years of experience
                 </p>
               </div>
               <div className="text-center">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-black" />
+                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-white" />
                 <h3 className="font-bold text-lg mb-2">Quick Turnaround</h3>
                 <p className="opacity-90 text-sm">
                   Most repairs completed within 24-48 hours
                 </p>
               </div>
               <div className="text-center">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-black" />
+                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-white" />
                 <h3 className="font-bold text-lg mb-2">Warranty Included</h3>
                 <p className="opacity-90 text-sm">
                   All repairs backed by our quality guarantee

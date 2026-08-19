@@ -68,8 +68,7 @@ export function InventoryManagement() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 text-white">Inventory Management</h1>
+      <div className="mb-4 py-4">
         <p className="text-slate-400">Monitor and manage product stock levels</p>
       </div>
 

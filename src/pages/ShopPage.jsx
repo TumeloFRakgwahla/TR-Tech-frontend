@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Smartphone, Star, ShoppingCart, SlidersHorizontal, Search, X } from 'lucide-react';
+import { Smartphone, Star, ShoppingCart, SlidersHorizontal, Search, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
+import { useWishlist } from '../components/WishlistContext';
 import { CartDrawer } from '../components/CartDrawer';
 import { productsAPI } from '../services/api';
+import { getProductImageUrl } from '../lib/imageUrl';
 
 const DEFAULT_PRICE_RANGE = 30000;
 const MAX_PRICE_RANGE = 30000;
@@ -16,7 +18,7 @@ const CATEGORIES = [
   'Mobile Accessories', 'Gaming', 'Networking', 'Printers', 'Storage Devices'
 ];
 
-const BRANDS = ['Apple', 'Samsung', 'HP', 'Dell', 'Lenovo', 'Asus'];
+const BRANDS = ['Apple', 'Samsung', 'HP', 'Dell', 'Lenovo', 'Asus', 'Huawei', 'Xiaomi', 'Sony', 'LG', 'Microsoft', 'Google'];
 
 const SORT_OPTIONS = [
   { value: 'featured', label: 'Featured' },
@@ -92,6 +94,10 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
     setImageErrors(prev => ({ ...prev, [id]: true }));
   }, [id, setImageErrors]);
 
+  const { toggleWishlist, isInWishlist, isToggling } = useWishlist();
+  const inWishlist = isInWishlist(product);
+  const toggling = isToggling(product);
+
   return (
     <div className="bg-white rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col">
       <Link to={`/products/${id}`} className="block">
@@ -106,9 +112,33 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
               Flash Deal
             </span>
           )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product);
+            }}
+            disabled={toggling}
+            className={`absolute top-2 right-2 z-10 p-2 rounded-full border transition-all ${
+              toggling
+                ? 'opacity-50 cursor-wait'
+                : inWishlist
+                ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
+                : 'bg-white/90 border-border text-muted-foreground hover:text-red-500 hover:border-red-200'
+            }}`}
+            aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-pressed={inWishlist}
+          >
+            {toggling ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />
+            ) : (
+              <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+            )}
+          </button>
           {product.image && !imageErrors[id] ? (
             <img
-              src={product.image}
+              src={getProductImageUrl(product.image)}
               alt={`${product.name} product image`}
               className="w-full h-full object-cover opacity-90"
               loading="lazy"
@@ -155,7 +185,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
           type="button"
           onClick={() => addToCart(product)}
           disabled={!product.stock || product.stock === 0}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border-2 border-primary bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted disabled:text-muted-foreground"
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           <span>{product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
@@ -205,6 +235,25 @@ function FilterSidebar({ filters }) {
             ))}
           </div>
         </fieldset>
+       </div>
+
+      <div className="mb-6">
+        <fieldset>
+          <legend className="text-sm font-semibold text-foreground mb-3">Brands</legend>
+          <div className="space-y-2">
+            {BRANDS.map(brand => (
+              <label key={brand} className="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={selectedBrands.includes(brand)}
+                  onChange={() => toggleBrand(brand)}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+                />
+                <span className="text-sm text-foreground group-hover:text-primary">{brand}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
 
       <div className="mb-6">
@@ -228,26 +277,7 @@ function FilterSidebar({ filters }) {
           <span>R0</span>
           <span aria-live="polite">R{priceRange.toLocaleString()}</span>
         </div>
-      </div>
-
-      <div className="mb-6">
-        <fieldset>
-          <legend className="text-sm font-semibold text-foreground mb-3">Brands</legend>
-          <div className="space-y-2">
-            {BRANDS.map(brand => (
-              <label key={brand} className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={selectedBrands.includes(brand)}
-                  onChange={() => toggleBrand(brand)}
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
-                />
-                <span className="text-sm text-foreground group-hover:text-primary">{brand}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </div>
+       </div>
 
       <div>
         <label className="flex items-center gap-2 cursor-pointer group">
@@ -287,31 +317,31 @@ function ShopContent() {
 
   const filters = useFilters();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await productsAPI.getAll();
-        if (response.success) {
-          setProducts(response.data);
-          setImageErrors({});
-        } else {
-          setError(response.message || 'Failed to load products');
-        }
-      } catch (err) {
-        setError('Unable to load products. Please check your connection and try again.');
-      } finally {
-        setLoading(false);
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await productsAPI.getAll();
+      if (response.success) {
+        setProducts(response.data);
+        setImageErrors({});
+      } else {
+        setError(response.message || 'Failed to load products');
       }
-    };
-    fetchProducts();
+    } catch {
+      setError('Unable to load products. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
   const retryFetch = useCallback(() => {
-    setError(null);
-    setLoading(true);
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Use debounced search for filtering
   const filteredProducts = useMemo(() => {

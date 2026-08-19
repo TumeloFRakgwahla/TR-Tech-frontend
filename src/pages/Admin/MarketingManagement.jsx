@@ -151,8 +151,7 @@ const [coupons, setCoupons] = useState([]);
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 text-white">Marketing Management</h1>
+      <div className="mb-4 py-4">
         <p className="text-slate-400">Manage coupons, campaigns, and promotional content</p>
       </div>
 

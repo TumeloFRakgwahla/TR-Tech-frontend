@@ -5,20 +5,15 @@
  * Update the API_BASE_URL to point to your backend server.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-const CSRF_TOKEN_KEY = 'csrf_token';
-
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-}
+import { API_BASE_URL } from '../constants';
 
 let cachedCsrfToken = null;
+let csrfTokenExpiry = null;
+const CSRF_CACHE_DURATION = 55 * 60 * 1000;
 
 async function getCsrfToken() {
-  if (cachedCsrfToken) {
+  const now = Date.now();
+  if (cachedCsrfToken && csrfTokenExpiry && now < csrfTokenExpiry) {
     return cachedCsrfToken;
   }
   try {
@@ -26,6 +21,7 @@ async function getCsrfToken() {
     const data = await res.json();
     if (data.csrfToken) {
       cachedCsrfToken = data.csrfToken;
+      csrfTokenExpiry = now + CSRF_CACHE_DURATION;
       return cachedCsrfToken;
     }
   } catch {
@@ -36,15 +32,11 @@ async function getCsrfToken() {
 
 function clearCsrfCache() {
   cachedCsrfToken = null;
+  csrfTokenExpiry = null;
 }
 
 function getAuthHeaders() {
-  const authCookie = getCookie('authToken');
-  const headers = {};
-  if (authCookie) {
-    headers['Authorization'] = `Bearer ${authCookie}`;
-  }
-  return headers;
+  return {};
 }
 
 async function handleResponse(response) {
@@ -59,6 +51,7 @@ async function handleResponse(response) {
         method: response.method,
         headers: retryHeaders,
         body: response.method !== 'GET' && response.method !== 'HEAD' ? await response.text() : undefined,
+        credentials: 'include',
       }).then(handleResponse);
     }
   }
@@ -80,20 +73,22 @@ async function getCsrfHeader() {
 export const productsAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/products${queryString ? `?${queryString}` : ''}`);
+    const response = await fetch(`${API_BASE_URL}/products${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+    });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`);
+    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+      credentials: 'include',
+    });
     return handleResponse(response);
   },
 
   getLowStock: async (threshold = 10) => {
     const response = await fetch(`${API_BASE_URL}/products/low-stock?threshold=${threshold}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -105,9 +100,9 @@ export const productsAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(productData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -119,9 +114,9 @@ export const productsAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(productData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -132,8 +127,8 @@ export const productsAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -145,12 +140,16 @@ export const productsAPI = {
 export const servicesAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/services${queryString ? `?${queryString}` : ''}`);
+    const response = await fetch(`${API_BASE_URL}/services${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+    });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/services/${id}`);
+    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
+      credentials: 'include',
+    });
     return handleResponse(response);
   },
 
@@ -161,9 +160,9 @@ export const servicesAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(serviceData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -175,9 +174,9 @@ export const servicesAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(serviceData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -188,8 +187,8 @@ export const servicesAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -202,27 +201,21 @@ export const ordersAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/orders${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
     const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getStats: async () => {
     const response = await fetch(`${API_BASE_URL}/orders/stats`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -236,6 +229,7 @@ export const ordersAPI = {
         ...csrfHeaders,
       },
       body: JSON.stringify(orderData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -247,9 +241,9 @@ export const ordersAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify({ status }),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -260,8 +254,8 @@ export const ordersAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -280,15 +274,14 @@ export const contactAPI = {
         ...csrfHeaders,
       },
       body: JSON.stringify(formData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getAll: async () => {
     const response = await fetch(`${API_BASE_URL}/contact`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -301,18 +294,14 @@ export const repairsAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/repairs${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
     const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -326,6 +315,7 @@ export const repairsAPI = {
         ...csrfHeaders,
       },
       body: JSON.stringify(repairData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -337,9 +327,9 @@ export const repairsAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(repairData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -350,8 +340,8 @@ export const repairsAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -378,6 +368,7 @@ export const authAPI = {
         ...csrfHeaders,
       },
       body: JSON.stringify(userData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -391,32 +382,36 @@ export const authAPI = {
         ...csrfHeaders,
       },
       body: JSON.stringify(credentials),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getMe: async () => {
-    const token = getCookie('authToken');
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      },
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   updateProfile: async (profileData) => {
-    const token = getCookie('authToken');
     const csrfHeaders = await getCsrfHeader();
     const response = await fetch(`${API_BASE_URL}/auth/updateprofile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...csrfHeaders,
       },
       body: JSON.stringify(profileData),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  logout: async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -427,7 +422,6 @@ export const authAPI = {
  */
 export const uploadAPI = {
   uploadImage: async (file) => {
-    const token = getCookie('authToken');
     const csrfHeaders = await getCsrfHeader();
     const formData = new FormData();
     formData.append('image', file);
@@ -436,22 +430,37 @@ export const uploadAPI = {
       method: 'POST',
       headers: {
         ...csrfHeaders,
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body: formData,
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  uploadImages: async (files) => {
+    const csrfHeaders = await getCsrfHeader();
+    const formData = new FormData();
+    files.forEach((file) => formData.append('images', file));
+
+    const response = await fetch(`${API_BASE_URL}/upload/images`, {
+      method: 'POST',
+      headers: {
+        ...csrfHeaders,
+      },
+      body: formData,
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   deleteImage: async (filename) => {
-    const token = getCookie('authToken');
     const csrfHeaders = await getCsrfHeader();
     const response = await fetch(`${API_BASE_URL}/upload/image/${filename}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -461,18 +470,14 @@ export const usersAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/users${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -484,9 +489,9 @@ export const usersAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(userData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -497,8 +502,8 @@ export const usersAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -508,9 +513,7 @@ export const marketingAPI = {
   getCoupons: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/marketing/coupons${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -522,9 +525,9 @@ export const marketingAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(couponData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -536,9 +539,9 @@ export const marketingAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(couponData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -549,8 +552,8 @@ export const marketingAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -558,9 +561,7 @@ export const marketingAPI = {
   getCampaigns: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/marketing/campaigns${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -572,9 +573,9 @@ export const marketingAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(campaignData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -586,9 +587,9 @@ export const marketingAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(campaignData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -599,8 +600,8 @@ export const marketingAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -608,9 +609,7 @@ export const marketingAPI = {
   getPromotions: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/marketing/promotions${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        ...getAuthHeaders(),
-      },
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -622,9 +621,9 @@ export const marketingAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(promotionData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -636,9 +635,9 @@ export const marketingAPI = {
       headers: {
         'Content-Type': 'application/json',
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
       body: JSON.stringify(promotionData),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -649,8 +648,52 @@ export const marketingAPI = {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+};
+
+/**
+ * Wishlist API
+ */
+export const wishlistAPI = {
+  getAll: async () => {
+    const response = await fetch(`${API_BASE_URL}/wishlist`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  add: async (productId) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  remove: async (productId) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  check: async (productId) => {
+    const response = await fetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -666,5 +709,6 @@ export default {
   upload: uploadAPI,
   users: usersAPI,
   marketing: marketingAPI,
+  wishlist: wishlistAPI,
   healthCheck,
 };

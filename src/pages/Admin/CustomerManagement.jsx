@@ -77,8 +77,7 @@ export function CustomerManagement() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 text-white">Customer Management</h1>
+      <div className="mb-4 py-4">
         <p className="text-slate-400">View and manage customer information</p>
       </div>
 

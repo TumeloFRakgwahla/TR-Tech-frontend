@@ -1,7 +1,7 @@
 export function sanitizeWhatsAppInput(value) {
   if (typeof value !== 'string') return '';
   return value
-    .replace(/[&<>"']/g, (char) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '' })[char] || char)
+    .replace(/<[^>]*>/g, '')
     .replace(/[\r\n]+/g, ' ')
     .trim();
 }

@@ -15,21 +15,17 @@ import {
   Cell,
 } from 'recharts';
 import { Download, Calendar } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { ordersAPI } from '../../services/api';
+import { useState, useEffect, useMemo } from 'react';
+import { ordersAPI, productsAPI } from '../../services/api';
 import { toast } from 'sonner';
+import { aggregateOrdersByMonth } from '../../utils/analytics';
 
-const categoryData = [
-  { name: 'Electronics', value: 35, color: '#3b82f6' },
-  { name: 'Accessories', value: 25, color: '#10b981' },
-  { name: 'Repairs', value: 20, color: '#f59e0b' },
-  { name: 'Designs', value: 15, color: '#8b5cf6' },
-  { name: 'Other', value: 5, color: '#6b7280' },
-];
+const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'];
 
 export function ReportsAnalytics() {
   const [stats, setStats] = useState(null);
   const [salesData, setSalesData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -39,25 +35,30 @@ export function ReportsAnalytics() {
       setIsLoading(true);
       setError(null);
       try {
-        const [statsRes, ordersRes] = await Promise.all([
+        const [statsRes, ordersRes, productsRes] = await Promise.all([
           ordersAPI.getStats(),
           ordersAPI.getAll({ limit: 100 }),
+          productsAPI.getAll({ limit: 100 }),
         ]);
         if (!isMounted) return;
         setStats(statsRes.data);
-        const monthMap = {};
-        (ordersRes.data || []).forEach((order) => {
-          const date = new Date(order.createdAt);
-          const key = date.toLocaleString('default', { month: 'short' });
-          if (!monthMap[key]) monthMap[key] = { month: key, revenue: 0, sales: 0 };
-          monthMap[key].revenue += Number(order.totalAmount) || 0;
-          monthMap[key].sales += (order.items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+        const salesData = aggregateOrdersByMonth(ordersRes.data || []);
+        setSalesData(salesData);
+
+        const categoryMap = {};
+        (productsRes.data || []).forEach((product) => {
+          const cat = product.category || 'Other';
+          categoryMap[cat] = (categoryMap[cat] || 0) + 1;
         });
-        const sortedMonths = Object.values(monthMap).sort((a, b) => {
-          const order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          return order.indexOf(a.month) - order.indexOf(b.month);
-        });
-        setSalesData(sortedMonths);
+        setCategoryData(
+          Object.entries(categoryMap)
+            .map(([name, value], index) => ({
+              name,
+              value,
+              color: CHART_COLORS[index % CHART_COLORS.length],
+            }))
+            .sort((a, b) => b.value - a.value)
+        );
       } catch (err) {
         if (!isMounted) return;
         setError(err.message || 'Failed to load reports');
@@ -93,9 +94,8 @@ export function ReportsAnalytics() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4 py-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2 text-white">Reports & Analytics</h1>
           <p className="text-slate-400">View business insights and performance metrics</p>
         </div>
         <div className="flex gap-2">
@@ -165,16 +165,20 @@ export function ReportsAnalytics() {
         <Card className="p-6 bg-slate-800 border-slate-700">
           <h3 className="text-lg font-semibold mb-4 text-white">Category Distribution</h3>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #374151', borderRadius: '8px', color: 'white' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #374151', borderRadius: '8px', color: 'white' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-400">No category data available</div>
+            )}
           </div>
         </Card>
       </div>
