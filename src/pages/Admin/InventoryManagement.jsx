@@ -175,3 +175,5 @@ export function InventoryManagement() {
     </div>
   );
 }
+
+export default InventoryManagement;

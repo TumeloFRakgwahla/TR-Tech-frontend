@@ -10,7 +10,12 @@ export const WHATSAPP_NUMBER = '27791002552';
 export const WHATSAPP_BASE_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// In dev, Vite proxies /api to the backend, so use a relative path to avoid
+// cross-origin requests and CSP connect-src violations.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : 'http://localhost:5000/api/v1');
+
+// Default product image (matches the backend Product schema default)
+export const PRODUCT_PLACEHOLDER_IMAGE = 'https://placehold.co/100x100/3b82f6/white?text=TR';
 
 // Order Status Options
 export const ORDER_STATUSES = [
@@ -35,6 +40,14 @@ export const PAYMENT_STATUSES = [
   'Pending',
   'Paid',
   'Refunded'
+];
+
+// Sort Options
+export const SORT_OPTIONS = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'price-asc', label: 'Price: Low to High' },
+  { value: 'price-desc', label: 'Price: High to Low' },
+  { value: 'rating', label: 'Top Rated' },
 ];
 
 // Product Categories

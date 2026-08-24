@@ -145,12 +145,12 @@ export function ProductInfo({
         </button>
         <button
           type="button"
-          className={`min-h-[46px] w-[46px] flex items-center justify-center rounded-md border-2 border-black transition-colors disabled:opacity-40 ${
+          className={`min-h-[46px] w-[46px] flex items-center justify-center rounded-md border-2 border-black transition-colors ${
             inWishlist
               ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
               : 'bg-white hover:bg-muted/30'
           } ${toggling ? 'opacity-50 cursor-wait' : ''}`}
-          disabled={!inStock || toggling}
+          disabled={toggling}
           onClick={() => toggleWishlist(product)}
           aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           aria-pressed={inWishlist}

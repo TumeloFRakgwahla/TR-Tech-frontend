@@ -185,3 +185,5 @@ export function ReportsAnalytics() {
     </div>
   );
 }
+
+export default ReportsAnalytics;

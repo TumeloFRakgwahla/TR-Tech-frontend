@@ -1,9 +1,9 @@
-import React from 'react';
+import { Component } from 'react';
 
-export class ErrorBoundary extends React.Component {
+export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -11,33 +11,24 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({ errorInfo });
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('Lazy route load error:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback(this.state.error, this.state.errorInfo);
-      }
-
       return (
-        <div className="min-h-screen flex items-center justify-center bg-muted p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md border border-border p-8 text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              Something went wrong
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              We're sorry, but something unexpected happened. Please try refreshing the page.
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center p-6 max-w-md">
+            <div className="text-red-400 text-5xl mb-4">!</div>
+            <h2 className="text-xl font-bold text-white mb-2">Failed to load page</h2>
+            <p className="text-slate-400 mb-4">
+              {this.state.error?.message || 'An unexpected error occurred while loading this page.'}
             </p>
             <button
-              onClick={() => {
-                this.setState({ hasError: false, error: null, errorInfo: null });
-                window.location.reload();
-              }}
-              className="bg-white text-primary border-2 border-black font-bold text-lg shadow-lg hover:bg-primary hover:text-white hover:border-primary hover:shadow-2xl transition-all duration-300 px-6 py-3 rounded-md"
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
-              Refresh Page
+              Retry
             </button>
           </div>
         </div>

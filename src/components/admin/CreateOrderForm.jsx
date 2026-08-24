@@ -209,7 +209,7 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
                   type="number"
                   min="1"
                   value={item.quantity}
-                  onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                  onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value, 10) || 1)}
                   className="bg-slate-800 border-slate-700 text-white"
                 />
               </div>
