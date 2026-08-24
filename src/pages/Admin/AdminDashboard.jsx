@@ -220,7 +220,8 @@ export function AdminDashboard() {
           </div>
           <div className="space-y-4">
             {lowStockProducts.length > 0 ? lowStockProducts.map((product) => {
-              const percent = product.threshold > 0 ? Math.max((Number(product.stock) / product.threshold) * 100, 0) : 0;
+              const threshold = 10;
+              const percent = threshold > 0 ? Math.max((Number(product.stock) / threshold) * 100, 0) : 0;
               return (
                 <div key={product._id} className="flex items-start gap-3 p-4 border-l-4 border-yellow-600 bg-yellow-600/5 rounded-lg">
                   <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5" />
@@ -240,3 +241,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;

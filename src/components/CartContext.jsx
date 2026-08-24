@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
+import { cartAPI } from '../services/api';
+import { useAuth } from './AuthContext';
 
 const CART_STORAGE_KEY = 'trtech_cart';
 
@@ -15,8 +17,12 @@ export function CartProvider({ children }) {
       return [];
     }
   });
+  const [syncing, setSyncing] = useState(false);
   const cartRef = useRef(cart);
   cartRef.current = cart;
+  const { isAuthenticated, user } = useAuth();
+  const syncTimerRef = useRef(null);
+  const syncInProgressRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -27,6 +33,119 @@ export function CartProvider({ children }) {
   }, [cart]);
 
   const getProductId = useCallback((product) => product._id || product.id, []);
+
+  const mergeCarts = useCallback((localCart, serverCart) => {
+    const merged = [...serverCart];
+    const serverIds = new Set(serverCart.map((item) => getProductId(item)));
+
+    for (const localItem of localCart) {
+      const localId = getProductId(localItem);
+      if (!serverIds.has(localId)) {
+        merged.push(localItem);
+      }
+    }
+
+    return merged;
+  }, [getProductId]);
+
+  const fetchServerCart = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      setSyncing(true);
+      const data = await cartAPI.getAll();
+      if (data.success) {
+        const serverCart = data.data || [];
+        const merged = mergeCarts(cartRef.current, serverCart);
+        setCart(merged);
+      }
+    } catch (error) {
+      console.error('Failed to fetch server cart:', error);
+    } finally {
+      setSyncing(false);
+    }
+  }, [isAuthenticated, mergeCarts]);
+
+  const syncCartToServer = useCallback(async (items) => {
+    if (!isAuthenticated || syncInProgressRef.current) return;
+    syncInProgressRef.current = true;
+    try {
+      setSyncing(true);
+      const serverCartData = await cartAPI.getAll();
+      const serverCart = serverCartData?.data || [];
+      const serverMap = new Map();
+      serverCart.forEach((item) => {
+        const id = getProductId(item);
+        if (id) serverMap.set(id, item);
+      });
+      const localMap = new Map();
+      items.forEach((item) => {
+        const id = getProductId(item);
+        if (id) localMap.set(id, item);
+      });
+
+      const operations = [];
+
+      for (const [id, serverItem] of serverMap) {
+        if (!localMap.has(id)) {
+          operations.push(cartAPI.remove(id));
+        }
+      }
+
+      for (const [id, localItem] of localMap) {
+        const serverItem = serverMap.get(id);
+        if (!serverItem) {
+          operations.push(
+            cartAPI.add({
+              product: id,
+              name: localItem.name,
+              condition: localItem.condition,
+              price: localItem.price,
+              quantity: localItem.quantity,
+              image: localItem.image,
+            })
+          );
+        } else if (serverItem.quantity !== localItem.quantity) {
+          operations.push(cartAPI.update(id, localItem.quantity));
+        }
+      }
+
+      if (operations.length > 0) {
+        const results = await Promise.allSettled(operations);
+        const failures = results.filter((r) => r.status === 'rejected');
+        if (failures.length > 0) {
+          console.error(`${failures.length} cart sync operation(s) failed`);
+          toast.error('Some cart changes could not be synced.');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to sync cart to server:', error);
+      toast.error('Failed to sync cart. Please refresh the page.');
+    } finally {
+      setSyncing(false);
+      syncInProgressRef.current = false;
+    }
+  }, [isAuthenticated, getProductId]);
+
+  useEffect(() => {
+    if (isAuthenticated && (user?.id || user?._id)) {
+      fetchServerCart();
+    }
+  }, [isAuthenticated, user?.id || user?._id, fetchServerCart]);
+
+  useEffect(() => {
+    if (isAuthenticated && cart.length > 0 && !syncTimerRef.current) {
+      syncTimerRef.current = setTimeout(() => {
+        syncCartToServer(cart);
+        syncTimerRef.current = null;
+      }, 1000);
+    }
+    return () => {
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+        syncTimerRef.current = null;
+      }
+    };
+  }, [cart, isAuthenticated, syncCartToServer]);
 
   const addToCart = useCallback((product, quantity = 1) => {
     const productId = getProductId(product);
@@ -81,7 +200,10 @@ export function CartProvider({ children }) {
 
   const clearCart = useCallback(() => {
     setCart([]);
-  }, []);
+    if (isAuthenticated) {
+      cartAPI.clear().catch(() => {});
+    }
+  }, [isAuthenticated]);
 
   const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
   const totalPrice = useMemo(
@@ -94,8 +216,9 @@ export function CartProvider({ children }) {
       cart,
       totalItems,
       totalPrice,
+      syncing,
     }),
-    [cart, totalItems, totalPrice]
+    [cart, totalItems, totalPrice, syncing]
   );
 
   const dispatchValue = useMemo(
@@ -124,6 +247,7 @@ export function useCartState() {
       cart: [],
       totalItems: 0,
       totalPrice: 0,
+      syncing: false,
     };
   }
   return context;
