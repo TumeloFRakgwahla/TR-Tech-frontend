@@ -27,7 +27,7 @@ const Services = () => {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        const response = await servicesAPI.getAll({ signal: controller.signal });
+        const response = await servicesAPI.getAll({}, { signal: controller.signal });
         if (controller.signal.aborted) return;
         if (response.success) {
           setServices(response.data || []);

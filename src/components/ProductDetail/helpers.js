@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../constants';
+import { getProductImageUrl as getCanonicalProductImageUrl } from '../../lib/imageUrl';
 const RELATED_PRODUCTS_LIMIT = 4;
 const PRICE_LOCALE = 'en-ZA';
 
@@ -6,41 +7,10 @@ export function getProductId(product) {
   return product?._id || product?.id;
 }
 
+export { getCanonicalProductImageUrl as getProductImageUrl };
+
 export function getPublicImageUrl(url) {
-  if (!url) return '';
-
-  if (url.startsWith('/uploads/')) {
-    const baseUrl = API_BASE_URL.replace(/\/api$/, '');
-    return `${baseUrl}${url}`;
-  }
-
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-
-  const baseUrl = API_BASE_URL.replace(/\/api$/, '');
-
-  if (url.startsWith('/')) return `${baseUrl}${url}`;
-
-  return `${baseUrl}/${url}`;
-}
-
-export function getProductImageUrl(url) {
-  if (!url) return '';
-
-  if (url.startsWith('/uploads/')) return url;
-
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    const baseUrl = API_BASE_URL.replace(/\/api$/, '');
-    if (url.startsWith(baseUrl + '/uploads/')) {
-      return url.replace(baseUrl, '');
-    }
-    return url;
-  }
-
-  const baseUrl = API_BASE_URL.replace(/\/api$/, '');
-
-  if (url.startsWith('/')) return `${baseUrl}${url}`;
-
-  return `${baseUrl}/${url}`;
+  return getCanonicalProductImageUrl(url);
 }
 
 export function getProductImageUrls(product) {

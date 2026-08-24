@@ -232,3 +232,5 @@ export function OrderManagement() {
     </div>
   );
 }
+
+export default OrderManagement;

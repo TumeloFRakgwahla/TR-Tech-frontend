@@ -29,6 +29,7 @@ export function WishlistProvider({ children }) {
     try {
       localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlist));
     } catch {
+      // Storage unavailable or quota exceeded
     }
   }, [wishlist]);
 
@@ -44,7 +45,7 @@ export function WishlistProvider({ children }) {
     if (newProductIds.length > 0) {
       try {
         await Promise.all(newProductIds.map((id) => wishlistAPI.add(id)));
-        return [...serverProducts, ...currentWishlist.filter((p) => !localIds.has([...serverIds][0]))];
+        return [...serverProducts, ...currentWishlist.filter((p) => !serverIds.has(getProductId(p)))];
       } catch (error) {
         toast.error('Some wishlist items could not be saved to your account');
       }

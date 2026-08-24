@@ -447,3 +447,5 @@ const [coupons, setCoupons] = useState([]);
     </div>
   );
 }
+
+export default MarketingManagement;

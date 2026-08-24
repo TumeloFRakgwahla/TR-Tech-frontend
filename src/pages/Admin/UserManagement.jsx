@@ -11,8 +11,16 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table';
-import { Search, Edit, Trash2, User, Loader2 } from 'lucide-react';
+import { Search, Edit, Trash2, User, Loader2, KeyRound } from 'lucide-react';
 import { usersAPI } from '../../services/api';
+import { Label } from '../../components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../../components/ui/dialog';
 import { toast } from 'sonner';
 
 export function UserManagement() {
@@ -20,6 +28,13 @@ export function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetTarget, setResetTarget] = useState(null);
+  const [resetPasswordValue, setResetPasswordValue] = useState('');
+  const [resetConfirm, setResetConfirm] = useState('');
+  const [resetError, setResetError] = useState(null);
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,6 +73,35 @@ export function UserManagement() {
     const q = searchQuery.toLowerCase();
     return name.includes(q) || email.includes(q);
   });
+
+  const handleResetPassword = async () => {
+    if (!resetTarget) return;
+    if (resetPasswordValue.length < 8) {
+      setResetError('Password must be at least 8 characters');
+      return;
+    }
+    if (!/^(?=.*[a-zA-Z])(?=.*\d).+$/.test(resetPasswordValue)) {
+      setResetError('Password must contain both letters and numbers');
+      return;
+    }
+    if (resetPasswordValue !== resetConfirm) {
+      setResetError('Passwords do not match');
+      return;
+    }
+    setResetError(null);
+    setResetLoading(true);
+    try {
+      await usersAPI.resetPassword(resetTarget._id || resetTarget.id, resetPasswordValue);
+      toast.success('Password reset successfully');
+      setResetDialogOpen(false);
+      setResetPasswordValue('');
+      setResetConfirm('');
+    } catch (e) {
+      setResetError(e.message || 'Failed to reset password');
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -135,6 +179,7 @@ export function UserManagement() {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => toast.info('Edit user form coming soon')}><Edit className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="text-amber-400 hover:bg-slate-700" onClick={() => { setResetTarget(user); setResetPasswordValue(''); setResetConfirm(''); setResetError(null); setResetDialogOpen(true); }}><KeyRound className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="text-red-400 hover:bg-slate-700" onClick={async () => {
                         if (!window.confirm('Delete this user?')) return;
                         try {
@@ -151,6 +196,47 @@ export function UserManagement() {
           </TableBody>
         </Table>
       </Card>
+
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent className="bg-slate-800 border-slate-700 text-white">
+          <DialogHeader>
+            <DialogTitle>
+              Reset password{resetTarget ? ` for ${resetTarget.firstName} ${resetTarget.lastName}` : ''}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-white">New password</Label>
+              <Input
+                type="password"
+                value={resetPasswordValue}
+                onChange={(e) => setResetPasswordValue(e.target.value)}
+                placeholder="At least 8 characters"
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            <div>
+              <Label className="text-white">Confirm password</Label>
+              <Input
+                type="password"
+                value={resetConfirm}
+                onChange={(e) => setResetConfirm(e.target.value)}
+                placeholder="Re-enter password"
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            {resetError && <p className="text-red-400 text-sm">{resetError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetDialogOpen(false)} className="border-slate-600 text-white hover:bg-slate-700">Cancel</Button>
+            <Button onClick={handleResetPassword} disabled={resetLoading} className="bg-blue-600 hover:bg-blue-700">
+              {resetLoading ? 'Resetting...' : 'Reset password'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+export default UserManagement;

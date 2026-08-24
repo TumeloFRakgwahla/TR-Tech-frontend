@@ -10,6 +10,27 @@ import { API_BASE_URL } from '../constants';
 let cachedCsrfToken = null;
 let csrfTokenExpiry = null;
 const CSRF_CACHE_DURATION = 55 * 60 * 1000;
+const DEFAULT_TIMEOUT = 15000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  const originalSignal = options?.signal;
+  if (originalSignal) {
+    originalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 async function getCsrfToken() {
   const now = Date.now();
@@ -17,7 +38,7 @@ async function getCsrfToken() {
     return cachedCsrfToken;
   }
   try {
-    const res = await fetch(`${API_BASE_URL}/csrf-token`, { credentials: 'include' });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/csrf-token`, { credentials: 'include' });
     const data = await res.json();
     if (data.csrfToken) {
       cachedCsrfToken = data.csrfToken;
@@ -30,32 +51,35 @@ async function getCsrfToken() {
   return null;
 }
 
-function clearCsrfCache() {
+export function clearCsrfCache() {
   cachedCsrfToken = null;
   csrfTokenExpiry = null;
 }
 
-function getAuthHeaders() {
-  return {};
-}
-
-async function handleResponse(response) {
-  if (response.status === 419) {
+async function handleResponse(response, retryCount = 0) {
+  if (response.status === 419 && retryCount < 1) {
     const newToken = await getCsrfToken();
     if (newToken) {
       const retryHeaders = {
         ...(newToken && { 'X-CSRF-Token': newToken }),
-        ...getAuthHeaders(),
       };
-      return fetch(response.url, {
+      return fetchWithTimeout(response.url, {
         method: response.method,
         headers: retryHeaders,
         body: response.method !== 'GET' && response.method !== 'HEAD' ? await response.text() : undefined,
         credentials: 'include',
-      }).then(handleResponse);
+      }).then((res) => handleResponse(res, retryCount + 1));
     }
   }
-  const data = await response.json();
+
+  if (response.status === 401) {
+    clearCsrfCache();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('trtech:unauthorized'));
+    }
+  }
+
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(data.message || 'An error occurred');
   }
@@ -71,23 +95,24 @@ async function getCsrfHeader() {
  * Products API
  */
 export const productsAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params = {}, options = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/products${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
+      signal: options.signal,
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`, {
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getLowStock: async (threshold = 10) => {
-    const response = await fetch(`${API_BASE_URL}/products/low-stock?threshold=${threshold}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products/low-stock?threshold=${threshold}`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -95,7 +120,7 @@ export const productsAPI = {
 
   create: async (productData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/products`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -109,7 +134,7 @@ export const productsAPI = {
 
   update: async (id, productData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -123,7 +148,7 @@ export const productsAPI = {
 
   delete: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -138,16 +163,17 @@ export const productsAPI = {
  * Services API
  */
 export const servicesAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params = {}, options = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/services${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/services${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
+      signal: options.signal,
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/services/${id}`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -155,7 +181,7 @@ export const servicesAPI = {
 
   create: async (serviceData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/services`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/services`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -169,7 +195,7 @@ export const servicesAPI = {
 
   update: async (id, serviceData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/services/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -183,7 +209,7 @@ export const servicesAPI = {
 
   delete: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/services/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -198,23 +224,24 @@ export const servicesAPI = {
  * Orders API
  */
 export const ordersAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params = {}, options = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/orders${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
+      signal: options.signal,
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/${id}`, {
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getStats: async () => {
-    const response = await fetch(`${API_BASE_URL}/orders/stats`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/stats`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -222,7 +249,7 @@ export const ordersAPI = {
 
   create: async (orderData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/orders`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -236,7 +263,7 @@ export const ordersAPI = {
 
   updateStatus: async (id, status) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -248,9 +275,24 @@ export const ordersAPI = {
     return handleResponse(response);
   },
 
+  myOrders: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/my-orders${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  myOrder: async (id) => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/my-orders/${id}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
   delete: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -267,7 +309,7 @@ export const ordersAPI = {
 export const contactAPI = {
   submit: async (formData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/contact`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/contact`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -280,7 +322,7 @@ export const contactAPI = {
   },
 
   getAll: async () => {
-    const response = await fetch(`${API_BASE_URL}/contact`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/contact`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -293,14 +335,14 @@ export const contactAPI = {
 export const repairsAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/repairs${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/repairs${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/repairs/${id}`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -308,7 +350,7 @@ export const repairsAPI = {
 
   create: async (repairData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/repairs`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/repairs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -322,7 +364,7 @@ export const repairsAPI = {
 
   update: async (id, repairData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/repairs/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -336,7 +378,7 @@ export const repairsAPI = {
 
   delete: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/repairs/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/repairs/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -351,7 +393,8 @@ export const repairsAPI = {
  * Health Check
  */
 export const healthCheck = async () => {
-  const response = await fetch(`${API_BASE_URL.replace('/api', '')}/api/health`);
+  const baseUrl = API_BASE_URL.replace(/\/v1\/?$/, '');
+  const response = await fetchWithTimeout(`${baseUrl}/health`);
   return handleResponse(response);
 };
 
@@ -361,7 +404,7 @@ export const healthCheck = async () => {
 export const authAPI = {
   register: async (userData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -375,7 +418,7 @@ export const authAPI = {
 
   login: async (credentials) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -388,7 +431,7 @@ export const authAPI = {
   },
 
   getMe: async () => {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/me`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -396,7 +439,7 @@ export const authAPI = {
 
   updateProfile: async (profileData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/auth/updateprofile`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/updateprofile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -409,8 +452,24 @@ export const authAPI = {
   },
 
   logout: async () => {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/logout`, {
       method: 'POST',
+      headers: csrfHeaders,
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  resendVerification: async (email) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/resend-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify({ email }),
       credentials: 'include',
     });
     return handleResponse(response);
@@ -426,7 +485,7 @@ export const uploadAPI = {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await fetch(`${API_BASE_URL}/upload/image`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/upload/image`, {
       method: 'POST',
       headers: {
         ...csrfHeaders,
@@ -442,7 +501,7 @@ export const uploadAPI = {
     const formData = new FormData();
     files.forEach((file) => formData.append('images', file));
 
-    const response = await fetch(`${API_BASE_URL}/upload/images`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/upload/images`, {
       method: 'POST',
       headers: {
         ...csrfHeaders,
@@ -455,7 +514,7 @@ export const uploadAPI = {
 
   deleteImage: async (filename) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/upload/image/${filename}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/upload/image/${filename}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -469,14 +528,14 @@ export const uploadAPI = {
 export const usersAPI = {
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/users${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/${id}`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -484,7 +543,7 @@ export const usersAPI = {
 
   update: async (id, userData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -498,7 +557,7 @@ export const usersAPI = {
 
   delete: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -507,20 +566,35 @@ export const usersAPI = {
     });
     return handleResponse(response);
   },
+
+  resetPassword: async (id, password) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/${id}/password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify({ password }),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
 };
 
 export const marketingAPI = {
-  getCoupons: async (params = {}) => {
+  getCoupons: async (params = {}, options = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/marketing/coupons${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/coupons${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
+      signal: options.signal,
     });
     return handleResponse(response);
   },
 
   createCoupon: async (couponData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/coupons`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/coupons`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -534,7 +608,7 @@ export const marketingAPI = {
 
   updateCoupon: async (id, couponData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/coupons/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/coupons/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -548,7 +622,7 @@ export const marketingAPI = {
 
   deleteCoupon: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/coupons/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/coupons/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -558,17 +632,18 @@ export const marketingAPI = {
     return handleResponse(response);
   },
 
-  getCampaigns: async (params = {}) => {
+  getCampaigns: async (params = {}, options = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/marketing/campaigns${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/campaigns${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
+      signal: options.signal,
     });
     return handleResponse(response);
   },
 
   createCampaign: async (campaignData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/campaigns`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/campaigns`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -582,7 +657,7 @@ export const marketingAPI = {
 
   updateCampaign: async (id, campaignData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/campaigns/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/campaigns/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -596,7 +671,7 @@ export const marketingAPI = {
 
   deleteCampaign: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/campaigns/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/campaigns/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -606,17 +681,18 @@ export const marketingAPI = {
     return handleResponse(response);
   },
 
-  getPromotions: async (params = {}) => {
+  getPromotions: async (params = {}, options = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/marketing/promotions${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/promotions${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
+      signal: options.signal,
     });
     return handleResponse(response);
   },
 
   createPromotion: async (promotionData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/promotions`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/promotions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -630,7 +706,7 @@ export const marketingAPI = {
 
   updatePromotion: async (id, promotionData) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/promotions/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/promotions/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -644,7 +720,7 @@ export const marketingAPI = {
 
   deletePromotion: async (id) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/marketing/promotions/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/promotions/${id}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -660,7 +736,7 @@ export const marketingAPI = {
  */
 export const wishlistAPI = {
   getAll: async () => {
-    const response = await fetch(`${API_BASE_URL}/wishlist`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/wishlist`, {
       credentials: 'include',
     });
     return handleResponse(response);
@@ -668,7 +744,7 @@ export const wishlistAPI = {
 
   add: async (productId) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/wishlist/${productId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -681,7 +757,7 @@ export const wishlistAPI = {
 
   remove: async (productId) => {
     const csrfHeaders = await getCsrfHeader();
-    const response = await fetch(`${API_BASE_URL}/wishlist/${productId}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/wishlist/${productId}`, {
       method: 'DELETE',
       headers: {
         ...csrfHeaders,
@@ -692,7 +768,257 @@ export const wishlistAPI = {
   },
 
   check: async (productId) => {
-    const response = await fetch(`${API_BASE_URL}/wishlist/check/${productId}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/wishlist/check/${productId}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+};
+
+/**
+ * Cart API
+ */
+export const cartAPI = {
+  getAll: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/cart`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  add: async (itemData) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/cart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(itemData),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  update: async (productId, quantity) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/cart/${productId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify({ quantity }),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  remove: async (productId) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/cart/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  clear: async () => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/cart`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+};
+
+/**
+ * Account API
+ */
+export const accountAPI = {
+  getProfile: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/profile`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  updateProfile: async (profileData) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(profileData),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  changePassword: async (passwordData) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(passwordData),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getAddresses: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/addresses`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  createAddress: async (addressData) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/addresses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(addressData),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  updateAddress: async (id, addressData) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/addresses/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(addressData),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  deleteAddress: async (id) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/addresses/${id}`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  setDefaultAddress: async (id) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/addresses/${id}/default`, {
+      method: 'POST',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getNotifications: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/notifications`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  updateNotifications: async (prefs) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/notifications`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(prefs),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getSessions: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/sessions`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  revokeSession: async (id) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/account/sessions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+};
+
+export const paymentMethodsAPI = {
+  getAll: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/payment-methods`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  add: async (data) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/payment-methods`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  setDefault: async (id) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/payment-methods/${id}/default`, {
+      method: 'POST',
+      headers: {
+        ...csrfHeaders,
+      },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  remove: async (id) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/payment-methods/${id}`, {
+      method: 'DELETE',
+      headers: {
+        ...csrfHeaders,
+      },
       credentials: 'include',
     });
     return handleResponse(response);
@@ -710,5 +1036,8 @@ export default {
   users: usersAPI,
   marketing: marketingAPI,
   wishlist: wishlistAPI,
+  cart: cartAPI,
+  account: accountAPI,
+  paymentMethods: paymentMethodsAPI,
   healthCheck,
 };

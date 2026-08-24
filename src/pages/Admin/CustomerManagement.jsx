@@ -154,3 +154,5 @@ export function CustomerManagement() {
     </div>
   );
 }
+
+export default CustomerManagement;

@@ -32,15 +32,9 @@ import { Badge } from '../../components/ui/badge';
 import { Textarea } from '../../components/ui/textarea';
 import { Search, Phone, Mail, Plus, Loader2, Upload, X } from 'lucide-react';
 import { repairsAPI, uploadAPI } from '../../services/api';
+import { getProductImageUrl } from '../../lib/imageUrl';
 
-// Get API base URL from environment or use default
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-const getImageUrl = (url) => {
-  if (!url) return url;
-  if (url.startsWith('http')) return url;
-  // Remove /api from base URL for image uploads
-  return `${API_BASE_URL.replace('/api', '')}${url}`;
-};
+// Image URLs are resolved with the shared getProductImageUrl helper from lib/imageUrl.
 
 const statusColors = {
   Pending: 'bg-yellow-600',
@@ -556,14 +550,25 @@ function AddRepairForm({ onSubmit, onClose }) {
   // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed');
+      return;
     }
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('Image must be smaller than 5MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Handle image upload to server
@@ -574,7 +579,7 @@ function AddRepairForm({ onSubmit, onClose }) {
     try {
       const response = await uploadAPI.uploadImage(selectedFile);
       if (response.success) {
-        return getImageUrl(response.url);
+        return getProductImageUrl(response.url);
       } else {
         toast.error('Failed to upload image');
         return '';
@@ -794,3 +799,5 @@ function AddRepairForm({ onSubmit, onClose }) {
     </form>
   );
 }
+
+export default AdminRepairsPage;

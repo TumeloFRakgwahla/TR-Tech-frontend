@@ -22,6 +22,7 @@ import {
 import { Plus, Search, Edit, Trash2, Loader2, Upload, X, ImageIcon } from 'lucide-react';
 import { productsAPI, uploadAPI } from '../../services/api';
 import { getProductImageUrl } from '../../lib/imageUrl';
+import { PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_CATEGORIES, PRODUCT_BRANDS, PRODUCT_CONDITIONS } from '../../constants';
 import { toast } from 'sonner';
 
 const emptyProduct = {
@@ -115,6 +116,17 @@ export function ProductManagement() {
 
     if (toUpload.length === 0) return;
 
+    for (const file of toUpload) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Only image files are allowed');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Each image must be smaller than 5MB');
+        return;
+      }
+    }
+
     setUploading(true);
     try {
       const res = await uploadAPI.uploadImages(toUpload);
@@ -148,7 +160,7 @@ export function ProductManagement() {
       price: Number(form.price),
       stock: Number(form.stock),
       images: form.images,
-      image: form.images[0] || form.image || 'https://placehold.co/100x100/3b82f6/white?text=TR'
+      image: form.images[0] || form.image || PRODUCT_PLACEHOLDER_IMAGE
     };
 
     try {
@@ -196,41 +208,25 @@ export function ProductManagement() {
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
                   <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
-                    <option value="Smartphones">Smartphones</option>
-                    <option value="Laptops">Laptops</option>
-                    <option value="Laptop Accessories">Laptop Accessories</option>
-                    <option value="Mobile Accessories">Mobile Accessories</option>
-                    <option value="Gaming">Gaming</option>
-                    <option value="Networking">Networking</option>
-                    <option value="Printers">Printers</option>
-                    <option value="Storage Devices">Storage Devices</option>
-                    <option value="Other">Other</option>
+                    {PRODUCT_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Brand</label>
                   <select value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
-                    <option value="Apple">Apple</option>
-                    <option value="Samsung">Samsung</option>
-                    <option value="HP">HP</option>
-                    <option value="Dell">Dell</option>
-                    <option value="Lenovo">Lenovo</option>
-                    <option value="Asus">Asus</option>
-                    <option value="Huawei">Huawei</option>
-                    <option value="Xiaomi">Xiaomi</option>
-                    <option value="Sony">Sony</option>
-                    <option value="LG">LG</option>
-                    <option value="Microsoft">Microsoft</option>
-                    <option value="Google">Google</option>
-                    <option value="Other">Other</option>
+                    {PRODUCT_BRANDS.map((brand) => (
+                      <option key={brand} value={brand}>{brand}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Condition</label>
                   <select value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
-                    <option value="New">New</option>
-                    <option value="Used">Used</option>
-                    <option value="Refurbished">Refurbished</option>
+                    {PRODUCT_CONDITIONS.map((cond) => (
+                      <option key={cond} value={cond}>{cond}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -384,3 +380,5 @@ export function ProductManagement() {
     </div>
   );
 }
+
+export default ProductManagement;

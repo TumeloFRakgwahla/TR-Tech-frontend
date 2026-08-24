@@ -34,7 +34,7 @@ describe('getPublicImageUrl', () => {
 
   it('resolves /uploads/ paths', () => {
     const url = getPublicImageUrl('/uploads/test.jpg');
-    expect(url).toBe('http://localhost:5000/uploads/test.jpg');
+    expect(url).toBe('/uploads/test.jpg');
   });
 
   it('passes through absolute URLs', () => {

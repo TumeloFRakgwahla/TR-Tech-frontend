@@ -54,7 +54,7 @@ describe('constants', () => {
   });
 
   it('exports valid API base URL', () => {
-    expect(API_BASE_URL).toBe('http://localhost:5000/api');
+    expect(API_BASE_URL).toBe('http://localhost:5000/api/v1');
   });
 
   it('exports non-empty product categories', () => {

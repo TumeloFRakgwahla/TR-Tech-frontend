@@ -44,7 +44,7 @@ export function ProductDetailPage() {
   );
   const stock = useMemo(() => Number(product?.stock ?? 0), [product]);
   const inStock = useMemo(
-    () => (product?.inStock === undefined ? stock > 0 : product.inStock === true),
+    () => (product?.inStock !== undefined ? product.inStock : stock > 0),
     [product, stock]
   );
   const maxQuantity = useMemo(() => Math.max(1, stock), [stock]);

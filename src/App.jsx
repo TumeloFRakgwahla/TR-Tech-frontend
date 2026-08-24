@@ -1,11 +1,8 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { AuthProvider } from './components/AuthContext';
-import { CartProvider } from './components/CartContext';
-import { WishlistProvider } from './components/WishlistContext';
-import { AuthModalProvider } from './components/AuthModalContext';
+import { Routes, Route } from 'react-router-dom';
+import { Providers } from './components/Providers';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Home from './pages/HomePage';
 import About from './pages/AboutPage';
 import Services from './pages/ServicesPage';
@@ -18,34 +15,28 @@ import Checkout from './pages/CheckoutPage';
 import Wishlist from './pages/WishlistPage';
 import AdminLogin from './pages/Admin/AdminLoginPage';
 import { AdminLayout } from './pages/Admin/AdminLayout';
+import { AccountLayout } from './components/AccountLayout';
 
-const AdminDashboard = React.lazy(() =>
-  import('./pages/Admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
-);
-const AdminRepairs = React.lazy(() =>
-  import('./pages/Admin/AdminRepairsPage').then((m) => ({ default: m.AdminRepairsPage }))
-);
-const ProductManagement = React.lazy(() =>
-  import('./pages/Admin/ProductManagement').then((m) => ({ default: m.ProductManagement }))
-);
-const OrderManagement = React.lazy(() =>
-  import('./pages/Admin/OrderManagement').then((m) => ({ default: m.OrderManagement }))
-);
-const CustomerManagement = React.lazy(() =>
-  import('./pages/Admin/CustomerManagement').then((m) => ({ default: m.CustomerManagement }))
-);
-const InventoryManagement = React.lazy(() =>
-  import('./pages/Admin/InventoryManagement').then((m) => ({ default: m.InventoryManagement }))
-);
-const MarketingManagement = React.lazy(() =>
-  import('./pages/Admin/MarketingManagement').then((m) => ({ default: m.MarketingManagement }))
-);
-const ReportsAnalytics = React.lazy(() =>
-  import('./pages/Admin/ReportsAnalytics').then((m) => ({ default: m.ReportsAnalytics }))
-);
-const UserManagement = React.lazy(() =>
-  import('./pages/Admin/UserManagement').then((m) => ({ default: m.UserManagement }))
-);
+const AdminDashboard = React.lazy(() => import('./pages/Admin/AdminDashboard'));
+const AdminRepairs = React.lazy(() => import('./pages/Admin/AdminRepairsPage'));
+const ProductManagement = React.lazy(() => import('./pages/Admin/ProductManagement'));
+const OrderManagement = React.lazy(() => import('./pages/Admin/OrderManagement'));
+const CustomerManagement = React.lazy(() => import('./pages/Admin/CustomerManagement'));
+const InventoryManagement = React.lazy(() => import('./pages/Admin/InventoryManagement'));
+const MarketingManagement = React.lazy(() => import('./pages/Admin/MarketingManagement'));
+const ReportsAnalytics = React.lazy(() => import('./pages/Admin/ReportsAnalytics'));
+const UserManagement = React.lazy(() => import('./pages/Admin/UserManagement'));
+
+const AccountDashboard = React.lazy(() => import('./pages/account/AccountDashboard'));
+const ProfilePage = React.lazy(() => import('./pages/account/ProfilePage'));
+const AddressesPage = React.lazy(() => import('./pages/account/AddressesPage'));
+const OrdersPage = React.lazy(() => import('./pages/account/OrdersPage'));
+const OrderDetailPage = React.lazy(() => import('./pages/account/OrderDetailPage'));
+const AccountRepairsPage = React.lazy(() => import('./pages/account/AccountRepairsPage'));
+const RepairDetailPage = React.lazy(() => import('./pages/account/RepairDetailPage'));
+const SecurityPage = React.lazy(() => import('./pages/account/SecurityPage'));
+const NotificationsPage = React.lazy(() => import('./pages/account/NotificationsPage'));
+const PaymentMethodsPage = React.lazy(() => import('./pages/account/PaymentMethodsPage'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -55,59 +46,63 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <AuthModalProvider>
-            <WishlistProvider>
-              <Toaster
-                position="top-right"
-                richColors
-                closeButton
-                toastOptions={{
-                  class: 'sonner-toast',
-                  duration: 4000,
-                }}
-              />
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/book-repair" element={<RepairsPage />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="products" element={<ProductManagement />} />
-                <Route path="orders" element={<OrderManagement />} />
-                <Route path="customers" element={<CustomerManagement />} />
-                <Route path="inventory" element={<InventoryManagement />} />
-                <Route path="marketing" element={<MarketingManagement />} />
-                <Route path="reports" element={<ReportsAnalytics />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="repairs" element={<AdminRepairs />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </WishlistProvider>
-          </AuthModalProvider>
-      </CartProvider>
-      </AuthProvider>
-    </Router>
+    <Providers>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/book-repair" element={<RepairsPage />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="products" element={<ProductManagement />} />
+              <Route path="orders" element={<OrderManagement />} />
+              <Route path="customers" element={<CustomerManagement />} />
+              <Route path="inventory" element={<InventoryManagement />} />
+              <Route path="marketing" element={<MarketingManagement />} />
+              <Route path="reports" element={<ReportsAnalytics />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="repairs" element={<AdminRepairs />} />
+            </Route>
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute redirectTo="/">
+                  <AccountLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AccountDashboard />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="addresses" element={<AddressesPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="orders/:orderId" element={<OrderDetailPage />} />
+              <Route path="repairs" element={<AccountRepairsPage />} />
+              <Route path="repairs/:repairId" element={<RepairDetailPage />} />
+              <Route path="security" element={<SecurityPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="payment-methods" element={<PaymentMethodsPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+    </Providers>
   );
 }
 

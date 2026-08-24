@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from './ui/sheet';
 import { Button } from './button.jsx';
 import { Minus, Plus, Trash2, ShoppingBag, ShieldCheck, Truck, Edit } from 'lucide-react';
-import { useCart } from './CartContext';
+import { useCartState } from './CartContext';
 import { toast } from 'sonner';
 import { CheckoutModal } from './CheckoutModal';
 import { Link } from 'react-router-dom';
@@ -15,7 +15,7 @@ const conditionStyles = {
 };
 
 export function CartDrawer({ children }) {
-  const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, totalPrice, clearCart, syncing } = useCartState();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
 
@@ -53,6 +53,7 @@ export function CartDrawer({ children }) {
             <DialogTitle className="text-xl font-bold tracking-tight">Shopping Cart</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
               {cart.length} item{cart.length !== 1 ? 's' : ''} in your cart
+              {syncing && <span className="ml-2 text-xs text-primary">(Syncing...)</span>}
             </DialogDescription>
           </DialogHeader>
 

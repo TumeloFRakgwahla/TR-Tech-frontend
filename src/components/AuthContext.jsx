@@ -1,18 +1,31 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { authAPI } from '../services/api';
 import { toast } from 'sonner';
+import { clearCsrfCache } from '../services/api';
 
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const justLoggedOut = useRef(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = () => setUser(null);
+    window.addEventListener('trtech:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('trtech:unauthorized', handleUnauthorized);
+  }, []);
+
   const checkAuth = useCallback(async () => {
+    if (justLoggedOut.current) {
+      justLoggedOut.current = false;
+      setLoading(false);
+      return;
+    }
     try {
       const data = await authAPI.getMe();
       setUser(data.user);
@@ -48,6 +61,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
+    justLoggedOut.current = true;
+    clearCsrfCache();
     try {
       await authAPI.logout();
     } catch {

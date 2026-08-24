@@ -1,31 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Smartphone, Star, ShoppingCart, SlidersHorizontal, Search, X, Heart } from 'lucide-react';
+import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { useWishlist } from '../components/WishlistContext';
 import { CartDrawer } from '../components/CartDrawer';
 import { productsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
+import { StarRating } from '../components/ProductDetail';
+import { PRODUCT_CATEGORIES, PRODUCT_BRANDS, SORT_OPTIONS } from '../constants';
 
-const DEFAULT_PRICE_RANGE = 30000;
-const MAX_PRICE_RANGE = 30000;
 const PRICE_STEP = 100;
-
-const CATEGORIES = [
-  'Smartphones', 'Laptops', 'Laptop Accessories',
-  'Mobile Accessories', 'Gaming', 'Networking', 'Printers', 'Storage Devices'
-];
-
-const BRANDS = ['Apple', 'Samsung', 'HP', 'Dell', 'Lenovo', 'Asus', 'Huawei', 'Xiaomi', 'Sony', 'LG', 'Microsoft', 'Google'];
-
-const SORT_OPTIONS = [
-  { value: 'featured', label: 'Featured' },
-  { value: 'price-asc', label: 'Price: Low to High' },
-  { value: 'price-desc', label: 'Price: High to Low' },
-  { value: 'rating', label: 'Top Rated' },
-];
 
 function useDebounce(value, delay = 250) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -38,11 +24,11 @@ function useDebounce(value, delay = 250) {
   return debouncedValue;
 }
 
-function useFilters() {
+function useFilters(maxPrice = 30000) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [priceRange, setPriceRange] = useState(DEFAULT_PRICE_RANGE);
+  const [priceRange, setPriceRange] = useState(maxPrice);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery);
 
@@ -62,13 +48,13 @@ function useFilters() {
     setSelectedCategories([]);
     setSelectedBrands([]);
     setInStockOnly(false);
-    setPriceRange(DEFAULT_PRICE_RANGE);
+    setPriceRange(maxPrice);
     setSearchQuery('');
-  }, []);
+  }, [maxPrice]);
 
   const activeFilterCount = useMemo(() => (
-    selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < MAX_PRICE_RANGE ? 1 : 0)
-  ), [selectedCategories, selectedBrands, inStockOnly, priceRange]);
+    selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0)
+  ), [selectedCategories, selectedBrands, inStockOnly, priceRange, maxPrice]);
 
   return {
     selectedCategories, toggleCategory,
@@ -161,10 +147,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
           </h3>
 
           <div className="flex items-center gap-1 mb-2" aria-label={`${product.rating || 0} out of 5 stars`}>
-            <div className="flex">{renderStars(product.rating)}</div>
-            {product.reviews > 0 && (
-              <span className="text-xs text-muted-foreground">({product.reviews.toLocaleString()})</span>
-            )}
+            <StarRating rating={product.rating} reviews={product.reviews} size={3} />
           </div>
 
           <div className="flex items-baseline gap-2 mb-3 mt-auto">
@@ -195,7 +178,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
   );
 }
 
-function FilterSidebar({ filters }) {
+function FilterSidebar({ filters, maxPrice }) {
   const {
     selectedCategories, toggleCategory,
     selectedBrands, toggleBrand,
@@ -222,7 +205,7 @@ function FilterSidebar({ filters }) {
         <fieldset>
           <legend className="text-sm font-semibold text-foreground mb-3">Categories</legend>
           <div className="space-y-2">
-            {CATEGORIES.map(cat => (
+             {PRODUCT_CATEGORIES.map(cat => (
               <label key={cat} className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -241,7 +224,7 @@ function FilterSidebar({ filters }) {
         <fieldset>
           <legend className="text-sm font-semibold text-foreground mb-3">Brands</legend>
           <div className="space-y-2">
-            {BRANDS.map(brand => (
+             {PRODUCT_BRANDS.map(brand => (
               <label key={brand} className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -264,13 +247,13 @@ function FilterSidebar({ filters }) {
           id="price-range"
           type="range"
           min={0}
-          max={MAX_PRICE_RANGE}
+          max={maxPrice}
           step={PRICE_STEP}
           value={priceRange}
           onChange={e => setPriceRange(Number(e.target.value))}
           className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
           aria-valuemin={0}
-          aria-valuemax={MAX_PRICE_RANGE}
+          aria-valuemax={maxPrice}
           aria-valuenow={priceRange}
         />
         <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -294,16 +277,6 @@ function FilterSidebar({ filters }) {
   );
 }
 
-function renderStars(rating) {
-  const safeRating = Math.floor(rating || 0);
-  return [...Array(5)].map((_, i) => (
-    <Star
-      key={i}
-      className={`h-3 w-3 ${i < safeRating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'}`}
-      aria-hidden="true"
-    />
-  ));
-}
 
 function ShopContent() {
   const { addToCart } = useCart();
@@ -315,7 +288,12 @@ function ShopContent() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
 
-  const filters = useFilters();
+  const maxPrice = useMemo(() => {
+    const max = products.reduce((max, p) => Math.max(max, Number(p.price) || 0), 0);
+    return max > 0 ? max : 30000;
+  }, [products]);
+
+  const filters = useFilters(maxPrice);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -338,6 +316,12 @@ function ShopContent() {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  useEffect(() => {
+    if (!loading && products.length > 0) {
+      filters.setPriceRange(maxPrice);
+    }
+  }, [loading, products.length, maxPrice, filters]);
 
   const retryFetch = useCallback(() => {
     fetchProducts();
@@ -440,7 +424,7 @@ function ShopContent() {
         <div className="max-w-screen-xl mx-auto px-4 py-6">
           <div className="flex gap-6">
             <aside className="hidden md:block w-56 flex-shrink-0" aria-label="Product filters">
-              <FilterSidebar filters={filters} />
+              <FilterSidebar filters={filters} maxPrice={maxPrice} />
             </aside>
 
             {mobileFiltersOpen && (
@@ -457,7 +441,7 @@ function ShopContent() {
                   aria-modal="true"
                   aria-label="Mobile filters"
                 >
-                  <FilterSidebar filters={filters} />
+                  <FilterSidebar filters={filters} maxPrice={maxPrice} />
                 </div>
               </div>
             )}
