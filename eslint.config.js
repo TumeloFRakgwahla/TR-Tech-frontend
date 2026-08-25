@@ -28,14 +28,20 @@ export default [
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
     },
+    settings: {
+      react: { version: 'detect' },
+    },
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'react/jsx-uses-vars': 'error',
+      'react/jsx-uses-react': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'no-unused-vars': ['warn', { 
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
+        caughtErrors: 'all',
       }],
     },
   },

@@ -1,6 +1,4 @@
-import { API_BASE_URL } from '../../constants';
 import { getProductImageUrl as getCanonicalProductImageUrl } from '../../lib/imageUrl';
-const RELATED_PRODUCTS_LIMIT = 4;
 const PRICE_LOCALE = 'en-ZA';
 
 export function getProductId(product) {

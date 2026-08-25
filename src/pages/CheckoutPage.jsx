@@ -1,17 +1,29 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckoutModal } from '../components/CheckoutModal';
+import { useCart } from '../components/CartContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 function CheckoutPage() {
   const navigate = useNavigate();
+  const { cart } = useCart();
+
+  React.useEffect(() => {
+    if (cart.length === 0) {
+      navigate('/cart');
+    }
+  }, [cart, navigate]);
 
   const handleOpenChange = (open) => {
     if (!open) {
       navigate(-1);
     }
   };
+
+  if (cart.length === 0) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

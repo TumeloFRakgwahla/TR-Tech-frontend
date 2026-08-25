@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../components/AuthContext';
+import { useAdminAuth } from '../../components/AdminAuthContext';
 import {
   SidebarProvider,
   Sidebar,
@@ -21,13 +21,12 @@ import {
   BarChart3,
   UserCog,
   Wrench,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from 'lucide-react';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/products', icon: Package, label: 'Products' },
+  { path: '/admin/services', icon: Wrench, label: 'Services' },
   { path: '/admin/repairs', icon: Wrench, label: 'Repairs' },
   { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   { path: '/admin/customers', icon: Users, label: 'Customers' },
@@ -40,7 +39,7 @@ const navItems = [
 export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAdminAuth();
 
   const isActive = (path) => {
     if (path === '/admin') {

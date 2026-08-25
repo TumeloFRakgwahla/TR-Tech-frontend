@@ -20,7 +20,7 @@ export function WishlistProvider({ children }) {
   });
   const [loading, setLoading] = useState(false);
   const [togglingIds, setTogglingIds] = useState(new Set());
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { openAuthModal } = useAuthModal();
   const wishlistRef = useRef(wishlist);
   wishlistRef.current = wishlist;
@@ -38,15 +38,13 @@ export function WishlistProvider({ children }) {
   const mergeLocalWishlist = useCallback(async (serverProducts) => {
     const currentWishlist = wishlistRef.current;
     const serverIds = new Set((serverProducts || []).map((p) => getProductId(p)));
-    const localIds = new Set(currentWishlist.map((p) => getProductId(p)));
-
-    const newProductIds = [...localIds].filter((id) => !serverIds.has(id));
+    const localIds = currentWishlist.map((p) => getProductId(p));
+    const newProductIds = localIds.filter((id) => !serverIds.has(id));
 
     if (newProductIds.length > 0) {
       try {
         await Promise.all(newProductIds.map((id) => wishlistAPI.add(id)));
-        return [...serverProducts, ...currentWishlist.filter((p) => !serverIds.has(getProductId(p)))];
-      } catch (error) {
+      } catch {
         toast.error('Some wishlist items could not be saved to your account');
       }
     }
@@ -70,8 +68,9 @@ export function WishlistProvider({ children }) {
       setLoading(true);
       const data = await wishlistAPI.getAll();
       const serverProducts = data.data || [];
-      const merged = await mergeLocalWishlist(serverProducts);
-      setWishlist(merged);
+      await mergeLocalWishlist(serverProducts);
+      const refreshed = await wishlistAPI.getAll();
+      setWishlist(refreshed.data || []);
     } catch {
       toast.error('Failed to load wishlist from server');
     } finally {
@@ -97,7 +96,7 @@ export function WishlistProvider({ children }) {
     }
   }, [isAuthenticated]); // Removed fetchWishlist from deps to break the loop
 
-  const addToWishlist = useCallback(async (product, options = {}) => {
+  const addToWishlist = useCallback(async (product) => {
     const productId = getProductId(product);
     const productData = { ...product, id: productId };
 
@@ -231,6 +230,7 @@ export function WishlistProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useWishlistState() {
   const context = useContext(WishlistStateContext);
   if (!context) {
@@ -248,6 +248,7 @@ export function useWishlistState() {
   return context;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useWishlistDispatch() {
   const context = useContext(WishlistDispatchContext);
   if (!context) {
@@ -262,6 +263,7 @@ export function useWishlistDispatch() {
   return context;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useWishlist() {
   return {
     ...useWishlistState(),

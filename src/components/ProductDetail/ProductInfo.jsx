@@ -13,7 +13,6 @@ export function ProductInfo({
   reviews,
   specifications,
   quantity,
-  maxQuantity,
   onDecrease,
   onIncrease,
   onAddToCart,

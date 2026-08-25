@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { useCart } from '../components/CartContext';
 import { Button } from '../components/button.jsx';
 import { toast } from 'sonner';
@@ -64,20 +64,24 @@ function CartPage() {
             <div className="lg:col-span-2 space-y-4">
               {cart.map((item) => (
                 <div
-                  key={item.id}
+                  key={item._id || item.id}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex gap-4"
                 >
-                  <div className="w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
-                     {item.image ? (
-                       <img
-                         src={getProductImageUrl(item.image)}
-                         alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <ShoppingBag className="h-10 w-10 text-gray-400" />
-                    )}
-                  </div>
+                    <div className="w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {item.image ? (
+                        <img
+                          src={getProductImageUrl(item.image)}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/TR_Tech_logo.png';
+                          }}
+                        />
+                      ) : (
+                        <ShoppingBag className="h-10 w-10 text-gray-400" />
+                      )}
+                    </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

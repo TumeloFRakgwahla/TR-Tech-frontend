@@ -6,13 +6,14 @@
  */
 
 // WhatsApp Configuration
-export const WHATSAPP_NUMBER = '27791002552';
+export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '27791002552';
 export const WHATSAPP_BASE_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 // API Configuration
-// In dev, Vite proxies /api to the backend, so use a relative path to avoid
-// cross-origin requests and CSP connect-src violations.
-export const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : 'http://localhost:5000/api/v1');
+// In all environments, use a relative path so the same-origin proxy (Vite dev
+// server, nginx, or Express static serving) handles routing. When VITE_API_URL
+// is set, it takes precedence (e.g. for cross-domain staging deployments).
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // Default product image (matches the backend Product schema default)
 export const PRODUCT_PLACEHOLDER_IMAGE = 'https://placehold.co/100x100/3b82f6/white?text=TR';
@@ -93,5 +94,13 @@ export const DEVICE_TYPES = [
   'Laptop',
   'Desktop Computer',
   'Tablet',
+  'Other'
+];
+
+// Service Categories
+export const SERVICE_CATEGORIES = [
+  'Phone Repair',
+  'Computer Repair',
+  'Tablet Repair',
   'Other'
 ];

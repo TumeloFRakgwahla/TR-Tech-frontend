@@ -1,21 +1,31 @@
-import { API_BASE_URL } from '../constants';
-
 export function getProductImageUrl(url) {
   if (!url) return '';
 
-  if (url.startsWith('/uploads/')) return url;
-
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    const baseUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
-    if (url.startsWith(baseUrl + '/uploads/')) {
-      return url.replace(baseUrl, '');
-    }
+  if (url.startsWith('/uploads/')) {
+    const match = url.match(/^\/uploads\/([^/]+(?:\.\w+)?)/);
+    if (match) return `/uploads/${match[1]}`;
     return url;
   }
 
-  const baseUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+  if (/^https?:\/\//i.test(url)) {
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return url;
+    }
 
-  if (url.startsWith('/')) return `${baseUrl}${url}`;
+    if (import.meta.env.DEV && parsed.pathname.startsWith('/uploads/')) {
+      const match = parsed.pathname.match(/^\/uploads\/([^/]+(?:\.\w+)?)/);
+      const filename = match ? match[1] : parsed.pathname.replace(/^\/uploads\//, '');
+      return `/uploads/${filename}`;
+    }
 
-  return `${baseUrl}/${url}`;
+    return url;
+  }
+
+  const normalized = url.startsWith('/') ? url : `/${url}`;
+  return normalized.startsWith('/uploads/')
+    ? normalized
+    : `/uploads${normalized}`;
 }

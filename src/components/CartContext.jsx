@@ -85,35 +85,47 @@ export function CartProvider({ children }) {
 
       const operations = [];
 
-      for (const [id, serverItem] of serverMap) {
+      for (const [id] of serverMap) {
         if (!localMap.has(id)) {
-          operations.push(cartAPI.remove(id));
+          operations.push({ type: 'remove', id, promise: cartAPI.remove(id) });
         }
       }
 
       for (const [id, localItem] of localMap) {
         const serverItem = serverMap.get(id);
         if (!serverItem) {
-          operations.push(
-            cartAPI.add({
-              product: id,
-              name: localItem.name,
-              condition: localItem.condition,
-              price: localItem.price,
-              quantity: localItem.quantity,
-              image: localItem.image,
-            })
-          );
+          if (!/^[a-f\d]{24}$/i.test(id)) {
+            console.warn('Skipping cart sync for invalid product ID:', id);
+            continue;
+          }
+          operations.push({ type: 'add', id, promise: cartAPI.add({
+            product: id,
+            name: localItem.name,
+            condition: localItem.condition,
+            price: localItem.price,
+            quantity: localItem.quantity,
+            image: localItem.image,
+          }) });
         } else if (serverItem.quantity !== localItem.quantity) {
-          operations.push(cartAPI.update(id, localItem.quantity));
+          if (!/^[a-f\d]{24}$/i.test(id)) {
+            console.warn('Skipping cart sync for invalid product ID:', id);
+            continue;
+          }
+          operations.push({ type: 'update', id, promise: cartAPI.update(id, localItem.quantity) });
         }
       }
 
       if (operations.length > 0) {
-        const results = await Promise.allSettled(operations);
-        const failures = results.filter((r) => r.status === 'rejected');
+        const results = await Promise.allSettled(operations.map((op) => op.promise));
+        const failures = results
+          .map((result, index) => ({ result, op: operations[index] }))
+          .filter(({ result }) => result.status === 'rejected');
         if (failures.length > 0) {
-          console.error(`${failures.length} cart sync operation(s) failed`);
+          console.error(`${failures.length} cart sync operation(s) failed:`, failures.map(({ op, result }) => ({
+            type: op.type,
+            id: op.id,
+            error: result.reason?.message || result.reason,
+          })));
           toast.error('Some cart changes could not be synced.');
         }
       }
@@ -154,11 +166,12 @@ export function CartProvider({ children }) {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => getProductId(item) === productId);
       if (existingItem) {
-        if (existingItem.quantity >= availableStock) {
+        const newQuantity = existingItem.quantity + quantity;
+        if (newQuantity > availableStock) {
           return prevCart;
         }
         return prevCart.map((item) =>
-          getProductId(item) === productId ? { ...item, quantity: item.quantity + quantity } : item
+          getProductId(item) === productId ? { ...item, quantity: newQuantity } : item
         );
       }
       if (availableStock === 0) {
@@ -169,7 +182,8 @@ export function CartProvider({ children }) {
 
     const existingItem = cartRef.current.find((item) => getProductId(item) === productId);
     if (existingItem) {
-      if (existingItem.quantity >= availableStock) {
+      const newQuantity = existingItem.quantity + quantity;
+      if (newQuantity > availableStock) {
         toast.error(`Cannot add more ${product.name}. Only ${availableStock} available in stock.`);
         return;
       }
@@ -193,9 +207,17 @@ export function CartProvider({ children }) {
       removeFromCart(productId);
       return;
     }
-    setCart((prevCart) =>
-      prevCart.map((item) => (getProductId(item) === productId ? { ...item, quantity } : item))
-    );
+    setCart((prevCart) => {
+      const item = prevCart.find((item) => getProductId(item) === productId);
+      if (item && quantity > (item.stock || 0)) {
+        return prevCart;
+      }
+      return prevCart.map((item) => (getProductId(item) === productId ? { ...item, quantity } : item));
+    });
+    const item = cartRef.current.find((item) => getProductId(item) === productId);
+    if (item && quantity > (item.stock || 0)) {
+      toast.error(`Only ${item.stock || 0} available in stock for ${item.name}`);
+    }
   }, [getProductId, removeFromCart]);
 
   const clearCart = useCallback(() => {
@@ -240,6 +262,7 @@ export function CartProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCartState() {
   const context = useContext(CartStateContext);
   if (!context) {
@@ -253,6 +276,7 @@ export function useCartState() {
   return context;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCartDispatch() {
   const context = useContext(CartDispatchContext);
   if (!context) {
@@ -266,6 +290,7 @@ export function useCartDispatch() {
   return context;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   return {
     ...useCartState(),

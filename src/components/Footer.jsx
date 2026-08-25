@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
+import { Facebook, Instagram, Phone, Mail, MessageCircle } from 'lucide-react';
 
 // Custom TikTok icon component using SVG
 const TikTokIcon = () => (
