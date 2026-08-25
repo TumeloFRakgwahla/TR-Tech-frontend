@@ -5,7 +5,7 @@ import { Input } from './ui/input.jsx';
 import { Label } from './ui/label.jsx';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
-import { X, User, Mail, Lock, Phone, MapPin } from 'lucide-react';
+import { User, Mail, Lock, Phone, MapPin } from 'lucide-react';
 
 export function AuthModal({ open, onOpenChange, onSuccess }) {
   const [mode, setMode] = useState('register');

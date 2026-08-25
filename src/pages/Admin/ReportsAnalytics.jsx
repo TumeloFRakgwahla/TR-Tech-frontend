@@ -15,7 +15,7 @@ import {
   Cell,
 } from 'recharts';
 import { Download, Calendar } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { ordersAPI, productsAPI } from '../../services/api';
 import { toast } from 'sonner';
 import { aggregateOrdersByMonth } from '../../utils/analytics';

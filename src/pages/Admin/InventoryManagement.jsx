@@ -13,7 +13,6 @@ import {
 import { Search, AlertTriangle, Package, Loader2, TrendingUp } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { productsAPI } from '../../services/api';
-import { toast } from 'sonner';
 
 export function InventoryManagement() {
   const [products, setProducts] = useState([]);

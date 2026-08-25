@@ -26,15 +26,15 @@ import {
   DialogFooter,
   DialogTrigger,
 } from '../../components/ui/dialog';
-import { Search, Eye, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
-import { useAuth } from '../../components/AuthContext';
+import { useAdminAuth } from '../../components/AdminAuthContext';
 import { toast } from 'sonner';
 
 const statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Completed', 'Cancelled'];
 
 export function OrderManagement() {
-  const { user } = useAuth();
+  useAdminAuth();
   const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);

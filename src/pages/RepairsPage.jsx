@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { toast } from 'sonner';
-import { Wrench, CheckCircle, MessageCircle } from 'lucide-react';
+import { Wrench, CheckCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { repairsAPI } from '../services/api';
 import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';

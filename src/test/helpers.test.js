@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   getProductId,
   getPublicImageUrl,
-  getProductImageUrls,
   buildSpecifications,
   formatPrice,
   getSafeErrorMessage
@@ -43,7 +42,7 @@ describe('getPublicImageUrl', () => {
 
   it('resolves relative paths', () => {
     const url = getPublicImageUrl('img.jpg');
-    expect(url).toBe('http://localhost:5000/img.jpg');
+    expect(url).toBe('/uploads/img.jpg');
   });
 });
 

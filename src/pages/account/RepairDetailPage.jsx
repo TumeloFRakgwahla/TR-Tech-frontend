@@ -4,7 +4,6 @@ import { useAccount } from '../../components/AccountContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { toast } from 'sonner';
 import { ArrowLeft, Wrench, Smartphone, Laptop, Monitor, Tablet, Info, FileText, DollarSign, Loader2 } from 'lucide-react';
 
 const deviceIcons = {

@@ -186,7 +186,7 @@ export function UserManagement() {
                           await usersAPI.delete(user._id || user.id);
                           toast.success('User deleted');
                           setUsers(users.filter((u) => (u._id || u.id) !== (user._id || user.id)));
-                        } catch (e) { toast.error('Delete failed'); }
+                        } catch { toast.error('Delete failed'); }
                       }}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </TableCell>

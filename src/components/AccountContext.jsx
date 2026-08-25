@@ -9,6 +9,7 @@ export function AccountProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [repairs, setRepairs] = useState([]);
   const [notifications, setNotifications] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,10 @@ export function AccountProvider({ children }) {
     }
   }, []);
 
+  const fetchRepairs = useCallback(async () => {
+    setRepairs([]);
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     try {
       const data = await accountAPI.getNotifications();
@@ -75,11 +80,12 @@ export function AccountProvider({ children }) {
       fetchProfile(),
       fetchAddresses(),
       fetchOrders(),
+      fetchRepairs(),
       fetchNotifications(),
       fetchSessions(),
     ]);
     setLoading(false);
-  }, [isAuthenticated, fetchProfile, fetchAddresses, fetchOrders, fetchNotifications, fetchSessions]);
+  }, [isAuthenticated, fetchProfile, fetchAddresses, fetchOrders, fetchRepairs, fetchNotifications, fetchSessions]);
 
   useEffect(() => {
     initializeAccount();
@@ -185,6 +191,7 @@ export function AccountProvider({ children }) {
       profile,
       addresses,
       orders,
+      repairs,
       notifications,
       sessions,
       loading,
@@ -198,13 +205,15 @@ export function AccountProvider({ children }) {
       updateNotificationPreferences,
       revokeSession,
       refreshOrders: fetchOrders,
+      refreshRepairs: fetchRepairs,
     }),
-    [profile, addresses, orders, notifications, sessions, loading, initializeAccount, updateProfile, changePassword, addAddress, updateAddress, deleteAddress, setDefaultAddress, updateNotificationPreferences, revokeSession, fetchOrders]
+    [profile, addresses, orders, repairs, notifications, sessions, loading, initializeAccount, fetchOrders, fetchRepairs, updateProfile, changePassword, addAddress, updateAddress, deleteAddress, setDefaultAddress, updateNotificationPreferences, revokeSession]
   );
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAccount() {
   const context = useContext(AccountContext);
   if (!context) {
@@ -212,6 +221,7 @@ export function useAccount() {
       profile: null,
       addresses: [],
       orders: [],
+      repairs: [],
       notifications: null,
       sessions: [],
       loading: true,
@@ -225,6 +235,7 @@ export function useAccount() {
       updateNotificationPreferences: async () => ({ success: false }),
       revokeSession: async () => ({ success: false }),
       refreshOrders: async () => {},
+      refreshRepairs: async () => {},
     };
   }
   return context;

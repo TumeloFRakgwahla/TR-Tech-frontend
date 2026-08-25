@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { useAccount } from '../../components/AccountContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Label } from '../../components/ui/label';
-import { toast } from 'sonner';
-import { Bell, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export function NotificationsPage() {
   const { notifications, updateNotificationPreferences, loading } = useAccount();
@@ -42,7 +40,7 @@ export function NotificationsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const result = await updateNotificationPreferences(prefs);
+    await updateNotificationPreferences(prefs);
     setIsLoading(false);
   };
 

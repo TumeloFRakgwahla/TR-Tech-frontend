@@ -23,13 +23,13 @@ import {
   Legend,
 } from 'recharts';
 import { ordersAPI, productsAPI } from '../../services/api';
-import { useAuth } from '../../components/AuthContext';
+import { useAdminAuth } from '../../components/AdminAuthContext';
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { aggregateOrdersByMonth } from '../../utils/analytics';
 
 export function AdminDashboard() {
-  const { user } = useAuth();
+  const { user } = useAdminAuth();
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);

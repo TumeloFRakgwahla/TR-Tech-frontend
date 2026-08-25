@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Smartphone, Laptop, Code, Palette, Wrench, ShoppingCart, Phone } from 'lucide-react';
+import { Smartphone, Laptop, Code, Palette } from 'lucide-react';
 import { Button } from "./button.jsx";
 
 const Services = () => {

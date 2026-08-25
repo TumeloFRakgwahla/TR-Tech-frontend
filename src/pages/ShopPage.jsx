@@ -5,7 +5,6 @@ import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart } from 'l
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { useWishlist } from '../components/WishlistContext';
-import { CartDrawer } from '../components/CartDrawer';
 import { productsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { StarRating } from '../components/ProductDetail';

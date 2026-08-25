@@ -59,18 +59,22 @@ export function MiniCart() {
             ) : (
               <div className="p-2">
                 {cart.slice(0, 5).map((item) => (
-                  <div key={item.id} className="flex gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                    <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
-                       {item.image ? (
-                         <img
-                           src={getProductImageUrl(item.image)}
-                           alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <ShoppingBag className="h-6 w-6 text-gray-400" />
-                      )}
-                    </div>
+                  <div key={item._id || item.id} className="flex gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                     <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {item.image ? (
+                          <img
+                            src={getProductImageUrl(item.image)}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/TR_Tech_logo.png';
+                            }}
+                          />
+                        ) : (
+                          <ShoppingBag className="h-6 w-6 text-gray-400" />
+                        )}
+                      </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-gray-900 truncate">
                         {item.name}
