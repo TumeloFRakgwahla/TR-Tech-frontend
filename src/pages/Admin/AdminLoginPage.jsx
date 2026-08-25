@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../components/AuthContext';
+import { useAdminAuth } from '../../components/AdminAuthContext';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -46,8 +46,9 @@ export default function AdminLogin() {
   const [lockoutUntil, setLockoutUntil] = useState(() => loadFromStorage(STORAGE_KEY_LOCKOUT, null));
   const [captcha, setCaptcha] = useState(() => generateCaptcha());
   const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated, login } = useAdminAuth();
 
   const isLocked = useMemo(() => {
     if (!lockoutUntil) return false;
@@ -58,8 +59,10 @@ export default function AdminLogin() {
     if (isAuthenticated && user?.role === 'admin') {
       navigate('/admin/dashboard', { replace: true });
     }
-    setChecking(false);
-  }, [isAuthenticated, user?.role, navigate]);
+    if (!isAuthenticated && !loginSuccess) {
+      setChecking(false);
+    }
+  }, [isAuthenticated, user?.role, navigate, loginSuccess]);
 
   useEffect(() => {
     if (isLocked) {
@@ -107,11 +110,11 @@ export default function AdminLogin() {
 
     const result = await login(emailTrimmed, passwordTrimmed);
     if (result.success) {
+      setLoginSuccess(true);
       setFailedAttempts(0);
       setLockoutUntil(null);
       saveToStorage(STORAGE_KEY_ATTEMPTS, 0);
       saveToStorage(STORAGE_KEY_LOCKOUT, null);
-      navigate('/admin/dashboard');
     } else {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);

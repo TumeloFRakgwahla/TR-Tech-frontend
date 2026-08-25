@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Providers } from './components/Providers';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminProtectedRoute } from './components/AdminProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Home from './pages/HomePage';
 import About from './pages/AboutPage';
@@ -17,9 +18,11 @@ import AdminLogin from './pages/Admin/AdminLoginPage';
 import { AdminLayout } from './pages/Admin/AdminLayout';
 import { AccountLayout } from './components/AccountLayout';
 
+
 const AdminDashboard = React.lazy(() => import('./pages/Admin/AdminDashboard'));
 const AdminRepairs = React.lazy(() => import('./pages/Admin/AdminRepairsPage'));
 const ProductManagement = React.lazy(() => import('./pages/Admin/ProductManagement'));
+const ServicesManagement = React.lazy(() => import('./pages/Admin/ServicesManagement'));
 const OrderManagement = React.lazy(() => import('./pages/Admin/OrderManagement'));
 const CustomerManagement = React.lazy(() => import('./pages/Admin/CustomerManagement'));
 const InventoryManagement = React.lazy(() => import('./pages/Admin/InventoryManagement'));
@@ -64,14 +67,15 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute requiredRole="admin">
+                <AdminProtectedRoute>
                   <AdminLayout />
-                </ProtectedRoute>
+                </AdminProtectedRoute>
               }
             >
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<ProductManagement />} />
+              <Route path="services" element={<ServicesManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="customers" element={<CustomerManagement />} />
               <Route path="inventory" element={<InventoryManagement />} />

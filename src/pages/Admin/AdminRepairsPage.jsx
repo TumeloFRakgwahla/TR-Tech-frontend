@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useAuth } from '../../components/AuthContext';
+import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -44,7 +44,7 @@ const statusColors = {
 };
 
 export function AdminRepairsPage() {
-  const { user } = useAuth();
+useAdminAuth();
   const [repairs, setRepairs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

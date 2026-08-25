@@ -141,6 +141,7 @@ export function CheckoutModal({ open, onOpenChange }) {
       const response = await ordersAPI.create(orderData);
 
       if (response.success) {
+        const order = response.data;
         const orderDetails = cart
           .map((item) => `${item.name} (${item.condition}) x${item.quantity} - R${(item.price * item.quantity).toFixed(2)}`)
           .join('\n');
@@ -157,7 +158,7 @@ export function CheckoutModal({ open, onOpenChange }) {
         const message = [
           `Hi! I'd like to place an order:`,
           ``,
-          `Order ID: ${response.data._id}`,
+          `Order ID: ${order._id}`,
           ``,
           `Customer: ${sanitizeWhatsAppInput(deliveryDetails.name)}`,
           `Email: ${sanitizeWhatsAppInput(deliveryDetails.email)}`,
@@ -168,7 +169,7 @@ export function CheckoutModal({ open, onOpenChange }) {
           orderDetails,
           ``,
           `Payment Method: ${sanitizeWhatsAppInput(paymentMethod)}`,
-          `Total: R${totalPrice.toFixed(2)}`,
+          `Total: R${order.totalAmount.toFixed(2)}`,
           ``,
           `Estimated Delivery: ${deliveryDate}`,
           ``,
@@ -184,8 +185,11 @@ export function CheckoutModal({ open, onOpenChange }) {
       }
     } catch (error) {
       console.error('Error submitting order:', error);
-      if (error.message && error.message.toLowerCase().includes('insufficient stock')) {
-        toast.error(error.message);
+      const message = error.message || '';
+      if (message.toLowerCase().includes('insufficient stock')) {
+        toast.error(message);
+      } else if (message.toLowerCase().includes('not found')) {
+        toast.error('One or more items in your cart are no longer available. Please remove them and try again.');
       } else {
         toast.error('Failed to submit order. Please try again.');
       }
@@ -492,8 +496,8 @@ export function CheckoutModal({ open, onOpenChange }) {
 
             {/* Cart Items */}
             <div className="border border-gray-200 rounded-lg p-4 space-y-3 max-h-48 overflow-y-auto bg-white">
-              {cart.map((item) => (
-                <div key={item.id} className="flex justify-between items-start">
+              {cart.map((item, index) => (
+                <div key={`${item.id}-${index}`} className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm text-gray-900">{item.name}</p>
                     <p className="text-xs text-gray-500 capitalize">

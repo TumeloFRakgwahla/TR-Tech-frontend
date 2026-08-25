@@ -103,21 +103,25 @@ export function CartDrawer({ children }) {
                   <div className="space-y-3">
                     {cart.map((item) => (
                       <div
-                        key={item.id}
+                        key={item._id || item.id}
                         className="flex gap-3 bg-muted/50 p-3 rounded-lg border border-muted"
                       >
                         {/* Product Image */}
-                        <div className="w-20 h-20 bg-background rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
-                           {item.image ? (
-                             <img
-                               src={getProductImageUrl(item.image)}
-                               alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <ShoppingBag className="h-10 w-10 text-muted-foreground" />
-                          )}
-                        </div>
+                         <div className="w-20 h-20 bg-background rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {item.image ? (
+                              <img
+                                src={getProductImageUrl(item.image)}
+                                alt={item.name}
+                               className="w-full h-full object-cover"
+                               onError={(e) => {
+                                 e.target.onerror = null;
+                                 e.target.src = '/TR_Tech_logo.png';
+                               }}
+                             />
+                           ) : (
+                             <ShoppingBag className="h-10 w-10 text-muted-foreground" />
+                           )}
+                         </div>
 
                         {/* Product Details */}
                         <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -166,7 +170,7 @@ export function CartDrawer({ children }) {
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
                                 aria-label="Edit item"
                               >
-                                <Link to={`/product/${item._id || item.id}`} onClick={() => {}}>
+                                <Link to={`/products/${item._id || item.id}`} onClick={() => {}}>
                                   <Edit className="h-4 w-4" />
                                 </Link>
                               </Button>

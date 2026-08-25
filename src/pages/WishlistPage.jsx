@@ -4,42 +4,15 @@ import { Heart, ShoppingBag, ArrowLeft } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useWishlist } from '../components/WishlistContext';
-import { productsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
-import { toast } from 'sonner';
 
 export function WishlistPage() {
   const { wishlist, removeFromWishlist, loading } = useWishlist();
-  const [products, setProducts] = useState([]);
-  const [fetching, setFetching] = useState(false);
   const [removingIds, setRemovingIds] = useState(new Set());
 
   useEffect(() => {
-    if (wishlist.length === 0) {
-      setProducts([]);
-      return;
-    }
-
-    const fetchProducts = async () => {
-      try {
-        setFetching(true);
-        const wishlistIds = wishlist.map((item) => item._id || item.id);
-        const response = await productsAPI.getAll();
-        if (response.success) {
-          const filtered = (response.data || []).filter((p) =>
-            wishlistIds.includes(p._id || p.id)
-          );
-          setProducts(filtered);
-        }
-      } catch {
-        toast.error('Failed to load wishlist products');
-      } finally {
-        setFetching(false);
-      }
-    };
-
-    fetchProducts();
-  }, [wishlist]);
+    if (loading) return;
+  }, [loading]);
 
   const handleRemove = async (product) => {
     const productId = product._id || product.id;
@@ -55,7 +28,7 @@ export function WishlistPage() {
     }
   };
 
-  if (loading || fetching) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-muted">
         <Navbar />
@@ -87,12 +60,12 @@ export function WishlistPage() {
         <div className="flex items-center gap-3 mb-8">
           <Heart className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-foreground">My Wishlist</h1>
-          {products.length > 0 && (
-            <span className="text-sm text-muted-foreground">({products.length} items)</span>
+          {wishlist.length > 0 && (
+            <span className="text-sm text-muted-foreground">({wishlist.length} items)</span>
           )}
         </div>
 
-        {products.length === 0 ? (
+        {wishlist.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Your wishlist is empty</h2>
@@ -108,7 +81,7 @@ export function WishlistPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {wishlist.map((product) => (
               <div
                 key={product._id || product.id}
                 className="bg-white rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col"

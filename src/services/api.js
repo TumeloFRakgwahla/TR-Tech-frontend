@@ -38,7 +38,7 @@ async function getCsrfToken() {
     return cachedCsrfToken;
   }
   try {
-    const res = await fetchWithTimeout(`${API_BASE_URL}/csrf-token`, { credentials: 'include' });
+    const res = await fetchWithTimeout(`${API_BASE_URL.replace(/\/v1\/?$/, '')}/csrf-token`, { credentials: 'include' });
     const data = await res.json();
     if (data.csrfToken) {
       cachedCsrfToken = data.csrfToken;
@@ -1019,6 +1019,39 @@ export const paymentMethodsAPI = {
       headers: {
         ...csrfHeaders,
       },
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+};
+
+export const adminAuthAPI = {
+  login: async (credentials) => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/admin/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders,
+      },
+      body: JSON.stringify(credentials),
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getMe: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/admin/me`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  logout: async () => {
+    const csrfHeaders = await getCsrfHeader();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/admin/logout`, {
+      method: 'POST',
+      headers: csrfHeaders,
       credentials: 'include',
     });
     return handleResponse(response);

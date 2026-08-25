@@ -70,7 +70,7 @@ const [coupons, setCoupons] = useState([]);
       setCoupons([res.data, ...coupons]);
       setCouponDialogOpen(false);
       setCouponForm({ code: '', discount: '', type: 'Percentage', minOrder: 0, expires: '' });
-    } catch (e) { toast.error('Failed to create coupon'); }
+    } catch { toast.error('Failed to create coupon'); }
   }, [couponForm, coupons]);
 
   const handleCreateCampaign = useCallback(async () => {
@@ -84,7 +84,7 @@ const [coupons, setCoupons] = useState([]);
       setCampaigns([res.data, ...campaigns]);
       setCampaignDialogOpen(false);
       setCampaignForm({ name: '', type: 'Email', content: '' });
-    } catch (e) { toast.error('Failed to create campaign'); }
+    } catch { toast.error('Failed to create campaign'); }
   }, [campaignForm, campaigns]);
 
   const handleCreatePromotion = useCallback(async () => {
@@ -98,7 +98,7 @@ const [coupons, setCoupons] = useState([]);
       setPromotions([res.data, ...promotions]);
       setPromotionDialogOpen(false);
       setPromotionForm({ title: '', image: '', link: '', location: '', startDate: '', endDate: '' });
-    } catch (e) { toast.error('Failed to create promotion'); }
+    } catch { toast.error('Failed to create promotion'); }
   }, [promotionForm, promotions]);
 
   const handleDeleteCoupon = useCallback(async (id) => {
@@ -107,7 +107,7 @@ const [coupons, setCoupons] = useState([]);
       await marketingAPI.deleteCoupon(id);
       toast.success('Coupon deleted');
       setCoupons(coupons.filter((c) => (c._id || c.id) !== id));
-    } catch (e) { toast.error('Delete failed'); }
+    } catch { toast.error('Delete failed'); }
   }, [coupons]);
 
   const handleDeleteCampaign = useCallback(async (id) => {
@@ -116,7 +116,7 @@ const [coupons, setCoupons] = useState([]);
       await marketingAPI.deleteCampaign(id);
       toast.success('Campaign deleted');
       setCampaigns(campaigns.filter((c) => (c._id || c.id) !== id));
-    } catch (e) { toast.error('Delete failed'); }
+    } catch { toast.error('Delete failed'); }
   }, [campaigns]);
 
   const handleDeletePromotion = useCallback(async (id) => {
@@ -125,7 +125,7 @@ const [coupons, setCoupons] = useState([]);
       await marketingAPI.deletePromotion(id);
       toast.success('Promotion deleted');
       setPromotions(promotions.filter((p) => (p._id || p.id) !== id));
-    } catch (e) { toast.error('Delete failed'); }
+    } catch { toast.error('Delete failed'); }
   }, [promotions]);
 
   const totalCampaigns = campaigns.length;

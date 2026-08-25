@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { authAPI } from '../services/api';
-import { toast } from 'sonner';
+import { adminAuthAPI } from '../services/api';
 import { clearCsrfCache } from '../services/api';
+import { toast } from 'sonner';
 
-const AuthContext = createContext(undefined);
+const AdminAuthContext = createContext(undefined);
 
-export function AuthProvider({ children }) {
+export function AdminAuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const justLoggedOut = useRef(false);
@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
       return;
     }
     try {
-      const data = await authAPI.getMe();
+      const data = await adminAuthAPI.getMe();
       setUser(data.user);
     } catch {
       setUser(null);
@@ -38,24 +38,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     try {
-      const data = await authAPI.login({ email, password });
+      const data = await adminAuthAPI.login({ email, password });
       setUser(data.user);
-      toast.success('Login successful!');
+      toast.success('Admin login successful!');
       return { success: true };
     } catch (error) {
-      toast.error(error.message || 'Login failed');
-      return { success: false, error: error.message };
-    }
-  }, []);
-
-  const register = useCallback(async (userData) => {
-    try {
-      const data = await authAPI.register(userData);
-      setUser(data.user);
-      toast.success('Registration successful!');
-      return { success: true };
-    } catch (error) {
-      toast.error(error.message || 'Registration failed');
+      toast.error(error.message || 'Admin login failed');
       return { success: false, error: error.message };
     }
   }, []);
@@ -64,7 +52,7 @@ export function AuthProvider({ children }) {
     justLoggedOut.current = true;
     clearCsrfCache();
     try {
-      await authAPI.logout();
+      await adminAuthAPI.logout();
     } catch {
       // ignore logout errors
     } finally {
@@ -73,37 +61,29 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const updateUser = useCallback((userData) => {
-    setUser((prev) => (prev ? { ...prev, ...userData } : null));
-  }, []);
-
   const value = useMemo(
     () => ({
       user,
       loading,
       login,
-      register,
       logout,
-      updateUser,
       isAuthenticated: !!user,
     }),
-    [user, loading, login, register, logout, updateUser]
+    [user, loading, login, logout]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useAuth() {
-  const context = useContext(AuthContext);
+export function useAdminAuth() {
+  const context = useContext(AdminAuthContext);
   if (!context) {
     return {
       user: null,
       loading: false,
       login: () => {},
-      register: () => {},
       logout: () => {},
-      updateUser: () => {},
       isAuthenticated: false,
     };
   }

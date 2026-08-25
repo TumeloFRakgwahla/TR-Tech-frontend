@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Wrench, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Wrench, ShoppingCart } from 'lucide-react';
 import { Button } from "./button.jsx"; // Icons for buttons
 
 const CTA = () => {

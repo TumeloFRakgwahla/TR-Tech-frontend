@@ -1,3 +1,5 @@
+import { WHATSAPP_NUMBER } from '../constants';
+
 export function sanitizeWhatsAppInput(value) {
   if (typeof value !== 'string') return '';
   return value
@@ -6,7 +8,7 @@ export function sanitizeWhatsAppInput(value) {
     .trim();
 }
 
-export function createWhatsAppUrl(message, phoneNumber = '27791002552') {
+export function createWhatsAppUrl(message, phoneNumber = WHATSAPP_NUMBER) {
   const safeMessage = sanitizeWhatsAppInput(message);
   const safePhone = String(phoneNumber).replace(/[^0-9]/g, '');
   const encoded = encodeURIComponent(safeMessage);

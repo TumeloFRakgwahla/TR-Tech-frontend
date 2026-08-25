@@ -12,6 +12,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.js',
+    env: {
+      VITE_API_URL: 'http://localhost:5000/api/v1',
+      VITE_WHATSAPP_NUMBER: '27791002552',
+    },
   },
   build: {
     rollupOptions: {

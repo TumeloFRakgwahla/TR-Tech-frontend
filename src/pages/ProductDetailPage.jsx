@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { productsAPI } from '../services/api';
 import { useCart } from '../components/CartContext';
 import {
@@ -10,11 +9,8 @@ import {
   ProductInfo,
   ProductTabs,
   RelatedProductsSection,
-  getProductId,
-  getPublicImageUrl,
   getProductImageUrls,
   buildSpecifications,
-  formatPrice,
   getSafeErrorMessage,
 } from '../components/ProductDetail';
 
