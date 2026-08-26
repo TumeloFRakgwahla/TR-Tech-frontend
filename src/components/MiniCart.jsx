@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from './CartContext';
 import { Button } from './button.jsx';
@@ -9,6 +9,8 @@ export function MiniCart() {
   const { cart, totalItems, totalPrice, removeFromCart, updateQuantity } = useCart();
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef(null);
+  const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -21,20 +23,37 @@ export function MiniCart() {
     }, 150);
   };
 
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/cart');
+  };
+
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsVisible(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
     return () => {
+      document.removeEventListener('click', handleClickOutside);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
   return (
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div
-        className="relative"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+        className="relative cursor-pointer bg-white text-primary hover:bg-gray-200 hover:shadow-md rounded-md px-4 py-2 inline-flex items-center justify-center transition-all"
       >
-        <div className="relative cursor-pointer bg-white text-primary hover:bg-gray-200 hover:shadow-md rounded-md px-4 py-2 inline-flex items-center justify-center transition-all">
-          <ShoppingCart className="h-6 w-5" />
+        <ShoppingCart className="h-6 w-5" />
         {totalItems > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {totalItems}
@@ -43,7 +62,7 @@ export function MiniCart() {
       </div>
 
       {isVisible && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden transition-all duration-200 origin-top-right">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden transition-all duration-200 origin-top-right hidden sm:block">
           <div className="p-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900">
               Shopping Cart ({totalItems})

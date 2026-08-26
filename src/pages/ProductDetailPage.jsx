@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { productsAPI } from '../services/api';
 import { useCart } from '../components/CartContext';
@@ -170,18 +171,18 @@ export function ProductDetailPage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 max-w-7xl py-10">
-        <div className="mb-6">
+      <div className="container mx-auto px-4 max-w-7xl py-6 md:py-10 pb-24 md:pb-10">
+        <div className="mb-4 md:mb-6">
           <Link
             to="/shop"
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground min-h-[44px]"
           >
             <span aria-hidden="true">←</span>
             Back to Shop
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 xl:gap-12 mb-8 md:mb-12">
           <ImageGallery
             imageUrls={imageUrls}
             selectedImage={selectedImage}
@@ -217,6 +218,32 @@ export function ProductDetailPage() {
           loading={relatedLoading}
         />
       </div>
+
+      {/* Mobile: Sticky Add to Cart */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-background border-t border-border p-4 z-30 pb-safe shadow-lg">
+        <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+          <div>
+            <p className="text-xs text-muted-foreground">Price</p>
+            <p className="text-xl font-bold text-primary">R{price.toFixed(2)}</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              className="flex-1 bg-white border-2 border-primary text-primary font-semibold px-6 py-3 rounded-md min-h-[48px] disabled:opacity-50"
+            >
+              Add to Cart
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={!inStock}
+              className="flex-1 bg-primary text-white font-semibold px-6 py-3 rounded-md min-h-[48px] disabled:opacity-50"
+            >
+              Buy Now
+            </button>
+          </div>
+        </div>
+      </div>
     </PageShell>
   );
 }
@@ -229,6 +256,7 @@ function PageShell({ children }) {
       <Navbar />
       {children}
       <Footer />
+      <BottomNav />
     </div>
   );
 }

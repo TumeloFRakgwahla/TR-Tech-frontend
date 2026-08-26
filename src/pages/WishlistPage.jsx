@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useWishlist } from '../components/WishlistContext';
+import { useCart } from '../components/CartContext';
 import { getProductImageUrl } from '../lib/imageUrl';
 
 export function WishlistPage() {
   const { wishlist, removeFromWishlist, loading } = useWishlist();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [removingIds, setRemovingIds] = useState(new Set());
 
   useEffect(() => {
@@ -30,9 +33,9 @@ export function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted">
+      <div className="min-h-screen bg-muted flex flex-col">
         <Navbar />
-        <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="flex-1 flex min-h-[70vh] items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-primary" />
             <p className="text-muted-foreground text-sm">Loading wishlist...</p>
@@ -44,9 +47,9 @@ export function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-muted flex flex-col">
       <Navbar />
-      <div className="container mx-auto px-4 max-w-6xl py-10">
+      <div className="container mx-auto flex-1 px-4 max-w-6xl py-10">
         <div className="mb-6">
           <Link
             to="/shop"
@@ -66,18 +69,20 @@ export function WishlistPage() {
         </div>
 
         {wishlist.length === 0 ? (
-          <div className="text-center py-20">
-            <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Your wishlist is empty</h2>
-            <p className="text-muted-foreground mb-6">
-              Save items you like by clicking the heart icon on any product.
-            </p>
-            <Link
-              to="/shop"
-              className="inline-flex items-center gap-2 bg-white text-primary border-2 border-black font-bold text-lg shadow-lg hover:bg-primary hover:text-white hover:border-primary hover:shadow-2xl transition-all duration-300 px-6 py-3 rounded-md"
-            >
-              Browse Products
-            </Link>
+          <div className="flex-1 flex items-center justify-center py-20">
+            <div className="text-center">
+              <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">Your wishlist is empty</h2>
+              <p className="text-muted-foreground mb-6">
+                Save items you like by clicking the heart icon on any product.
+              </p>
+              <Link
+                to="/shop"
+                className="inline-flex items-center gap-2 bg-white text-primary border-2 border-black font-bold text-lg shadow-lg hover:bg-primary hover:text-white hover:border-primary hover:shadow-2xl transition-all duration-300 px-6 py-3 rounded-md"
+              >
+                Browse Products
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -117,20 +122,33 @@ export function WishlistPage() {
                     </div>
                   </div>
                 </Link>
-      <div className="px-4 pb-4">
-        <button
-          type="button"
-          onClick={() => handleRemove(product)}
-          disabled={removingIds.has(product._id || product.id)}
-          className="w-full min-h-[40px] bg-white text-red-600 border-2 border-red-200 font-semibold text-sm rounded-md hover:bg-red-50 hover:border-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
-        >
-          {removingIds.has(product._id || product.id) ? (
-            <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-current" />
-          ) : (
-            'Remove from Wishlist'
-          )}
-        </button>
-      </div>
+                <div className="px-4 pb-4 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addToCart(product);
+                        navigate('/cart');
+                      }}
+                      className="min-h-[48px] bg-primary text-white font-semibold text-sm rounded-md hover:bg-primary/90 transition-all duration-200 flex items-center justify-center gap-1"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add to Cart
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(product)}
+                      disabled={removingIds.has(product._id || product.id)}
+                      className="min-h-[48px] bg-white text-red-600 border-2 border-red-300 font-semibold text-sm rounded-md hover:bg-red-50 hover:border-red-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center"
+                    >
+                      {removingIds.has(product._id || product.id) ? (
+                        <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-current" />
+                      ) : (
+                        <Heart className="h-4 w-4 fill-current" />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
