@@ -6,6 +6,7 @@ import { Button } from '../components/button.jsx';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import { getProductImageUrl } from '../lib/imageUrl';
 
 const conditionStyles = {
@@ -28,14 +29,14 @@ function CartPage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="flex-1 flex items-center justify-center pt-16 md:pt-20 bg-gray-50 pb-20 md:pb-0">
           <div className="text-center p-8">
             <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4 mx-auto">
               <ShoppingBag className="h-12 w-12 text-gray-400" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
             <p className="text-gray-500 mb-6">Looks like you haven't added any products yet.</p>
-            <Button asChild className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-black hover:text-white hover:border-black hover:shadow-md transition-all">
+            <Button asChild className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-black hover:text-white hover:border-black hover:shadow-md transition-all min-h-[48px]">
               <Link to="/shop">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Continue Shopping
@@ -44,6 +45,7 @@ function CartPage() {
           </div>
         </div>
         <Footer />
+        <BottomNav />
       </div>
     );
   }
@@ -51,42 +53,42 @@ function CartPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-      <div className="flex-1 py-8">
+      <div className="flex-1 pt-16 md:pt-20 py-4 md:py-8 pb-24 md:pb-8">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Shopping Cart</h1>
             <span className="text-gray-500">
               {totalItems} item{totalItems !== 1 ? 's' : ''}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="lg:col-span-2 space-y-3 md:space-y-4">
               {cart.map((item) => (
                 <div
                   key={item._id || item.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex gap-4"
+                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 flex flex-col sm:flex-row sm:gap-4 gap-3"
                 >
-                    <div className="w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {item.image ? (
-                        <img
-                          src={getProductImageUrl(item.image)}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/TR_Tech_logo.png';
-                          }}
-                        />
-                      ) : (
-                        <ShoppingBag className="h-10 w-10 text-gray-400" />
-                      )}
-                    </div>
+                   <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {item.image ? (
+                      <img
+                        src={getProductImageUrl(item.image)}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/TR_Tech_logo.png';
+                        }}
+                      />
+                    ) : (
+                      <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
+                    )}
+                  </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 line-clamp-2">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm md:text-base">
                           {item.name}
                         </h3>
                         <span
@@ -95,44 +97,44 @@ function CartPage() {
                           {item.condition}
                         </span>
                       </div>
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all"
-                        aria-label="Remove item"
-                      >
+                     <button
+                         onClick={() => removeFromCart(item.id)}
+                         className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all flex-shrink-0"
+                         aria-label="Remove item"
+                       >
                         <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
 
-                    <div className="flex items-end justify-between mt-4">
-                      <div className="flex items-center border border-gray-200 rounded-md">
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="p-2 hover:bg-gray-200 hover:shadow-sm rounded-md transition-all"
-                        disabled={item.quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="px-4 py-2 text-sm font-medium">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="p-2 hover:bg-gray-200 hover:shadow-sm rounded-md transition-all"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                      </div>
+                     <div className="flex items-center justify-between mt-3 md:mt-4">
+                       <div className="flex items-center border border-gray-200 rounded-md">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-200 hover:shadow-sm rounded-l-md transition-all"
+                          disabled={item.quantity <= 1}
+                        >
+                          <Minus className="h-5 w-5" />
+                        </button>
+                        <span className="px-3 py-2 text-sm font-medium min-w-[36px] text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-200 hover:shadow-sm rounded-r-md transition-all"
+                        >
+                          <Plus className="h-5 w-5" />
+                        </button>
+                       </div>
 
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">
-                          R{(item.price * item.quantity).toFixed(2)}
-                        </p>
-                        {item.quantity > 1 && (
-                          <p className="text-xs text-gray-500">
-                            R{item.price.toFixed(2)} each
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                       <div className="text-right">
+                         <p className="text-lg font-bold text-gray-900">
+                           R{(item.price * item.quantity).toFixed(2)}
+                         </p>
+                         {item.quantity > 1 && (
+                           <p className="text-xs text-gray-500">
+                             R{item.price.toFixed(2)} each
+                           </p>
+                         )}
+                       </div>
+                     </div>
                   </div>
                 </div>
               ))}
@@ -141,7 +143,7 @@ function CartPage() {
                 <Button
                   variant="outline"
                   onClick={handleClearCart}
-                  className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-400 hover:bg-red-50 hover:shadow-sm transition-all"
+                   className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-400 hover:bg-red-50 hover:shadow-sm transition-all text-sm sm:text-base min-h-[44px]"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Clear Cart
@@ -149,7 +151,7 @@ function CartPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
                 
@@ -174,7 +176,7 @@ function CartPage() {
                 <Link to="/checkout">Proceed to Checkout</Link>
               </Button>
 
-              <Button asChild className="w-full bg-white border-2 border-gray-300 text-gray-700 hover:bg-black hover:text-white hover:border-black hover:shadow-md transition-all">
+              <Button asChild className="w-full bg-white border-2 border-gray-300 text-gray-700 hover:bg-black hover:text-white hover:border-black hover:shadow-md transition-all min-h-[48px]">
                 <Link to="/shop">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Continue Shopping
@@ -189,7 +191,22 @@ function CartPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile: Sticky bottom summary */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 p-4 z-30 pb-safe shadow-lg">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs text-gray-500">Total</p>
+            <p className="text-xl font-bold text-gray-900">R{totalPrice.toFixed(2)}</p>
+          </div>
+          <Button asChild className="flex-1 max-w-[200px] h-12 bg-black text-white font-semibold">
+            <Link to="/checkout">Checkout</Link>
+          </Button>
+        </div>
+      </div>
+
       <Footer />
+      <BottomNav />
     </div>
   );
 }

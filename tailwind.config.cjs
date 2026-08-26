@@ -5,6 +5,14 @@ module.exports = {
     "src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    screens: {
+      'xsm': '375px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       colors: {
         background: 'var(--background)',
@@ -42,6 +50,17 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      spacing: {
+        'safe': 'env(safe-area-inset-bottom)',
+        '18': '4.5rem',
+      },
+      minHeight: {
+        'touch': '44px',
+        'screen-mobile': 'calc(100vh - env(safe-area-inset-bottom, 0px))',
+      },
+      minWidth: {
+        'touch': '44px',
+      },
       keyframes: {
         'slide-in-from-right': {
           '0%': { transform: 'translateX(100%)' },
@@ -51,10 +70,30 @@ module.exports = {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(100%)' },
         },
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        'slide-down': {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(100%)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'fade-out': {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
       },
       animation: {
         'slide-in-from-right': 'slide-in-from-right 0.3s ease-out',
         'slide-out-to-right': 'slide-out-to-right 0.2s ease-in',
+        'slide-up': 'slide-up 0.3s ease-out',
+        'slide-down': 'slide-down 0.2s ease-in',
+        'fade-in': 'fade-in 0.2s ease-out',
+        'fade-out': 'fade-out 0.15s ease-in',
       },
     },
   },

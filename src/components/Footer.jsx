@@ -20,12 +20,9 @@ const TikTokIcon = () => (
 
 const Footer = () => {
   return (
-    // Footer with primary background color
-    <footer className="bg-primary text-primary-foreground py-8">
+    <footer className="bg-primary text-primary-foreground py-8 md:py-12 pb-20 md:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Grid layout for footer content - responsive columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company information column */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           <div>
             <h3 className="text-xl font-bold mb-4">TR-Tech Repairs & Designs</h3>
             <p className="text-primary-foreground/80">
@@ -33,54 +30,48 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Quick navigation links */}
           <div>
             <h4 className="font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li><a href="#home" className="text-primary-foreground/80 hover:text-accent transition-colors">About Us</a></li>
-              <li><a href="#services" className="text-primary-foreground/80 hover:text-accent transition-colors">Our Services</a></li>
-              <li><a href="#contact" className="text-primary-foreground/80 hover:text-accent transition-colors">Shop Product</a></li>
-              <li><a href="#contact" className="text-primary-foreground/80 hover:text-accent transition-colors">Book a Repair</a></li>
+            <ul className="space-y-1">
+              <li><a href="/about" className="block py-3 text-primary-foreground/80 hover:text-accent transition-colors min-h-[44px] flex items-center">About Us</a></li>
+              <li><a href="/services" className="block py-3 text-primary-foreground/80 hover:text-accent transition-colors min-h-[44px] flex items-center">Our Services</a></li>
+              <li><a href="/shop" className="block py-3 text-primary-foreground/80 hover:text-accent transition-colors min-h-[44px] flex items-center">Shop Product</a></li>
+              <li><a href="/book-repair" className="block py-3 text-primary-foreground/80 hover:text-accent transition-colors min-h-[44px] flex items-center">Book a Repair</a></li>
             </ul>
           </div>
 
-          {/* Services list */}
           <div>
             <h4 className="font-semibold mb-4">Our Services</h4>
-            <ul className="space-y-2 text-primary-foreground/80">
-              <li>Phone Repairs</li>
-              <li>Laptop & Computer Repairs</li>
-              <li>Software Solutions</li>
-              <li>Graphic Design</li>
+            <ul className="space-y-1 text-primary-foreground/80">
+              <li className="py-3 min-h-[44px] flex items-center">Phone Repairs</li>
+              <li className="py-3 min-h-[44px] flex items-center">Laptop & Computer Repairs</li>
+              <li className="py-3 min-h-[44px] flex items-center">Software Solutions</li>
+              <li className="py-3 min-h-[44px] flex items-center">Graphic Design</li>
             </ul>
           </div>
 
-          {/* Contact information and social media */}
           <div>
             <h4 className="font-semibold mb-4">Contact & Social</h4>
-            <ul className="space-y-2 text-primary-foreground/80">
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4" /> Call:064 518 4733</li>
-              <li className="flex items-center gap-2"><MessageCircle className="h-4 w-4" /> Whatsapp: 079 100 2552</li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> trtechrepairsanddesigns@gmail.com</li>
+            <ul className="space-y-1 text-primary-foreground/80">
+              <li className="flex items-center gap-2 py-2 min-h-[44px]"><Phone className="h-4 w-4 flex-shrink-0" /> <span>Call: 064 518 4733</span></li>
+              <li className="flex items-center gap-2 py-2 min-h-[44px]"><MessageCircle className="h-4 w-4 flex-shrink-0" /> <span>Whatsapp: 079 100 2552</span></li>
+              <li className="flex items-center gap-2 py-2 min-h-[44px]"><Mail className="h-4 w-4 flex-shrink-0" /> <span className="truncate">trtechrepairsanddesigns@gmail.com</span></li>
             </ul>
-            {/* Social media icons */}
             <div className="flex space-x-4 mt-4">
-              <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors">
+              <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Facebook">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors">
+              <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Instagram">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors">
+              <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="TikTok">
                 <TikTokIcon />
               </a>
             </div>
           </div>
         </div>
 
-        {/* Copyright section with separator line */}
         <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center">
-          <hr className="border-white mb-4" />
           <p className="text-primary-foreground/80">
             © 2024 TR-Tech Repairs & Designs. All rights reserved.
           </p>

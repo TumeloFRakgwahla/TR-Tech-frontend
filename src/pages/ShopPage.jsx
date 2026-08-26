@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart } from 'lucide-react';
+import BottomNav from '../components/BottomNav';
+import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { useWishlist } from '../components/WishlistContext';
@@ -105,7 +106,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
               toggleWishlist(product);
             }}
             disabled={toggling}
-            className={`absolute top-2 right-2 z-10 p-2 rounded-full border transition-all ${
+            className={`absolute top-2 right-2 z-10 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full border transition-all ${
               toggling
                 ? 'opacity-50 cursor-wait'
                 : inWishlist
@@ -167,7 +168,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
           type="button"
           onClick={() => addToCart(product)}
           disabled={!product.stock || product.stock === 0}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border-2 border-primary bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted disabled:text-muted-foreground"
+          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border-2 border-primary bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:border-muted disabled:bg-muted disabled:text-muted-foreground"
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           <span>{product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
@@ -194,7 +195,7 @@ function FilterSidebar({ filters, maxPrice }) {
           onClick={clearAll}
           disabled={!isFiltered}
           aria-disabled={!isFiltered}
-          className="text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] px-2"
         >
           Clear All
         </button>
@@ -203,14 +204,14 @@ function FilterSidebar({ filters, maxPrice }) {
       <div className="mb-6">
         <fieldset>
           <legend className="text-sm font-semibold text-foreground mb-3">Categories</legend>
-          <div className="space-y-2">
+          <div className="space-y-1">
              {PRODUCT_CATEGORIES.map(cat => (
-              <label key={cat} className="flex items-center gap-2 cursor-pointer group">
+              <label key={cat} className="flex items-center gap-3 cursor-pointer group py-2 min-h-[44px]">
                 <input
                   type="checkbox"
                   checked={selectedCategories.includes(cat)}
                   onChange={() => toggleCategory(cat)}
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+                  className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
                 />
                 <span className="text-sm text-foreground group-hover:text-primary">{cat}</span>
               </label>
@@ -222,14 +223,14 @@ function FilterSidebar({ filters, maxPrice }) {
       <div className="mb-6">
         <fieldset>
           <legend className="text-sm font-semibold text-foreground mb-3">Brands</legend>
-          <div className="space-y-2">
+          <div className="space-y-1">
              {PRODUCT_BRANDS.map(brand => (
-              <label key={brand} className="flex items-center gap-2 cursor-pointer group">
+              <label key={brand} className="flex items-center gap-3 cursor-pointer group py-2 min-h-[44px]">
                 <input
                   type="checkbox"
                   checked={selectedBrands.includes(brand)}
                   onChange={() => toggleBrand(brand)}
-                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+                  className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
                 />
                 <span className="text-sm text-foreground group-hover:text-primary">{brand}</span>
               </label>
@@ -250,24 +251,24 @@ function FilterSidebar({ filters, maxPrice }) {
           step={PRICE_STEP}
           value={priceRange}
           onChange={e => setPriceRange(Number(e.target.value))}
-          className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+          className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
           aria-valuemin={0}
           aria-valuemax={maxPrice}
           aria-valuenow={priceRange}
         />
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
           <span>R0</span>
           <span aria-live="polite">R{priceRange.toLocaleString()}</span>
         </div>
        </div>
 
       <div>
-        <label className="flex items-center gap-2 cursor-pointer group">
+        <label className="flex items-center gap-3 cursor-pointer group py-2 min-h-[44px]">
           <input
             type="checkbox"
             checked={inStockOnly}
             onChange={e => setInStockOnly(e.target.checked)}
-            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+            className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
           />
           <span className="text-sm text-foreground group-hover:text-primary">In Stock Only</span>
         </label>
@@ -357,32 +358,38 @@ function ShopContent() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="pt-16">
-        <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
+      <div className="pt-16 md:pt-20">
+        <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-12 md:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">Tech Shop</h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto">
+            <h1 className="text-3xl md:text-6xl font-bold mb-4 md:mb-6">Tech Shop</h1>
+            <p className="text-lg md:text-2xl max-w-3xl mx-auto">
               Quality tech products and accessories for all your technology needs.
             </p>
           </div>
         </section>
 
         <div className="bg-white/95 border-b border-border px-4 py-3 backdrop-blur">
-          <div className="max-w-screen-xl mx-auto flex items-center justify-between">
+          <div className="max-w-screen-xl mx-auto flex items-center justify-between gap-3">
             <button
-              className="md:hidden flex items-center gap-2 text-sm font-medium text-primary"
+              className="md:hidden flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] px-2"
               onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
               aria-expanded={mobileFiltersOpen}
               aria-controls="mobile-filters"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Filters
+              {filters.activeFilterCount > 0 && (
+                <span className="bg-primary text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {filters.activeFilterCount}
+                </span>
+              )}
+              <ChevronDown className={`h-3 w-3 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`} />
             </button>
             <p className="text-sm text-muted-foreground hidden md:block">
               Showing <span className="font-medium text-primary">{sortedProducts.length}</span> products
             </p>
 
-            <div className="relative flex-1 max-w-sm mx-4">
+            <div className="relative flex-1 max-w-xs sm:max-w-sm mx-2 sm:mx-4">
               <label htmlFor="product-search" className="sr-only">Search for products</label>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60 pointer-events-none" aria-hidden="true" />
               <input
@@ -391,26 +398,26 @@ function ShopContent() {
                 value={filters.searchQuery}
                 onChange={e => filters.setSearchQuery(e.target.value)}
                 placeholder="Search for products..."
-                className="w-full pl-9 pr-8 py-1.5 text-sm border border-border rounded-md bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="w-full pl-9 pr-8 py-2 text-sm border border-border rounded-md bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[44px]"
               />
               {filters.searchQuery && (
                 <button
                   onClick={() => filters.setSearchQuery('')}
                   aria-label="Clear search"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary min-w-[32px] min-h-[32px] flex items-center justify-center"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
-              <label htmlFor="sort-select" className="text-sm text-muted-foreground">Sort by:</label>
+            <div className="flex items-center gap-2">
+              <label htmlFor="sort-select" className="text-sm text-muted-foreground hidden sm:block">Sort by:</label>
               <select
                 id="sort-select"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className="text-sm border border-border rounded-md px-3 py-1.5 bg-white text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary"
+                className="text-sm border border-border rounded-md px-2 sm:px-3 py-2 bg-white text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary min-h-[44px]"
               >
                 {SORT_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -420,7 +427,7 @@ function ShopContent() {
           </div>
         </div>
 
-        <div className="max-w-screen-xl mx-auto px-4 py-6">
+        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-6">
           <div className="flex gap-6">
             <aside className="hidden md:block w-56 flex-shrink-0" aria-label="Product filters">
               <FilterSidebar filters={filters} maxPrice={maxPrice} />
@@ -428,19 +435,42 @@ function ShopContent() {
 
             {mobileFiltersOpen && (
               <div
-                className="fixed inset-0 z-50 bg-black/40 md:hidden"
+                className="fixed inset-0 z-50 bg-black/40 md:hidden animate-fade-in"
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-hidden="true"
               >
                 <div
                   id="mobile-filters"
-                  className="absolute left-0 top-0 h-full w-72 bg-white overflow-y-auto p-4"
+                  className="absolute bottom-0 inset-x-0 max-h-[85vh] bg-white rounded-t-2xl overflow-y-auto animate-slide-up pb-safe"
                   onClick={e => e.stopPropagation()}
                   role="dialog"
                   aria-modal="true"
                   aria-label="Mobile filters"
                 >
-                  <FilterSidebar filters={filters} maxPrice={maxPrice} />
+                  <div className="sticky top-0 bg-white pt-3 pb-2 px-4 border-b border-border">
+                    <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-3" />
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Filters</h3>
+                      <button
+                        onClick={() => setMobileFiltersOpen(false)}
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
+                        aria-label="Close filters"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <FilterSidebar filters={filters} maxPrice={maxPrice} />
+                  </div>
+                  <div className="sticky bottom-0 bg-white border-t border-border p-4 pb-safe">
+                    <button
+                      onClick={() => setMobileFiltersOpen(false)}
+                      className="w-full bg-primary text-white py-3 rounded-md font-medium min-h-[48px]"
+                    >
+                      Show {sortedProducts.length} Products
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -456,7 +486,7 @@ function ShopContent() {
                   <p className="text-red-500 mb-4">{error}</p>
                   <button
                     onClick={retryFetch}
-                    className="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary/90"
+                    className="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary/90 min-h-[44px]"
                   >
                     Retry
                   </button>
@@ -464,12 +494,12 @@ function ShopContent() {
               ) : sortedProducts.length === 0 ? (
                 <div className="text-center py-24">
                   <p className="text-muted-foreground">No products match your filters.</p>
-                  <button onClick={filters.clearAll} className="mt-3 text-primary text-sm hover:underline">
+                  <button onClick={filters.clearAll} className="mt-3 text-primary text-sm hover:underline min-h-[44px] px-4">
                     Clear all filters
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 xsm:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                   {sortedProducts.map(product => (
                     <ProductCard
                       key={product._id || product.id}
@@ -486,9 +516,9 @@ function ShopContent() {
         </div>
       </div>
 
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 md:py-16 bg-gray-50 pb-24 md:pb-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center">
             <div>
               <h3 className="font-bold text-2xl text-black mb-2" aria-hidden="true">✓</h3>
               <h4 className="font-bold mb-2 text-[#0a1f3d]">Quality Assured</h4>
@@ -509,6 +539,7 @@ function ShopContent() {
       </section>
 
       <Footer />
+      <BottomNav />
     </div>
   );
 }
