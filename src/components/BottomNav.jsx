@@ -4,6 +4,7 @@ import { Home, ShoppingBag, ShoppingCart, Heart, User } from 'lucide-react';
 import { useCart } from './CartContext';
 import { useWishlist } from './WishlistContext';
 import { useAuth } from './AuthContext';
+import { useAuthModal } from './AuthModalContext';
 
 const NavButton = ({ to, icon: Icon, label, badge, onClick, isActive }) => {
   return (
@@ -44,10 +45,18 @@ export function BottomNav() {
   const { totalItems } = useCart();
   const { wishlistCount } = useWishlist();
   const { isAuthenticated } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
+  };
+
+  const handleAccountClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      openAuthModal();
+    }
   };
 
   return (
@@ -66,10 +75,7 @@ export function BottomNav() {
           icon={User}
           label="Account"
           isActive={isActive('/account')}
-          onClick={!isAuthenticated ? (e) => {
-            e.preventDefault();
-            document.dispatchEvent(new CustomEvent('open-auth-modal'));
-          } : undefined}
+          onClick={handleAccountClick}
         />
       </div>
     </nav>

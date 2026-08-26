@@ -80,6 +80,7 @@ export function AdminCategoriesPage() {
       await categoriesAPI.delete(id);
       toast.success('Category deleted');
       loadCategories();
+      window.dispatchEvent(new CustomEvent('admin-data-changed', { detail: { type: 'categories' } }));
     } catch (err) {
       toast.error(err.message || 'Delete failed');
     }
@@ -98,6 +99,7 @@ export function AdminCategoriesPage() {
       }
       setDialogOpen(false);
       loadCategories();
+      window.dispatchEvent(new CustomEvent('admin-data-changed', { detail: { type: 'categories' } }));
     } catch (err) {
       let errorMessage = err.message || 'Save failed';
       if (err.info) {

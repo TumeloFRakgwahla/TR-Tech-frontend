@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeWhatsAppInput, createWhatsAppUrl } from '../lib/sanitize';
-import { WHATSAPP_NUMBER, API_BASE_URL, PRODUCT_CATEGORIES, ORDER_STATUSES, PAYMENT_METHODS } from '../constants';
+import { WHATSAPP_NUMBER, API_BASE_URL, FALLBACK_CATEGORIES, ORDER_STATUSES, PAYMENT_METHODS } from '../constants';
 
 describe('sanitizeWhatsAppInput', () => {
   it('removes HTML tags', () => {
@@ -58,9 +58,9 @@ describe('constants', () => {
   });
 
   it('exports non-empty product categories', () => {
-    expect(PRODUCT_CATEGORIES.length).toBeGreaterThan(0);
-    expect(PRODUCT_CATEGORIES).toContain('Smartphones');
-    expect(PRODUCT_CATEGORIES).toContain('Laptops');
+    expect(FALLBACK_CATEGORIES.length).toBeGreaterThan(0);
+    expect(FALLBACK_CATEGORIES).toContain('Smartphones');
+    expect(FALLBACK_CATEGORIES).toContain('Laptops');
   });
 
   it('exports valid order statuses', () => {

@@ -147,7 +147,7 @@ export function CartProvider({ children }) {
   useEffect(() => {
     if (isAuthenticated && cart.length > 0 && !syncTimerRef.current) {
       syncTimerRef.current = setTimeout(() => {
-        syncCartToServer(cart);
+        syncCartToServer(cartRef.current);
         syncTimerRef.current = null;
       }, 1000);
     }
