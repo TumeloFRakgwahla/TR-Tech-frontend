@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Smartphone, Laptop, Headphones, Gamepad2, Wifi, Printer, HardDrive, MoreHorizontal } from 'lucide-react';
 import { categoriesAPI } from '../services/api';
-import { PRODUCT_CATEGORIES } from '../constants';
+import { FALLBACK_CATEGORIES } from '../constants';
 
 const iconMap = {
   Smartphones: Smartphone,
@@ -15,18 +15,6 @@ const iconMap = {
   Other: MoreHorizontal,
 };
 
-const slugMap = {
-  Smartphones: 'smartphones',
-  Laptops: 'laptops',
-  'Laptop Accessories': 'laptop-accessories',
-  'Mobile Accessories': 'mobile-accessories',
-  Gaming: 'gaming',
-  Networking: 'networking',
-  Printers: 'printers',
-  'Storage Devices': 'storage-devices',
-  Other: 'other',
-};
-
 export default function CategoryChips() {
   const [categories, setCategories] = useState([]);
 
@@ -35,34 +23,42 @@ export default function CategoryChips() {
       try {
         const res = await categoriesAPI.getActive();
         if (res.success && res.data && res.data.length > 0) {
-          const catNames = res.data.map((c) => c.name);
-          setCategories([...new Set([...PRODUCT_CATEGORIES, ...catNames])]);
+          setCategories(res.data);
         } else {
-          setCategories(PRODUCT_CATEGORIES);
+          setCategories(FALLBACK_CATEGORIES.map(name => ({ name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') })));
         }
       } catch {
-        setCategories(PRODUCT_CATEGORIES);
+        setCategories(FALLBACK_CATEGORIES.map(name => ({ name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') })));
       }
     };
     fetchCategories();
+
+    const handler = (e) => {
+      if (e.detail?.type === 'categories') {
+        fetchCategories();
+      }
+    };
+    window.addEventListener('admin-data-changed', handler);
+    return () => window.removeEventListener('admin-data-changed', handler);
   }, []);
 
   return (
     <div className="flex gap-2 justify-center overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {categories.map((category) => {
-        const Icon = iconMap[category] || MoreHorizontal;
-        const slug = slugMap[category] || category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const name = category.name || category;
+        const slug = category.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const Icon = iconMap[name] || MoreHorizontal;
         return (
           <Link
             key={slug}
-            to={`/shop?category=${encodeURIComponent(category)}`}
+            to={`/shop?category=${encodeURIComponent(slug)}`}
             className="flex flex-col items-center gap-1.5 min-w-[72px] p-3 rounded-xl bg-muted/50 hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all group"
           >
             <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:bg-primary/10 transition-colors">
               <Icon className="h-5 w-5 text-primary" />
             </div>
             <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-              {category}
+              {name}
             </span>
           </Link>
         );

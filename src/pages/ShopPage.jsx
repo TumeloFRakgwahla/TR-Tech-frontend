@@ -3,13 +3,13 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { useWishlist } from '../components/WishlistContext';
 import { productsAPI, categoriesAPI, brandsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { StarRating } from '../components/ProductDetail';
-import { PRODUCT_CATEGORIES, PRODUCT_BRANDS, SORT_OPTIONS } from '../constants';
+import { FALLBACK_CATEGORIES, FALLBACK_BRANDS, SORT_OPTIONS } from '../constants';
 
 const PRICE_STEP = 100;
 
@@ -629,6 +629,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
 
 function ShopContent() {
   const { addToCart } = useCart();
+  const [searchParams] = useSearchParams();
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -639,42 +640,48 @@ function ShopContent() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
 
+  const initialCategory = searchParams.get('category');
+  const initialBrand = searchParams.get('brand');
+
+  const filters = useFilters(30000);
+
   const maxPrice = useMemo(() => {
     const max = products.reduce((max, p) => Math.max(max, Number(p.price) || 0), 0);
     return max > 0 ? max : 30000;
   }, [products]);
 
-  const filters = useFilters(maxPrice);
+  const fetchCategoriesAndBrands = useCallback(async () => {
+    const [catRes, brandRes] = await Promise.allSettled([
+      categoriesAPI.getActive(),
+      brandsAPI.getActive(),
+    ]);
+
+    if (catRes.status === 'fulfilled' && catRes.value.success) {
+      const catNames = (catRes.value.data || []).map((c) => c.name);
+      setCategories(catNames.length ? [...new Set(catNames)] : FALLBACK_CATEGORIES);
+    } else {
+      setCategories(FALLBACK_CATEGORIES);
+    }
+
+    if (brandRes.status === 'fulfilled' && brandRes.value.success) {
+      const brandNames = (brandRes.value.data || []).map((b) => b.name);
+      setBrands(brandNames.length ? [...new Set(brandNames)] : FALLBACK_BRANDS);
+    } else {
+      setBrands(FALLBACK_BRANDS);
+    }
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const [productRes, catRes, brandRes] = await Promise.allSettled([
-        productsAPI.getAll(),
-        categoriesAPI.getActive(),
-        brandsAPI.getActive(),
-      ]);
+      const data = await productsAPI.getAll();
 
-      if (productRes.status === 'fulfilled' && productRes.value.success) {
-        setProducts(productRes.value.data);
+      if (data.success) {
+        setProducts(data.data);
         setImageErrors({});
       } else {
         setError('Unable to load products. Please check your connection and try again.');
-      }
-
-      if (catRes.status === 'fulfilled' && catRes.value.success) {
-        const catNames = catRes.value.data.map((c) => c.name);
-        setCategories([...new Set([...PRODUCT_CATEGORIES, ...catNames])]);
-      } else {
-        setCategories(PRODUCT_CATEGORIES);
-      }
-
-      if (brandRes.status === 'fulfilled' && brandRes.value.success) {
-        const brandNames = brandRes.value.data.map((b) => b.name);
-        setBrands([...new Set([...PRODUCT_BRANDS, ...brandNames])]);
-      } else {
-        setBrands(PRODUCT_BRANDS);
       }
     } catch {
       setError('Unable to load products. Please check your connection and try again.');
@@ -685,7 +692,46 @@ function ShopContent() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategoriesAndBrands();
+  }, [fetchProducts, fetchCategoriesAndBrands]);
+
+  useEffect(() => {
+    if (initialCategory && categories.length > 0) {
+      const match = categories.find(c => c.toLowerCase() === initialCategory.toLowerCase());
+      if (match && !filters.selectedCategories.includes(match)) {
+        filters.toggleCategory(match);
+      }
+    }
+  }, [initialCategory, categories, filters]);
+
+  useEffect(() => {
+    if (initialBrand && brands.length > 0) {
+      const match = brands.find(b => b.toLowerCase() === initialBrand.toLowerCase());
+      if (match && !filters.selectedBrands.includes(match)) {
+        filters.toggleBrand(match);
+      }
+    }
+  }, [initialBrand, brands, filters]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchProducts();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [fetchProducts]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.type === 'categories' || e.detail?.type === 'brands') {
+        fetchCategoriesAndBrands();
+      } else {
+        fetchProducts();
+      }
+    };
+    window.addEventListener('admin-data-changed', handler);
+    return () => window.removeEventListener('admin-data-changed', handler);
+  }, [fetchProducts, fetchCategoriesAndBrands]);
 
   useEffect(() => {
     if (!loading && products.length > 0) {

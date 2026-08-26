@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { authAPI, ordersAPI, accountAPI } from '../services/api';
+import { authAPI, ordersAPI, accountAPI, repairsAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const AccountContext = createContext(undefined);
@@ -45,7 +45,12 @@ export function AccountProvider({ children }) {
   }, []);
 
   const fetchRepairs = useCallback(async () => {
-    setRepairs([]);
+    try {
+      const data = await repairsAPI.myRepairs({ limit: 50 });
+      setRepairs(data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch repairs:', error);
+    }
   }, []);
 
   const fetchNotifications = useCallback(async () => {

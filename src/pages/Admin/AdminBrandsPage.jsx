@@ -81,6 +81,7 @@ export function AdminBrandsPage() {
       await brandsAPI.delete(id);
       toast.success('Brand deleted');
       loadBrands();
+      window.dispatchEvent(new CustomEvent('admin-data-changed', { detail: { type: 'brands' } }));
     } catch (err) {
       toast.error(err.message || 'Delete failed');
     }
@@ -99,6 +100,7 @@ export function AdminBrandsPage() {
       }
       setDialogOpen(false);
       loadBrands();
+      window.dispatchEvent(new CustomEvent('admin-data-changed', { detail: { type: 'brands' } }));
     } catch (err) {
       let errorMessage = err.message || 'Save failed';
       if (err.info) {

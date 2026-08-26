@@ -51,8 +51,8 @@ export const SORT_OPTIONS = [
   { value: 'rating', label: 'Top Rated' },
 ];
 
-// Product Categories
-export const PRODUCT_CATEGORIES = [
+// Fallback product categories (used when API is unavailable)
+export const FALLBACK_CATEGORIES = [
   'Smartphones',
   'Laptops',
   'Laptop Accessories',
@@ -64,8 +64,8 @@ export const PRODUCT_CATEGORIES = [
   'Other'
 ];
 
-// Product Brands
-export const PRODUCT_BRANDS = [
+// Fallback product brands (used when API is unavailable)
+export const FALLBACK_BRANDS = [
   'Apple',
   'Samsung',
   'HP',

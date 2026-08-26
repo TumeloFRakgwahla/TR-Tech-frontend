@@ -7,7 +7,7 @@
  * Maintains brand consistency via the project's CSS variable system.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Facebook,
   Instagram,
@@ -15,6 +15,7 @@ import {
   Send,
 } from 'lucide-react';
 import { WHATSAPP_BASE_URL } from '../constants';
+import { categoriesAPI } from '../services/api';
 
 const TikTokIcon = () => (
   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -97,6 +98,29 @@ const footerNav = {
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [shopCategories, setShopCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await categoriesAPI.getActive();
+        if (res.success && res.data && res.data.length > 0) {
+          setShopCategories(res.data);
+        }
+      } catch {
+        // keep empty — footer shop links degrade gracefully
+      }
+    };
+    fetchCategories();
+
+    const handler = (e) => {
+      if (e.detail?.type === 'categories') {
+        fetchCategories();
+      }
+    };
+    window.addEventListener('admin-data-changed', handler);
+    return () => window.removeEventListener('admin-data-changed', handler);
+  }, []);
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -109,6 +133,15 @@ const Footer = () => {
   };
 
   const year = new Date().getFullYear();
+
+  const shopLinks = shopCategories.length > 0
+    ? shopCategories.map(c => ({
+        label: c.name,
+        href: `/shop?category=${encodeURIComponent(c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}`,
+      }))
+    : [
+        { label: 'All Products', href: '/shop' },
+      ];
 
   return (
     <footer className="bg-primary text-primary-foreground pt-14 pb-8">
@@ -164,7 +197,7 @@ const Footer = () => {
               Shop
             </h4>
             <ul className="space-y-2.5">
-              {footerNav.shop.map((link) => (
+              {shopLinks.map((link) => (
                 <li key={link.href}>
                   <a
                     href={link.href}
