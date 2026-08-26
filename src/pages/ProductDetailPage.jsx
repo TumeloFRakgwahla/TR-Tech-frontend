@@ -171,7 +171,7 @@ export function ProductDetailPage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 max-w-7xl py-6 md:py-10 pb-24 md:pb-10">
+      <div className="container mx-auto px-4 max-w-7xl py-6 md:py-10 pb-32 md:pb-10">
         <div className="mb-4 md:mb-6">
           <Link
             to="/shop"
@@ -219,25 +219,25 @@ export function ProductDetailPage() {
         />
       </div>
 
-      {/* Mobile: Sticky Add to Cart */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-background border-t border-border p-4 z-30 pb-safe shadow-lg">
-        <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+      {/* Mobile: Sticky Add to Cart - positioned above bottom nav */}
+      <div className="lg:hidden fixed bottom-16 inset-x-0 bg-background border-t border-border p-3 z-30 shadow-lg">
+        <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
           <div>
             <p className="text-xs text-muted-foreground">Price</p>
-            <p className="text-xl font-bold text-primary">R{price.toFixed(2)}</p>
+            <p className="text-lg font-bold text-primary">R{price.toFixed(2)}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-1 max-w-xs">
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="flex-1 bg-white border-2 border-primary text-primary font-semibold px-6 py-3 rounded-md min-h-[48px] disabled:opacity-50"
+              className="flex-1 bg-white border-2 border-primary text-primary font-semibold px-4 py-3 rounded-md min-h-[48px] disabled:opacity-50 transition-all"
             >
               Add to Cart
             </button>
             <button
               onClick={handleBuyNow}
               disabled={!inStock}
-              className="flex-1 bg-primary text-white font-semibold px-6 py-3 rounded-md min-h-[48px] disabled:opacity-50"
+              className="flex-1 bg-primary text-white font-semibold px-4 py-3 rounded-md min-h-[48px] disabled:opacity-50 transition-all"
             >
               Buy Now
             </button>

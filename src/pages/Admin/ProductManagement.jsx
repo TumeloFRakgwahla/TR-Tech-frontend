@@ -20,9 +20,9 @@ import {
   DialogTrigger,
 } from '../../components/ui/dialog';
 import { Plus, Search, Edit, Trash2, Loader2, Upload, X } from 'lucide-react';
-import { productsAPI, uploadAPI } from '../../services/api';
+import { productsAPI, uploadAPI, categoriesAPI, brandsAPI } from '../../services/api';
 import { getProductImageUrl } from '../../lib/imageUrl';
-import { PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_CATEGORIES, PRODUCT_BRANDS, PRODUCT_CONDITIONS } from '../../constants';
+import { PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_CONDITIONS, PRODUCT_CATEGORIES, PRODUCT_BRANDS } from '../../constants';
 import { toast } from 'sonner';
 
 const emptyProduct = {
@@ -39,6 +39,8 @@ const emptyProduct = {
 
 export function ProductManagement() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,6 +49,10 @@ export function ProductManagement() {
   const [form, setForm] = useState(emptyProduct);
   const [submitError, setSubmitError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [showNewCat, setShowNewCat] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [showNewBrand, setShowNewBrand] = useState(false);
+  const [newBrandName, setNewBrandName] = useState('');
   const fileInputRef = useRef(null);
 
   const loadProducts = async () => {
@@ -62,8 +68,25 @@ export function ProductManagement() {
     }
   };
 
+  const loadCategoriesAndBrands = async () => {
+    try {
+      const [catRes, brandRes] = await Promise.all([
+        categoriesAPI.getActive().catch(() => ({ data: PRODUCT_CATEGORIES })),
+        brandsAPI.getActive().catch(() => ({ data: PRODUCT_BRANDS })),
+      ]);
+      const catNames = (catRes.data || []).map(c => c.name);
+      const brandNames = (brandRes.data || []).map(b => b.name);
+      setCategories([...new Set([...PRODUCT_CATEGORIES, ...catNames])]);
+      setBrands([...new Set([...PRODUCT_BRANDS, ...brandNames])]);
+    } catch {
+      setCategories(PRODUCT_CATEGORIES);
+      setBrands(PRODUCT_BRANDS);
+    }
+  };
+
   useEffect(() => {
     loadProducts();
+    loadCategoriesAndBrands();
   }, []);
 
   const filteredProducts = products.filter((product) =>
@@ -129,15 +152,15 @@ export function ProductManagement() {
 
     setUploading(true);
     try {
-      const res = await uploadAPI.uploadImages(toUpload);
-      if (res.success && res.images) {
-        setForm(prev => ({
-          ...prev,
-          images: [...prev.images, ...res.images.map(img => img.url)]
-        }));
-        toast.success(`${res.images.length} image(s) uploaded`);
-      }
-    } catch (err) {
+       const res = await uploadAPI.uploadImages(toUpload);
+       if (res.success && res.data) {
+         setForm(prev => ({
+           ...prev,
+           images: [...prev.images, ...res.data.map(img => img.url)]
+         }));
+         toast.success(`${res.data.length} image(s) uploaded`);
+       }
+     } catch (err) {
       toast.error(err.message || 'Upload failed');
     } finally {
       setUploading(false);
@@ -160,8 +183,8 @@ export function ProductManagement() {
       price: Number(form.price),
       stock: Number(form.stock),
       images: form.images,
-      image: form.images[0] || form.image || PRODUCT_PLACEHOLDER_IMAGE
-    };
+       image: form.images[0] || form.image || PRODUCT_PLACEHOLDER_IMAGE
+     };
 
     try {
       if (editingProduct) {
@@ -174,7 +197,22 @@ export function ProductManagement() {
       setDialogOpen(false);
       loadProducts();
     } catch (err) {
-      setSubmitError(err.message || 'Save failed');
+      let errorMessage = err.message || 'Save failed';
+      if (err.status === 400) {
+        try {
+          const detail = typeof err.info === 'string' ? JSON.parse(err.info) : err.info;
+          if (Array.isArray(detail)) {
+            errorMessage = detail.map((e) => e.msg || e.message).join(', ');
+          } else if (detail?.errors) {
+            errorMessage = detail.errors.map((e) => e.msg || e.message).join(', ');
+          } else if (detail?.message) {
+            errorMessage = detail.message;
+          }
+        } catch {
+          if (err.info) errorMessage = err.info;
+        }
+      }
+      setSubmitError(errorMessage);
     }
   };
 
@@ -204,23 +242,123 @@ export function ProductManagement() {
                 <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
                 <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
-                  <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Brand</label>
-                  <select value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
-                    {PRODUCT_BRANDS.map((brand) => (
-                      <option key={brand} value={brand}>{brand}</option>
-                    ))}
-                  </select>
-                </div>
+               <div className="grid grid-cols-3 gap-4">
+                 <div>
+                   <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
+                   <select
+                     value={showNewCat ? '__new__' : form.category}
+                     onChange={(e) => {
+                       if (e.target.value === '__new__') {
+                         setShowNewCat(true);
+                       } else {
+                         setForm({ ...form, category: e.target.value });
+                       }
+                     }}
+                     className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white"
+                   >
+                     {categories.map((cat) => (
+                       <option key={cat} value={cat}>{cat}</option>
+                     ))}
+                     <option value="__new__">+ Add new category</option>
+                   </select>
+                   {showNewCat && (
+                     <div className="mt-2 flex gap-2">
+                       <Input
+                         value={newCatName}
+                         onChange={(e) => setNewCatName(e.target.value)}
+                         placeholder="New category name"
+                         className="bg-slate-700 border-slate-600 text-white"
+                       />
+                       <Button
+                         type="button"
+                         size="sm"
+                         className="bg-blue-600 hover:bg-blue-700"
+                         onClick={async () => {
+                           if (!newCatName.trim()) return;
+                           try {
+                             await categoriesAPI.create({ name: newCatName.trim() });
+                             toast.success('Category created');
+                             setForm({ ...form, category: newCatName.trim() });
+                             setShowNewCat(false);
+                             setNewCatName('');
+                             loadCategoriesAndBrands();
+                           } catch (err) {
+                             toast.error(err.message || 'Failed to create category');
+                           }
+                         }}
+                       >
+                         Add
+                       </Button>
+                       <Button
+                         type="button"
+                         size="sm"
+                         variant="outline"
+                         onClick={() => { setShowNewCat(false); setNewCatName(''); }}
+                         className="border-slate-600 text-white hover:bg-slate-700"
+                       >
+                         Cancel
+                       </Button>
+                     </div>
+                   )}
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-slate-300 mb-1">Brand</label>
+                   <select
+                     value={showNewBrand ? '__new__' : form.brand}
+                     onChange={(e) => {
+                       if (e.target.value === '__new__') {
+                         setShowNewBrand(true);
+                       } else {
+                         setForm({ ...form, brand: e.target.value });
+                       }
+                     }}
+                     className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white"
+                   >
+                     {brands.map((brand) => (
+                       <option key={brand} value={brand}>{brand}</option>
+                     ))}
+                     <option value="__new__">+ Add new brand</option>
+                   </select>
+                   {showNewBrand && (
+                     <div className="mt-2 flex gap-2">
+                       <Input
+                         value={newBrandName}
+                         onChange={(e) => setNewBrandName(e.target.value)}
+                         placeholder="New brand name"
+                         className="bg-slate-700 border-slate-600 text-white"
+                       />
+                       <Button
+                         type="button"
+                         size="sm"
+                         className="bg-blue-600 hover:bg-blue-700"
+                         onClick={async () => {
+                           if (!newBrandName.trim()) return;
+                           try {
+                             await brandsAPI.create({ name: newBrandName.trim() });
+                             toast.success('Brand created');
+                             setForm({ ...form, brand: newBrandName.trim() });
+                             setShowNewBrand(false);
+                             setNewBrandName('');
+                             loadCategoriesAndBrands();
+                           } catch (err) {
+                             toast.error(err.message || 'Failed to create brand');
+                           }
+                         }}
+                       >
+                         Add
+                       </Button>
+                       <Button
+                         type="button"
+                         size="sm"
+                         variant="outline"
+                         onClick={() => { setShowNewBrand(false); setNewBrandName(''); }}
+                         className="border-slate-600 text-white hover:bg-slate-700"
+                       >
+                         Cancel
+                       </Button>
+                     </div>
+                   )}
+                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Condition</label>
                   <select value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">

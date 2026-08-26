@@ -6,7 +6,7 @@ import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart, ChevronD
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { useWishlist } from '../components/WishlistContext';
-import { productsAPI } from '../services/api';
+import { productsAPI, categoriesAPI, brandsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { StarRating } from '../components/ProductDetail';
 import { PRODUCT_CATEGORIES, PRODUCT_BRANDS, SORT_OPTIONS } from '../constants';
@@ -64,6 +64,7 @@ function useFilters(maxPrice = 30000) {
     searchQuery, setSearchQuery, debouncedSearchQuery,
     clearAll, activeFilterCount,
     isFiltered: activeFilterCount > 0,
+    maxPrice,
   };
 }
 
@@ -89,7 +90,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
       <Link to={`/products/${id}`} className="block">
         <div className="relative bg-primary/5 aspect-[4/3]">
           {discount && (
-            <span className="absolute top-2 left-2 z-10 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+            <span className="absolute top-2 left-2 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
               -{discount}%
             </span>
           )}
@@ -178,7 +179,59 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
   );
 }
 
-function FilterSidebar({ filters, maxPrice }) {
+function ProductCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl overflow-hidden border border-border shadow-sm animate-pulse">
+      <div className="aspect-[4/3] bg-muted/60" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 bg-muted/60 rounded w-1/3" />
+        <div className="h-4 bg-muted/60 rounded w-full" />
+        <div className="h-4 bg-muted/60 rounded w-2/3" />
+        <div className="h-3 bg-muted/60 rounded w-1/4 mt-2" />
+        <div className="h-5 bg-muted/60 rounded w-1/3" />
+      </div>
+      <div className="px-3 pb-3">
+        <div className="h-11 bg-muted/60 rounded w-full" />
+      </div>
+    </div>
+  );
+}
+
+function FilterChips({ filters }) {
+  const quickFilters = [
+    { label: 'In Stock', active: filters.inStockOnly, toggle: () => filters.setInStockOnly(!filters.inStockOnly) },
+    { label: 'Under R1000', active: filters.priceRange <= 1000, toggle: () => filters.setPriceRange(filters.priceRange <= 1000 ? filters.maxPrice : 1000) },
+    { label: 'Top Rated', active: false, toggle: () => {} },
+  ];
+
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {quickFilters.map((filter) => (
+        <button
+          key={filter.label}
+          onClick={filter.toggle}
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all min-h-[36px] ${
+            filter.active
+              ? 'bg-primary text-white'
+              : 'bg-muted text-foreground hover:bg-muted/80'
+          }`}
+        >
+          {filter.label}
+        </button>
+      ))}
+      {filters.activeFilterCount > 0 && (
+        <button
+          onClick={filters.clearAll}
+          className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-all min-h-[36px]"
+        >
+          Clear All
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FilterSidebar({ filters, maxPrice, categories, brands }) {
   const {
     selectedCategories, toggleCategory,
     selectedBrands, toggleBrand,
@@ -187,91 +240,387 @@ function FilterSidebar({ filters, maxPrice }) {
     clearAll, isFiltered,
   } = filters;
 
+  const [expandedSections, setExpandedSections] = useState({
+    categories: true,
+    brands: true,
+    price: true,
+    stock: true,
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const [priceInputValue, setPriceInputValue] = useState(priceRange);
+  const [isEditingPrice, setIsEditingPrice] = useState(false);
+
+  useEffect(() => {
+    if (!isEditingPrice) {
+      setPriceInputValue(priceRange);
+    }
+  }, [priceRange, isEditingPrice]);
+
+  const handlePriceInputChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setPriceInputValue(value ? Number(value) : 0);
+  };
+
+  const handlePriceInputBlur = () => {
+    setIsEditingPrice(false);
+    setPriceRange(Math.min(Math.max(0, priceInputValue), maxPrice));
+  };
+
+  const handlePriceInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
+  };
+
+  const totalActiveFilters = selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0);
+
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-border">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-foreground">Filters</h2>
-        <button
-          onClick={clearAll}
-          disabled={!isFiltered}
-          aria-disabled={!isFiltered}
-          className="text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] px-2"
-        >
-          Clear All
-        </button>
-      </div>
-
-      <div className="mb-6">
-        <fieldset>
-          <legend className="text-sm font-semibold text-foreground mb-3">Categories</legend>
-          <div className="space-y-1">
-             {PRODUCT_CATEGORIES.map(cat => (
-              <label key={cat} className="flex items-center gap-3 cursor-pointer group py-2 min-h-[44px]">
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.includes(cat)}
-                  onChange={() => toggleCategory(cat)}
-                  className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
-                />
-                <span className="text-sm text-foreground group-hover:text-primary">{cat}</span>
-              </label>
-            ))}
+    <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-border/50 bg-gradient-to-r from-muted/30 to-transparent">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <SlidersHorizontal className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+              {totalActiveFilters > 0 && (
+                <p className="text-[11px] text-muted-foreground">{totalActiveFilters} active</p>
+              )}
+            </div>
           </div>
-        </fieldset>
-       </div>
-
-      <div className="mb-6">
-        <fieldset>
-          <legend className="text-sm font-semibold text-foreground mb-3">Brands</legend>
-          <div className="space-y-1">
-             {PRODUCT_BRANDS.map(brand => (
-              <label key={brand} className="flex items-center gap-3 cursor-pointer group py-2 min-h-[44px]">
-                <input
-                  type="checkbox"
-                  checked={selectedBrands.includes(brand)}
-                  onChange={() => toggleBrand(brand)}
-                  className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
-                />
-                <span className="text-sm text-foreground group-hover:text-primary">{brand}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="price-range" className="text-sm font-semibold text-foreground mb-3 block">
-          Price Range
-        </label>
-        <input
-          id="price-range"
-          type="range"
-          min={0}
-          max={maxPrice}
-          step={PRICE_STEP}
-          value={priceRange}
-          onChange={e => setPriceRange(Number(e.target.value))}
-          className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-          aria-valuemin={0}
-          aria-valuemax={maxPrice}
-          aria-valuenow={priceRange}
-        />
-        <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>R0</span>
-          <span aria-live="polite">R{priceRange.toLocaleString()}</span>
+          {isFiltered && (
+            <button
+              onClick={clearAll}
+              className="text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-md transition-colors"
+            >
+              Clear all
+            </button>
+          )}
         </div>
-       </div>
+      </div>
 
-      <div>
-        <label className="flex items-center gap-3 cursor-pointer group py-2 min-h-[44px]">
-          <input
-            type="checkbox"
-            checked={inStockOnly}
-            onChange={e => setInStockOnly(e.target.checked)}
-            className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
-          />
-          <span className="text-sm text-foreground group-hover:text-primary">In Stock Only</span>
-        </label>
+      {/* Active Filters Pills */}
+      {isFiltered && (
+        <div className="px-5 py-3 border-b border-border/50 bg-muted/20">
+          <div className="flex flex-wrap gap-1.5">
+            {selectedCategories.map(cat => (
+              <span
+                key={cat}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
+              >
+                {cat}
+                <button
+                  onClick={() => toggleCategory(cat)}
+                  className="ml-0.5 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                  aria-label={`Remove ${cat} filter`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {selectedBrands.map(brand => (
+              <span
+                key={brand}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary"
+              >
+                {brand}
+                <button
+                  onClick={() => toggleBrand(brand)}
+                  className="ml-0.5 hover:bg-secondary/20 rounded-full p-0.5 transition-colors"
+                  aria-label={`Remove ${brand} filter`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {inStockOnly && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                In Stock
+                <button
+                  onClick={() => setInStockOnly(false)}
+                  className="ml-0.5 hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                  aria-label="Remove in stock filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="divide-y divide-border/50">
+        {/* Categories Section */}
+        <div className="px-5 py-4">
+          <button
+            onClick={() => toggleSection('categories')}
+            className="w-full flex items-center justify-between group"
+            aria-expanded={expandedSections.categories}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Categories</span>
+              {selectedCategories.length > 0 && (
+                <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
+                  {selectedCategories.length}
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${expandedSections.categories ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`overflow-hidden transition-all duration-300 ${expandedSections.categories ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+            <div className="space-y-0 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
+              {categories.map(cat => {
+                const isSelected = selectedCategories.includes(cat);
+                return (
+                  <label
+                    key={cat}
+                    className={`flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
+                      isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="relative flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleCategory(cat)}
+                        className="sr-only peer"
+                      />
+                      <div className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground/40 group-hover:border-primary/60'
+                      }`}>
+                        {isSelected && (
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`text-sm transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                      {cat}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Brands Section */}
+        <div className="px-5 py-4">
+          <button
+            onClick={() => toggleSection('brands')}
+            className="w-full flex items-center justify-between group"
+            aria-expanded={expandedSections.brands}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Brands</span>
+              {selectedBrands.length > 0 && (
+                <span className="w-5 h-5 rounded-full bg-secondary text-white text-[10px] font-bold flex items-center justify-center">
+                  {selectedBrands.length}
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${expandedSections.brands ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`overflow-hidden transition-all duration-300 ${expandedSections.brands ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+            <div className="space-y-0 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
+              {brands.map(brand => {
+                const isSelected = selectedBrands.includes(brand);
+                return (
+                  <label
+                    key={brand}
+                    className={`flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
+                      isSelected ? 'bg-secondary/5' : 'hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="relative flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleBrand(brand)}
+                        className="sr-only peer"
+                      />
+                      <div className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? 'bg-secondary border-secondary'
+                          : 'border-muted-foreground/40 group-hover:border-secondary/60'
+                      }`}>
+                        {isSelected && (
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`text-sm transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                      {brand}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Price Range Section */}
+        <div className="px-5 py-4">
+          <button
+            onClick={() => toggleSection('price')}
+            className="w-full flex items-center justify-between group"
+            aria-expanded={expandedSections.price}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Price Range</span>
+              {priceRange < maxPrice && (
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
+                  Active
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${expandedSections.price ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`overflow-hidden transition-all duration-300 ${expandedSections.price ? 'max-h-48 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+            <div className="px-4">
+              {/* Price Range Display */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-center">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Min</span>
+                  <div className="mt-1 px-3 py-1.5 bg-muted/40 rounded-md text-sm font-semibold text-foreground min-w-[70px]">
+                    R0
+                  </div>
+                </div>
+                <div className="flex-1 mx-3 mt-4">
+                  <div className="h-px bg-border" />
+                </div>
+                <div className="text-center">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Max</span>
+                  <div
+                    className="mt-1 px-3 py-1.5 bg-muted/40 rounded-md text-sm font-semibold text-primary min-w-[70px] cursor-pointer hover:bg-primary/10 hover:ring-2 hover:ring-primary/20 transition-all"
+                    onClick={() => setIsEditingPrice(true)}
+                  >
+                    {isEditingPrice ? (
+                      <input
+                        type="text"
+                        value={priceInputValue}
+                        onChange={handlePriceInputChange}
+                        onBlur={handlePriceInputBlur}
+                        onKeyDown={handlePriceInputKeyDown}
+                        className="w-full bg-transparent text-center outline-none text-primary font-semibold"
+                        autoFocus
+                      />
+                    ) : (
+                      <span>R{priceRange.toLocaleString()}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Range Slider */}
+              <div className="relative h-8 flex items-center">
+                {/* Track Background */}
+                <div className="absolute inset-x-0 h-2 bg-muted rounded-full" />
+                
+                {/* Active Track */}
+                <div
+                  className="absolute h-2 bg-gradient-to-r from-primary via-primary to-primary/70 rounded-full transition-all"
+                  style={{ width: `${(priceRange / maxPrice) * 100}%` }}
+                />
+                
+                {/* Slider Input */}
+                <input
+                  type="range"
+                  min={0}
+                  max={maxPrice}
+                  step={PRICE_STEP}
+                  value={priceRange}
+                  onChange={e => setPriceRange(Number(e.target.value))}
+                  className="absolute inset-x-0 w-full h-8 opacity-0 cursor-pointer z-10"
+                  aria-label="Maximum price"
+                  aria-valuemin={0}
+                  aria-valuemax={maxPrice}
+                  aria-valuenow={priceRange}
+                />
+                
+                {/* Slider Thumb */}
+                <div
+                  className="absolute w-6 h-6 bg-white border-[3px] border-primary rounded-full shadow-lg -translate-x-1/2 pointer-events-none transition-transform hover:scale-110"
+                  style={{ left: `${(priceRange / maxPrice) * 100}%` }}
+                />
+              </div>
+
+              {/* Price Scale Labels */}
+              <div className="flex justify-between mt-2 px-0.5">
+                <span className="text-[10px] text-muted-foreground">R0</span>
+                <span className="text-[10px] text-muted-foreground">R{Math.round(maxPrice / 2).toLocaleString()}</span>
+                <span className="text-[10px] text-muted-foreground">R{maxPrice.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock Availability Section */}
+        <div className="px-5 py-4">
+          <label className="flex items-center justify-between cursor-pointer group">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={inStockOnly}
+                  onChange={e => setInStockOnly(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className={`w-10 h-6 rounded-full transition-all ${
+                  inStockOnly ? 'bg-primary' : 'bg-muted'
+                }`}>
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${
+                    inStockOnly ? 'translate-x-5' : 'translate-x-1'
+                  }`} />
+                </div>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-foreground">In Stock Only</span>
+                <p className="text-[11px] text-muted-foreground">Hide out of stock items</p>
+              </div>
+            </div>
+            {inStockOnly && (
+              <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-medium">
+                On
+              </span>
+            )}
+          </label>
+        </div>
+      </div>
+
+      {/* Footer Actions */}
+      <div className="px-5 py-4 border-t border-border/50 bg-muted/20">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            {isFiltered ? (
+              <span><span className="font-medium text-foreground">{totalActiveFilters}</span> filters applied</span>
+            ) : (
+              'No filters active'
+            )}
+          </p>
+          {isFiltered && (
+            <button
+              onClick={clearAll}
+              className="text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+            >
+              Reset all
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -282,6 +631,8 @@ function ShopContent() {
   const { addToCart } = useCart();
 
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
@@ -299,12 +650,31 @@ function ShopContent() {
     try {
       setLoading(true);
       setError(null);
-      const response = await productsAPI.getAll();
-      if (response.success) {
-        setProducts(response.data);
+      const [productRes, catRes, brandRes] = await Promise.allSettled([
+        productsAPI.getAll(),
+        categoriesAPI.getActive(),
+        brandsAPI.getActive(),
+      ]);
+
+      if (productRes.status === 'fulfilled' && productRes.value.success) {
+        setProducts(productRes.value.data);
         setImageErrors({});
       } else {
-        setError(response.message || 'Failed to load products');
+        setError('Unable to load products. Please check your connection and try again.');
+      }
+
+      if (catRes.status === 'fulfilled' && catRes.value.success) {
+        const catNames = catRes.value.data.map((c) => c.name);
+        setCategories([...new Set([...PRODUCT_CATEGORIES, ...catNames])]);
+      } else {
+        setCategories(PRODUCT_CATEGORIES);
+      }
+
+      if (brandRes.status === 'fulfilled' && brandRes.value.success) {
+        const brandNames = brandRes.value.data.map((b) => b.name);
+        setBrands([...new Set([...PRODUCT_BRANDS, ...brandNames])]);
+      } else {
+        setBrands(PRODUCT_BRANDS);
       }
     } catch {
       setError('Unable to load products. Please check your connection and try again.');
@@ -368,7 +738,7 @@ function ShopContent() {
           </div>
         </section>
 
-        <div className="bg-white/95 border-b border-border px-4 py-3 backdrop-blur">
+        <div className="bg-white/95 border-b border-border px-4 py-3 backdrop-blur sticky top-16 md:top-20 z-20">
           <div className="max-w-screen-xl mx-auto flex items-center justify-between gap-3">
             <button
               className="md:hidden flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] px-2"
@@ -425,12 +795,17 @@ function ShopContent() {
               </select>
             </div>
           </div>
+
+          {/* Horizontal filter chips - mobile optimized */}
+          <div className="max-w-screen-xl mx-auto mt-3">
+            <FilterChips filters={filters} />
+          </div>
         </div>
 
-        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-6">
+        <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
           <div className="flex gap-6">
-            <aside className="hidden md:block w-56 flex-shrink-0" aria-label="Product filters">
-              <FilterSidebar filters={filters} maxPrice={maxPrice} />
+            <aside className="hidden md:block w-64 flex-shrink-0" aria-label="Product filters">
+              <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
             </aside>
 
             {mobileFiltersOpen && (
@@ -461,7 +836,7 @@ function ShopContent() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <FilterSidebar filters={filters} maxPrice={maxPrice} />
+                    <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
                   </div>
                   <div className="sticky bottom-0 bg-white border-t border-border p-4 pb-safe">
                     <button
@@ -475,11 +850,12 @@ function ShopContent() {
               </div>
             )}
 
-            <main className="flex-1 min-w-0">
+            <main className="flex-1 min-w-0 overflow-hidden">
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-24" role="status" aria-live="polite">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                  <p className="mt-4 text-sm text-muted-foreground">Loading products...</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-5" role="status" aria-live="polite">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
                 </div>
               ) : error ? (
                 <div className="text-center py-24" role="alert">
@@ -499,7 +875,7 @@ function ShopContent() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 xsm:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
                   {sortedProducts.map(product => (
                     <ProductCard
                       key={product._id || product.id}

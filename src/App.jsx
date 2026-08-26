@@ -29,6 +29,8 @@ const InventoryManagement = React.lazy(() => import('./pages/Admin/InventoryMana
 const MarketingManagement = React.lazy(() => import('./pages/Admin/MarketingManagement'));
 const ReportsAnalytics = React.lazy(() => import('./pages/Admin/ReportsAnalytics'));
 const UserManagement = React.lazy(() => import('./pages/Admin/UserManagement'));
+const AdminCategories = React.lazy(() => import('./pages/Admin/AdminCategoriesPage'));
+const AdminBrands = React.lazy(() => import('./pages/Admin/AdminBrandsPage'));
 
 const AccountDashboard = React.lazy(() => import('./pages/account/AccountDashboard'));
 const ProfilePage = React.lazy(() => import('./pages/account/ProfilePage'));
@@ -83,6 +85,8 @@ function App() {
               <Route path="reports" element={<ReportsAnalytics />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="repairs" element={<AdminRepairs />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="brands" element={<AdminBrands />} />
             </Route>
             <Route
               path="/account"

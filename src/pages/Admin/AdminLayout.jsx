@@ -21,11 +21,15 @@ import {
   BarChart3,
   UserCog,
   Wrench,
+  Tags,
+  Building,
 } from 'lucide-react';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/products', icon: Package, label: 'Products' },
+  { path: '/admin/categories', icon: Tags, label: 'Categories' },
+  { path: '/admin/brands', icon: Building, label: 'Brands' },
   { path: '/admin/services', icon: Wrench, label: 'Services' },
   { path: '/admin/repairs', icon: Wrench, label: 'Repairs' },
   { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },

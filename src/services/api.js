@@ -45,8 +45,8 @@ async function getCsrfToken() {
       csrfTokenExpiry = now + CSRF_CACHE_DURATION;
       return cachedCsrfToken;
     }
-  } catch {
-    // Server unreachable or endpoint missing
+  } catch (err) {
+    void err;
   }
   return null;
 }
@@ -56,22 +56,47 @@ export function clearCsrfCache() {
   csrfTokenExpiry = null;
 }
 
-async function handleResponse(response, retryCount = 0) {
-  if (response.status === 419 && retryCount < 1) {
-    const newToken = await getCsrfToken();
-    if (newToken) {
-      const retryHeaders = {
-        ...(newToken && { 'X-CSRF-Token': newToken }),
-      };
-      return fetchWithTimeout(response.url, {
-        method: response.method,
-        headers: retryHeaders,
-        body: response.method !== 'GET' && response.method !== 'HEAD' ? await response.text() : undefined,
-        credentials: 'include',
-      }).then((res) => handleResponse(res, retryCount + 1));
+/**
+ * Makes an API request with automatic CSRF token handling and retry on 419.
+ * For JSON requests, pass the body as a plain object — it will be JSON.stringify'd.
+ * For FormData requests, pass isFormData: true and a bodyFactory function.
+ */
+async function apiRequest(url, options = {}, isFormData = false, bodyFactory = null) {
+  const doFetch = async (csrfToken) => {
+    const headers = { ...(options.headers || {}) };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+    if (!isFormData) headers['Content-Type'] = 'application/json';
+
+    let body;
+    if (isFormData && bodyFactory) {
+      body = bodyFactory();
+    } else if (!isFormData && options.body !== undefined) {
+      body = JSON.stringify(options.body);
+    }
+
+    return fetchWithTimeout(url, {
+      method: options.method || 'GET',
+      headers,
+      body,
+      credentials: 'include',
+    });
+  };
+
+  const initialToken = await getCsrfToken();
+  let response = await doFetch(initialToken);
+
+  if (response.status === 419) {
+    clearCsrfCache();
+    const freshToken = await getCsrfToken();
+    if (freshToken) {
+      response = await doFetch(freshToken);
     }
   }
 
+  return handleResponse(response);
+}
+
+async function handleResponse(response) {
   if (response.status === 401) {
     clearCsrfCache();
     if (typeof window !== 'undefined') {
@@ -81,7 +106,15 @@ async function handleResponse(response, retryCount = 0) {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.message || 'An error occurred');
+    const error = new Error(data.message || 'An error occurred');
+    error.status = response.status;
+    if (data.errors) {
+      error.info = JSON.stringify(data.errors);
+    }
+    if (data.details) {
+      error.info = JSON.stringify(data.details);
+    }
+    throw error;
   }
   return data;
 }
@@ -118,46 +151,32 @@ export const productsAPI = {
     return handleResponse(response);
   },
 
-  create: async (productData) => {
-    const csrfHeaders = await getCsrfHeader();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...csrfHeaders,
-      },
-      body: JSON.stringify(productData),
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
+   create: async (productData) => {
+     return apiRequest(`${API_BASE_URL}/products`, {
+       method: 'POST',
+       body: productData,
+     });
+   },
 
-  update: async (id, productData) => {
-    const csrfHeaders = await getCsrfHeader();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...csrfHeaders,
-      },
-      body: JSON.stringify(productData),
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
+   update: async (id, productData) => {
+     return apiRequest(`${API_BASE_URL}/products/${id}`, {
+       method: 'PUT',
+       body: productData,
+     });
+   },
 
-  delete: async (id) => {
-    const csrfHeaders = await getCsrfHeader();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`, {
-      method: 'DELETE',
-      headers: {
-        ...csrfHeaders,
-      },
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-};
+   delete: async (id) => {
+     const csrfHeaders = await getCsrfHeader();
+     const response = await fetchWithTimeout(`${API_BASE_URL}/products/${id}`, {
+       method: 'DELETE',
+       headers: {
+         ...csrfHeaders,
+       },
+       credentials: 'include',
+     });
+     return handleResponse(response);
+   },
+ };
 
 /**
  * Services API
@@ -481,35 +500,23 @@ export const authAPI = {
  */
 export const uploadAPI = {
   uploadImage: async (file) => {
-    const csrfHeaders = await getCsrfHeader();
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const response = await fetchWithTimeout(`${API_BASE_URL}/upload/image`, {
+    return apiRequest(`${API_BASE_URL}/upload/image`, {
       method: 'POST',
-      headers: {
-        ...csrfHeaders,
-      },
-      body: formData,
-      credentials: 'include',
+    }, true, () => {
+      const fd = new FormData();
+      fd.append('image', file);
+      return fd;
     });
-    return handleResponse(response);
   },
 
   uploadImages: async (files) => {
-    const csrfHeaders = await getCsrfHeader();
-    const formData = new FormData();
-    files.forEach((file) => formData.append('images', file));
-
-    const response = await fetchWithTimeout(`${API_BASE_URL}/upload/images`, {
+    return apiRequest(`${API_BASE_URL}/upload/images`, {
       method: 'POST',
-      headers: {
-        ...csrfHeaders,
-      },
-      body: formData,
-      credentials: 'include',
+    }, true, () => {
+      const fd = new FormData();
+      files.forEach((file) => fd.append('images', file));
+      return fd;
     });
-    return handleResponse(response);
   },
 
   deleteImage: async (filename) => {
@@ -1058,6 +1065,80 @@ export const adminAuthAPI = {
   },
 };
 
+export const categoriesAPI = {
+  getAll: async (params = {}, options = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/categories${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+      signal: options.signal,
+    });
+    return handleResponse(response);
+  },
+
+  getActive: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/categories/active`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getById: async (id) => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/categories/${id}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  create: async (data) => {
+    return apiRequest(`${API_BASE_URL}/categories`, { method: 'POST', body: data });
+  },
+
+  update: async (id, data) => {
+    return apiRequest(`${API_BASE_URL}/categories/${id}`, { method: 'PUT', body: data });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE' });
+  },
+};
+
+export const brandsAPI = {
+  getAll: async (params = {}, options = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/brands${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+      signal: options.signal,
+    });
+    return handleResponse(response);
+  },
+
+  getActive: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/brands/active`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getById: async (id) => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/brands/${id}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  create: async (data) => {
+    return apiRequest(`${API_BASE_URL}/brands`, { method: 'POST', body: data });
+  },
+
+  update: async (id, data) => {
+    return apiRequest(`${API_BASE_URL}/brands/${id}`, { method: 'PUT', body: data });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`${API_BASE_URL}/brands/${id}`, { method: 'DELETE' });
+  },
+};
+
 export default {
   products: productsAPI,
   services: servicesAPI,
@@ -1072,5 +1153,7 @@ export default {
   cart: cartAPI,
   account: accountAPI,
   paymentMethods: paymentMethodsAPI,
+  categories: categoriesAPI,
+  brands: brandsAPI,
   healthCheck,
 };
