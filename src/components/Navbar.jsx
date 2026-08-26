@@ -185,7 +185,7 @@ const Navbar = () => {
                 onClick={handleAccountClick}
                 className="bg-white text-primary px-4 py-2 rounded-md font-medium hover:bg-gray-200 hover:shadow-md transition-all min-h-[44px]"
               >
-                Account
+                My Account
               </button>
             )}
           </div>
@@ -323,7 +323,7 @@ const Navbar = () => {
                   onClick={handleAccountClick}
                   className="block w-full text-left px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center"
                 >
-                  Account
+                 My Account
                 </button>
               )}
             </div>
