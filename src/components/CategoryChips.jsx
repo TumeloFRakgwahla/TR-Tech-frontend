@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Smartphone, Laptop, Headphones, Gamepad2, Wifi, Printer, HardDrive, MoreHorizontal } from 'lucide-react';
 import { categoriesAPI } from '../services/api';
 import { FALLBACK_CATEGORIES } from '../constants';
+import { useScrollIndicators } from '../hooks/useScrollIndicators';
 
 const iconMap = {
   Smartphones: Smartphone,
@@ -17,6 +18,7 @@ const iconMap = {
 
 export default function CategoryChips() {
   const [categories, setCategories] = useState([]);
+  const { ref, className } = useScrollIndicators();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -43,7 +45,7 @@ export default function CategoryChips() {
   }, []);
 
   return (
-    <div className="flex gap-2 justify-center overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <div ref={ref} className={`flex gap-2 justify-center overflow-x-auto pb-2 scrollbar-hide ${className}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {categories.map((category) => {
         const name = category.name || category;
         const slug = category.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');

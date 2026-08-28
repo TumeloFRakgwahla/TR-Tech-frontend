@@ -32,8 +32,72 @@ const Contact = () => {
     _honeypot: '',
   });
 
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
+  const validateField = (field) => {
+    const newErrors = { ...errors };
+
+    switch (field) {
+      case 'name':
+        if (!formData.name.trim()) {
+          newErrors.name = 'Name is required';
+        } else {
+          delete newErrors.name;
+        }
+        break;
+      case 'message':
+        if (!formData.message.trim()) {
+          newErrors.message = 'Message is required';
+        } else {
+          delete newErrors.message;
+        }
+        break;
+      case 'email':
+        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = 'Please enter a valid email address';
+        } else {
+          delete newErrors.email;
+        }
+        break;
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    setErrors(newErrors);
+    setTouched({ name: true, message: true, email: true });
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -44,8 +108,7 @@ const Contact = () => {
       return;
     }
 
-    if (!formData.name || !formData.message) {
-      toast.error('Please fill in all required fields');
+    if (!validateForm()) {
       return;
     }
 
@@ -77,6 +140,8 @@ ${sanitizeWhatsAppInput(formData.message)}
           message: '',
           _honeypot: '',
         });
+        setErrors({});
+        setTouched({});
       } else {
         toast.error(response.message || 'Failed to send message. Please try again.');
       }
@@ -149,12 +214,12 @@ ${sanitizeWhatsAppInput(formData.message)}
 
             {/* Contact Form */}
             <div className="max-w-3xl mx-auto">
-              <div className="bg-card text-card-foreground p-8 rounded-lg shadow-md">
+              <div className="bg-card text-card-foreground p-8 rounded-lg shadow-md" data-testid="contact-form">
                 <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
                 <p className="text-muted-foreground text-sm mb-6">
                   Fill out the form below and we'll get back to you as soon as possible
                 </p>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium mb-2">
@@ -164,10 +229,14 @@ ${sanitizeWhatsAppInput(formData.message)}
                         id="name"
                         value={formData.name}
                         onChange={(e) => handleChange('name', e.target.value)}
+                        onBlur={() => handleBlur('name')}
                         placeholder="Your name"
-                        required
-                        className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${touched.name && errors.name ? 'border-red-500' : 'border-input'}`}
+                        data-testid="contact-name"
                       />
+                      {touched.name && errors.name && (
+                        <p className="mt-1 text-sm text-red-500" role="alert">{errors.name}</p>
+                      )}
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
@@ -176,9 +245,14 @@ ${sanitizeWhatsAppInput(formData.message)}
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleChange('email', e.target.value)}
+                        onBlur={() => handleBlur('email')}
                         placeholder="your@email.com"
-                        className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${touched.email && errors.email ? 'border-red-500' : 'border-input'}`}
+                        data-testid="contact-email"
                       />
+                      {touched.email && errors.email && (
+                        <p className="mt-1 text-sm text-red-500" role="alert">{errors.email}</p>
+                      )}
                     </div>
                   </div>
 
@@ -192,6 +266,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                         onChange={(e) => handleChange('phone', e.target.value)}
                         placeholder="Your phone number"
                         className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        data-testid="contact-phone"
                       />
                     </div>
                     <div>
@@ -202,6 +277,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                         onChange={(e) => handleChange('subject', e.target.value)}
                         placeholder="What's this about?"
                         className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        data-testid="contact-subject"
                       />
                     </div>
                   </div>
@@ -214,11 +290,15 @@ ${sanitizeWhatsAppInput(formData.message)}
                        id="message"
                        value={formData.message}
                        onChange={(e) => handleChange('message', e.target.value)}
+                       onBlur={() => handleBlur('message')}
                        placeholder="Your message..."
                        rows={6}
-                       required
-                       className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${touched.message && errors.message ? 'border-red-500' : 'border-input'}`}
+                       data-testid="contact-message"
                      />
+                     {touched.message && errors.message && (
+                       <p className="mt-1 text-sm text-red-500" role="alert">{errors.message}</p>
+                     )}
                    </div>
 
                    <div className="hidden" aria-hidden="true">
@@ -233,7 +313,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                      />
                    </div>
 
-                   <Button type="submit" size="lg" className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+                   <Button type="submit" size="lg" className="w-full bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300" data-testid="contact-submit">
                     Send Message via WhatsApp
                   </Button>
 
@@ -296,6 +376,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                          target="_blank"
                          rel="noopener noreferrer"
                          className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
+                         aria-label="Follow us on Facebook"
                        >
                          <Facebook className="h-6 w-6 text-primary-foreground" />
                        </a>
@@ -304,6 +385,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                          target="_blank"
                          rel="noopener noreferrer"
                          className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
+                         aria-label="Follow us on Instagram"
                        >
                          <Instagram className="h-6 w-6 text-primary-foreground" />
                        </a>
@@ -324,7 +406,7 @@ ${sanitizeWhatsAppInput(formData.message)}
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Click the WhatsApp button below to start a conversation with us instantly!
             </p>
-            <Button 
+            <Button
               onClick={() => window.open('https://wa.me/27791002552')}
               size="lg"
               className="bg-green-600 hover:bg-green-700 text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"

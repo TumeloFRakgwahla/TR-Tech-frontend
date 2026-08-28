@@ -1,9 +1,14 @@
-import { Component } from 'react';
+import React from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
-export class ErrorBoundary extends Component {
+export class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+    };
   }
 
   static getDerivedStateFromError(error) {
@@ -11,24 +16,44 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Lazy route load error:', error, errorInfo);
+    this.setState({ errorInfo });
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null, errorInfo: null });
+    if (this.props.onReset) {
+      this.props.onReset();
+    }
+  };
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback({
+          error: this.state.error,
+          resetError: this.handleReset,
+        });
+      }
+
       return (
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center p-6 max-w-md">
-            <div className="text-red-400 text-5xl mb-4">!</div>
-            <h2 className="text-xl font-bold text-white mb-2">Failed to load page</h2>
-            <p className="text-slate-400 mb-4">
-              {this.state.error?.message || 'An unexpected error occurred while loading this page.'}
+        <div className="min-h-[400px] flex items-center justify-center p-8" role="alert">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="h-8 w-8 text-red-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <p className="text-gray-600 mb-6">
+              {this.props.errorMessage || 'An unexpected error occurred. Please try again.'}
             </p>
             <button
-              onClick={() => this.setState({ hasError: false, error: null })}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              onClick={this.handleReset}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
             >
-              Retry
+              <RefreshCw className="h-4 w-4" />
+              Try Again
             </button>
           </div>
         </div>
@@ -38,3 +63,5 @@ export class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
+export default ErrorBoundary;
