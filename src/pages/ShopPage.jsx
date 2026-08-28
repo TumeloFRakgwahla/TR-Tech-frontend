@@ -8,8 +8,10 @@ import { useCart } from '../components/CartContext';
 import { useWishlist } from '../components/WishlistContext';
 import { productsAPI, categoriesAPI, brandsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
+import { formatPrice } from '../lib/format';
 import { StarRating } from '../components/ProductDetail';
 import { FALLBACK_CATEGORIES, FALLBACK_BRANDS, SORT_OPTIONS } from '../constants';
+import { useScrollIndicators } from '../hooks/useScrollIndicators';
 
 const PRICE_STEP = 100;
 
@@ -153,11 +155,11 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
 
           <div className="flex items-baseline gap-2 mb-3 mt-auto">
             <span className="text-base font-bold text-primary">
-              R{product.price?.toLocaleString() || 0}
+              {formatPrice(product.price || 0)}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-xs text-muted-foreground line-through">
-                R{product.originalPrice.toLocaleString()}
+                {formatPrice(product.originalPrice)}
               </span>
             )}
           </div>
@@ -204,8 +206,10 @@ function FilterChips({ filters }) {
     { label: 'Top Rated', active: false, toggle: () => {} },
   ];
 
+  const { ref, className } = useScrollIndicators();
+
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <div ref={ref} className={`flex gap-2 overflow-x-auto pb-2 scrollbar-hide ${className}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {quickFilters.map((filter) => (
         <button
           key={filter.label}
@@ -383,7 +387,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
                 return (
                   <label
                     key={cat}
-                    className={`flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
+                    className={`filter-checkbox-label flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
                       isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'
                     }`}
                   >
@@ -440,7 +444,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
                 return (
                   <label
                     key={brand}
-                    className={`flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
+                    className={`filter-checkbox-label flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
                       isSelected ? 'bg-secondary/5' : 'hover:bg-muted/50'
                     }`}
                   >
@@ -720,6 +724,44 @@ function ShopContent() {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchProducts]);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+
+    const dialog = document.getElementById('mobile-filters');
+    if (!dialog) return;
+
+    const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusableElements = dialog.querySelectorAll(focusableSelectors);
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileFiltersOpen(false);
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable?.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable?.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    firstFocusable?.focus();
+
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileFiltersOpen]);
 
   useEffect(() => {
     const handler = (e) => {

@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { getProductImageUrl } from '../lib/imageUrl';
+import { formatPrice } from '../lib/format';
 
 const conditionStyles = {
   new: 'bg-green-100 text-green-700',
@@ -134,11 +135,11 @@ function CartPage() {
 
                       <div className="text-right">
                         <p className="text-lg font-bold text-gray-900">
-                          R{(item.price * item.quantity).toFixed(2)}
+                          {formatPrice(item.price * item.quantity)}
                         </p>
                         {item.quantity > 1 && (
                           <p className="text-xs text-gray-500">
-                            R{item.price.toFixed(2)} each
+                            {formatPrice(item.price)} each
                           </p>
                         )}
                       </div>
@@ -165,7 +166,7 @@ function CartPage() {
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">R{totalPrice.toFixed(2)}</span>
+                    <span className="font-medium">{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Shipping</span>
@@ -174,7 +175,7 @@ function CartPage() {
                   <div className="border-t pt-3 flex justify-between">
                     <span className="text-lg font-bold text-gray-900">Total</span>
                     <span className="text-lg font-bold text-gray-900">
-                      R{totalPrice.toFixed(2)}
+                      {formatPrice(totalPrice)}
                     </span>
                   </div>
                 </div>
@@ -208,7 +209,7 @@ function CartPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs text-gray-500">Total</p>
-            <p className="text-xl font-bold text-gray-900">R{totalPrice.toFixed(2)}</p>
+            <p className="text-xl font-bold text-gray-900">{formatPrice(totalPrice)}</p>
           </div>
           <Link
             to="/checkout"

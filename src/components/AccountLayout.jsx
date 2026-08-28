@@ -6,6 +6,7 @@ import { authAPI } from '../services/api';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import BottomNav from './BottomNav';
+import { useScrollIndicators } from '../hooks/useScrollIndicators';
 import {
   LayoutDashboard,
   User,
@@ -39,6 +40,7 @@ export function AccountLayout() {
   const { user, logout } = useAuth();
   const { loading } = useAccount();
   const [resending, setResending] = useState(false);
+  const { ref: tabsRef, className: tabsClassName } = useScrollIndicators();
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
@@ -73,7 +75,7 @@ export function AccountLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
             {/* Mobile: Horizontal pill tabs */}
-            <div className="lg:hidden -mx-4 px-4 mb-4 overflow-x-auto scrollbar-hide">
+            <div ref={tabsRef} className={`lg:hidden -mx-4 px-4 mb-4 overflow-x-auto scrollbar-hide ${tabsClassName}`}>
               <div className="flex gap-2 min-w-max pb-2">
                 {navItems.map((item) => (
                   <NavLink

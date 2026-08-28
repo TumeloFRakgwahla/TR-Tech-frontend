@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Smartphone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useScrollIndicators } from '../../hooks/useScrollIndicators';
 
 export function ImageGallery({
   imageUrls,
@@ -11,6 +12,7 @@ export function ImageGallery({
 }) {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const { ref: thumbsRef, className: thumbsClassName } = useScrollIndicators();
   const containerRef = useRef(null);
 
   const minSwipeDistance = 50;
@@ -175,7 +177,7 @@ export function ImageGallery({
 
       {/* Mobile: Horizontal scrollable thumbnails */}
       {imageUrls.length > 1 && (
-        <div className="md:hidden flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <div ref={thumbsRef} className={`md:hidden flex gap-2 overflow-x-auto scrollbar-hide pb-1 ${thumbsClassName}`}>
           {imageUrls.map((img, idx) => (
             <button
               key={img}

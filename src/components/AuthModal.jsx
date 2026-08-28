@@ -10,6 +10,7 @@ import { User, Mail, Lock, Phone, MapPin } from 'lucide-react';
 export function AuthModal({ open, onOpenChange, onSuccess }) {
   const [mode, setMode] = useState('register');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { login, register } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
   useEffect(() => {
     if (open) {
       setMode('register');
+      setErrors({});
       setFormData({
         firstName: '',
         lastName: '',
@@ -44,21 +46,55 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
   }, [open]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    if (mode === 'register') {
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = 'First name is required';
+      }
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = 'Last name is required';
+      }
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    if (!validate()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       if (mode === 'register') {
-        if (formData.password !== formData.confirmPassword) {
-          toast.error('Passwords do not match');
-          setLoading(false);
-          return;
-        }
-
         const result = await register({
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -97,11 +133,12 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
 
   const switchMode = () => {
     setMode(mode === 'register' ? 'login' : 'register');
+    setErrors({});
   };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
-      <DialogContent className="sm:max-w-[450px] bg-white text-gray-900 border-gray-200 shadow-xl">
+      <DialogContent className="sm:max-w-[450px] bg-white text-gray-900 border-gray-200 shadow-xl" data-testid="auth-modal">
         <DialogHeader className="space-y-1">
           <DialogTitle className="flex items-center gap-2 text-xl font-bold text-gray-900">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
@@ -116,7 +153,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2" noValidate>
           {mode === 'register' && (
             <>
               <div className="grid grid-cols-2 gap-3">
@@ -129,8 +166,10 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                    className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.firstName ? 'border-red-500' : ''}`}
+                    data-testid="auth-firstName"
                   />
+                  {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
@@ -141,8 +180,10 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
-                    className="bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                    className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.lastName ? 'border-red-500' : ''}`}
+                    data-testid="auth-lastName"
                   />
+                  {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
                 </div>
               </div>
 
@@ -155,12 +196,14 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
                     name="email"
                     type="email"
                     placeholder="john@example.com"
-                    className="pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                    className={`pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.email ? 'border-red-500' : ''}`}
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    data-testid="auth-email"
                   />
                 </div>
+                {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -176,6 +219,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
                     value={formData.phone}
                     onChange={handleChange}
                     required
+                    data-testid="auth-phone"
                   />
                 </div>
               </div>
@@ -189,16 +233,16 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
                       id="password"
                       name="password"
                       type="password"
-                      className="pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                      className={`pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.password ? 'border-red-500' : ''}`}
                       value={formData.password}
                       onChange={handleChange}
                       required
                       minLength={8}
-                      pattern="^(?=.*[a-zA-Z])(?=.*\d).+$"
-                      title="Password must be at least 8 characters and contain both letters and numbers"
                       autoComplete="new-password"
+                      data-testid="auth-password"
                     />
                   </div>
+                  {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm</Label>
@@ -209,8 +253,10 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                    className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    data-testid="auth-confirmPassword"
                   />
+                  {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
                 </div>
               </div>
 
@@ -256,44 +302,49 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
           {mode === 'login' && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="loginEmail" className="text-sm font-medium text-gray-700">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="loginEmail"
+                    id="email"
                     name="email"
                     type="email"
                     placeholder="john@example.com"
-                    className="pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                    className={`pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.email ? 'border-red-500' : ''}`}
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    data-testid="auth-email"
                   />
                 </div>
+                {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="loginPassword" className="text-sm font-medium text-gray-700">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="loginPassword"
+                    id="password"
                     name="password"
                     type="password"
-                    className="pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary"
+                    className={`pl-10 bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.password ? 'border-red-500' : ''}`}
                     value={formData.password}
                     onChange={handleChange}
                     required
+                    data-testid="auth-password"
                   />
                 </div>
+                {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
               </div>
             </>
           )}
 
-          <Button 
-            type="submit" 
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium" 
+          <Button
+            type="submit"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
             disabled={loading}
+            data-testid="auth-submit"
           >
             {loading ? (
               <>
@@ -321,6 +372,7 @@ export function AuthModal({ open, onOpenChange, onSuccess }) {
             type="button"
             onClick={switchMode}
             className="w-full py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            data-testid="auth-switch-mode"
           >
             {mode === 'register' ? 'Login instead' : 'Register instead'}
           </button>

@@ -5,6 +5,7 @@ import { productsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { useCart } from './CartContext';
 import { useWishlist } from './WishlistContext';
+import { useScrollIndicators } from '../hooks/useScrollIndicators';
 
 function ProductCard({ product }) {
   const id = product._id || product.id;
@@ -115,7 +116,7 @@ function SkeletonCard() {
 export default function ProductCarousel({ endpoint, emptyMessage }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const scrollRef = useRef(null);
+  const { ref: scrollRef, className: scrollClassName } = useScrollIndicators();
 
   useEffect(() => {
     let cancelled = false;
@@ -177,7 +178,7 @@ export default function ProductCarousel({ endpoint, emptyMessage }) {
       {/* Scrollable product list */}
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory"
+        className={`flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory ${scrollClassName}`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {loading
