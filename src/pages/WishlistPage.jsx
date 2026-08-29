@@ -1,3 +1,22 @@
+/**
+ * TR-Tech — Wishlist Page
+ *
+ * Displays the user's saved wishlist products with options to add to cart or remove.
+ *
+ * Features:
+ * - Loading state with spinner while wishlist data is fetched
+ * - Empty state with CTA to browse products
+ * - Product grid with responsive columns (1-4 based on viewport)
+ * - Each card shows image, name, price (with original price strikethrough if discounted)
+ * - Add to Cart button (navigates to cart page after adding)
+ * - Remove from wishlist button with loading spinner during removal
+ *
+ * State management:
+ * - wishlist, removeFromWishlist, loading from WishlistContext
+ * - addToCart from CartContext
+ * - removingIds: Set tracking which items are currently being removed (for spinner)
+ */
+
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
@@ -11,12 +30,14 @@ export function WishlistPage() {
   const { wishlist, removeFromWishlist, loading } = useWishlist();
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  // Track which product IDs are currently being removed (for spinner state)
   const [removingIds, setRemovingIds] = useState(new Set());
 
   useEffect(() => {
     if (loading) return;
   }, [loading]);
 
+  // Remove item from wishlist with spinner feedback
   const handleRemove = async (product) => {
     const productId = product._id || product.id;
     setRemovingIds((prev) => new Set(prev).add(productId));
@@ -31,6 +52,7 @@ export function WishlistPage() {
     }
   };
 
+  // Loading state: spinner while wishlist data is being fetched
   if (loading) {
     return (
       <div className="min-h-screen bg-muted flex flex-col">
@@ -69,6 +91,7 @@ export function WishlistPage() {
         </div>
 
         {wishlist.length === 0 ? (
+          // Empty state: prompt user to browse and save products
           <div className="flex-1 flex items-center justify-center py-20">
             <div className="text-center">
               <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -85,6 +108,7 @@ export function WishlistPage() {
             </div>
           </div>
         ) : (
+          // Wishlist product grid
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlist.map((product) => (
               <div
@@ -114,6 +138,7 @@ export function WishlistPage() {
                       <span className="text-base font-bold text-primary">
                         R{product.price?.toLocaleString() || 0}
                       </span>
+                      {/* Show original price with strikethrough if discounted */}
                       {product.originalPrice && product.originalPrice > product.price && (
                         <span className="text-xs text-muted-foreground line-through">
                           R{product.originalPrice.toLocaleString()}
@@ -124,6 +149,7 @@ export function WishlistPage() {
                 </Link>
                 <div className="px-4 pb-4 space-y-2">
                   <div className="grid grid-cols-2 gap-2">
+                    {/* Add to Cart: adds item then navigates to cart page */}
                     <button
                       type="button"
                       onClick={() => {
@@ -135,6 +161,7 @@ export function WishlistPage() {
                       <Plus className="h-4 w-4" />
                       Add to Cart
                     </button>
+                    {/* Remove from wishlist: shows spinner while removal is in progress */}
                     <button
                       type="button"
                       onClick={() => handleRemove(product)}

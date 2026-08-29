@@ -1,4 +1,5 @@
 // Mock data for admin dashboard
+// Used as fallback data when the real API is unavailable or during development
 
 export const dashboardStats = {
   totalRevenue: 98234,

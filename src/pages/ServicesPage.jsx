@@ -1,17 +1,35 @@
+/**
+ * TR-Tech — Services Page
+ *
+ * Displays the full catalog of services offered by TR-Tech.
+ *
+ * Sections:
+ * 1. Hero — gradient header with value proposition
+ * 2. Services Grid — fetched from backend via servicesAPI.
+ *    Each service card shows icon, name, price, description, and features list.
+ *    Uses an iconMap to resolve service.icon strings to Lucide components.
+ * 3. Our Process — static 4-step process visualization (Book → Diagnosis → Repair → Collect)
+ * 4. Why Choose Our Services — CTA with buttons to book repair or shop
+ *
+ * Loading/error states are handled inline with skeleton/spinner and error messages.
+ */
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import {Wrench, ShoppingCart, Smartphone, Laptop, Code, Palette, Settings, CheckCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { servicesAPI } from '../services/api';
 
 const Services = () => {
+  // Services data state
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Icon mapping
+  // Icon mapping: resolves service.icon string to Lucide component
   const iconMap = {
     Smartphone,
     Laptop,
@@ -21,7 +39,7 @@ const Services = () => {
     Wrench,
   };
 
-  // Fetch services from API
+  // Fetch services from API with AbortController for cleanup
   useEffect(() => {
     const controller = new AbortController();
     const fetchServices = async () => {
@@ -52,6 +70,7 @@ const Services = () => {
 
   const displayServices = services;
 
+  // Static process steps for the "Our Process" section
   const process = [
     {
       step: '1',
@@ -78,7 +97,7 @@ const Services = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
@@ -105,23 +124,27 @@ const Services = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Loading state: spinner while services are fetched */}
               {loading ? (
                 <div className="col-span-full text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                   <p className="mt-4 text-muted-foreground">Loading services...</p>
                 </div>
               ) : error ? (
+                // Error state: display error message
                 <div className="col-span-full text-center py-12">
                   <p className="text-red-500 mb-4">{error}</p>
                 </div>
               ) : displayServices.length === 0 ? (
+                // Empty state: no services available
                 <div className="col-span-full text-center py-12">
                   <p className="text-muted-foreground">No services found</p>
                 </div>
               ) : (
-                 displayServices.map((service, index) => {
-                   const IconComponent = iconMap[service.icon] || Wrench;
-                   const priceDisplay = service.price === 0 ? 'Quote based' : `From R${Number(service.price).toLocaleString()}`;
+                // Services grid: each card shows icon, name, price, description, features
+                displayServices.map((service, index) => {
+                  const IconComponent = iconMap[service.icon] || Wrench;
+                  const priceDisplay = service.price === 0 ? 'Quote based' : `From R${Number(service.price).toLocaleString()}`;
                    return (
                      <div key={service._id || service.name || index} className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow flex flex-col h-full">
                        {/* Header with Icon and Title */}
@@ -223,6 +246,7 @@ const Services = () => {
 
       </div>
       <Footer />
+      <BottomNav />
     </div>
   );
 };

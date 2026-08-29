@@ -1,3 +1,22 @@
+/**
+ * TR-Tech — Checkout Page
+ *
+ * Multi-step checkout flow with progress indicator:
+ * Step 1 (review) — Order summary with trust signals, proceed button
+ * Step 2 (details) — Authentication modal (CheckoutModal) for collecting user details
+ *
+ * Features:
+ * - Progress bar with step indicators (mobile: simplified, desktop: full)
+ * - Redirects to cart if cart is empty
+ * - Order summary component reusable in sidebar/compact modes
+ * - Trust signals (secure, fast delivery, quality) for conversion confidence
+ *
+ * State management:
+ * - currentStep tracks which step the user is on
+ * - cart state from CartContext to validate checkout eligibility
+ * - CheckoutModal handles auth/details collection
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Check, MapPin, CreditCard, ShoppingBag, ShieldCheck, Truck, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -8,6 +27,7 @@ import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { CheckoutModal } from '../components/CheckoutModal';
 
+// Step definitions for the checkout progress bar
 const steps = [
   { key: 'review', label: 'Review', icon: ShoppingBag },
   { key: 'details', label: 'Details', icon: MapPin },
@@ -15,6 +35,7 @@ const steps = [
   { key: 'confirm', label: 'Confirm', icon: Check },
 ];
 
+// Progress bar showing current checkout step (simplified on mobile, full steps on desktop)
 function ProgressBar({ currentStep }) {
   const currentIndex = steps.findIndex(s => s.key === currentStep);
 
@@ -74,6 +95,8 @@ function ProgressBar({ currentStep }) {
   );
 }
 
+// Order summary widget showing cart items, subtotal, shipping, and total
+// compact mode used in sidebar, full mode used inline
 function OrderSummary({ compact = false }) {
   const { cart, totalPrice } = useCart();
 
@@ -118,6 +141,8 @@ function OrderSummary({ compact = false }) {
   );
 }
 
+// Checkout step wrapper that handles authentication modal
+// If user is not authenticated, modal stays open and closing it triggers onBack
 function CheckoutStep({ onBack }) {
   const { isAuthenticated } = useAuth();
   const [modalOpen, setModalOpen] = useState(true);
@@ -147,12 +172,14 @@ function CheckoutPage() {
   const { cart } = useCart();
   const [currentStep, setCurrentStep] = useState('review');
 
+  // Redirect to cart if no items present
   useEffect(() => {
     if (cart.length === 0) {
       navigate('/cart');
     }
   }, [cart, navigate]);
 
+  // Don't render anything while redirecting
   if (cart.length === 0) {
     return null;
   }
@@ -186,7 +213,7 @@ function CheckoutPage() {
             <OrderSummary />
 
             {/* Trust Signals */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
                 <ShieldCheck className="h-6 w-6 text-primary mb-1" />
                 <span className="text-xs font-medium">Secure</span>

@@ -1,17 +1,49 @@
+/**
+ * Dialog Component
+ *
+ * A modal dialog component built on top of Radix UI's Dialog primitive.
+ * Provides accessible, animated modal windows with overlay, close behavior,
+ * and keyboard navigation support.
+ *
+ * Features:
+ *   - Centered positioning with smooth enter/exit animations
+ *   - Dark overlay backdrop (80% black opacity)
+ *   - Built-in close button with X icon
+ *   - Composable header, footer, title, and description sections
+ *   - Full accessibility support (focus trap, ESC to close, ARIA attributes)
+ *
+ * Components:
+ *   - Dialog: Root context provider (controls open/close state)
+ *   - DialogTrigger: Button that opens the dialog
+ *   - DialogPortal: Renders dialog in a portal (outside DOM hierarchy)
+ *   - DialogOverlay: Semi-transparent backdrop behind the dialog
+ *   - DialogClose: Button that closes the dialog
+ *   - DialogContent: The main dialog container with animations
+ *   - DialogHeader: Flex column layout for title/description
+ *   - DialogFooter: Flex row layout for action buttons (reversed on mobile)
+ *   - DialogTitle: Accessible heading for the dialog
+ *   - DialogDescription: Accessible description text
+ */
+
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 
 import { cn } from "../../lib/utils"
 
+// Root component - manages dialog open/close state
 const Dialog = DialogPrimitive.Root
 
+// Trigger element - the button/interactive element that opens the dialog
 const DialogTrigger = DialogPrimitive.Trigger
 
+// Portal - renders dialog content in a portal to avoid z-index issues
 const DialogPortal = DialogPrimitive.Portal
 
+// Close element - the button/interactive element that closes the dialog
 const DialogClose = DialogPrimitive.Close
 
+// Overlay - semi-transparent backdrop with fade animations
 const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
@@ -24,6 +56,7 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+// Content - the main dialog panel with centering, animations, and close button
 const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
@@ -36,6 +69,7 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
       {...props}
     >
       {children}
+      {/* Close button positioned in top-right corner of dialog */}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
         <X className="h-4 w-4 text-white" />
         <span className="sr-only">Close</span>
@@ -45,6 +79,7 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
+// Header section - vertical layout for dialog title and description
 const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
@@ -56,6 +91,7 @@ const DialogHeader = ({ className, ...props }) => (
 )
 DialogHeader.displayName = "DialogHeader"
 
+// Footer section - action buttons layout (stacked on mobile, row on desktop)
 const DialogFooter = ({ className, ...props }) => (
   <div
     className={cn(
@@ -67,6 +103,7 @@ const DialogFooter = ({ className, ...props }) => (
 )
 DialogFooter.displayName = "DialogFooter"
 
+// Title - accessible heading element for the dialog
 const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
@@ -79,6 +116,7 @@ const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
+// Description - accessible secondary text for additional context
 const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}

@@ -3,9 +3,16 @@
  * 
  * Centralized constants for the application.
  * Update values here to change them across the entire app.
+ *
+ * Organization:
+ * - Communication config (WhatsApp)
+ * - API routing (base URL)
+ * - UI placeholders
+ * - Business domain enumerations (order/payment statuses, product conditions, etc.)
  */
 
 // WhatsApp Configuration
+// Defaults to a hardcoded South African number if VITE_WHATSAPP_NUMBER is not set
 export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '27791002552';
 export const WHATSAPP_BASE_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
@@ -19,6 +26,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 export const PRODUCT_PLACEHOLDER_IMAGE = 'https://placehold.co/100x100/3b82f6/white?text=TR';
 
 // Order Status Options
+// These map directly to backend enum values for order.status
 export const ORDER_STATUSES = [
   'Pending',
   'Processing',
@@ -29,6 +37,7 @@ export const ORDER_STATUSES = [
 ];
 
 // Payment Methods
+// Accepted payment method strings used in order.paymentMethod
 export const PAYMENT_METHODS = [
   'Cash',
   'Card',
@@ -37,6 +46,7 @@ export const PAYMENT_METHODS = [
 ];
 
 // Payment Status Options
+// Tracks whether payment has been captured, refunded, etc.
 export const PAYMENT_STATUSES = [
   'Pending',
   'Paid',
@@ -44,6 +54,7 @@ export const PAYMENT_STATUSES = [
 ];
 
 // Sort Options
+// Used by shop/search UI to control product list ordering
 export const SORT_OPTIONS = [
   { value: 'featured', label: 'Featured' },
   { value: 'price-asc', label: 'Price: Low to High' },
@@ -82,6 +93,7 @@ export const FALLBACK_BRANDS = [
 ];
 
 // Product Conditions
+// Used in product listings to describe item state
 export const PRODUCT_CONDITIONS = [
   'New',
   'Used',
@@ -89,6 +101,7 @@ export const PRODUCT_CONDITIONS = [
 ];
 
 // Device Types for Repairs
+// Categorizes repair bookings by hardware type
 export const DEVICE_TYPES = [
   'Smartphone',
   'Laptop',
@@ -98,6 +111,7 @@ export const DEVICE_TYPES = [
 ];
 
 // Service Categories
+// Maps to backend service catalog categories
 export const SERVICE_CATEGORIES = [
   'Phone Repair',
   'Computer Repair',

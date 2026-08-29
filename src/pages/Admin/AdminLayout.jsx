@@ -1,3 +1,25 @@
+/**
+ * AdminLayout
+ *
+ * Purpose:
+ *   Shell layout for all admin pages. Provides a collapsible sidebar with
+ *   navigation links, a header showing the current page and admin user info,
+ *   and a main content area rendered via `<Outlet />`.
+ *
+ * Structure:
+ *   - Uses `SidebarProvider` to manage sidebar open/closed state.
+ *   - `navItems` array maps admin routes to icons and labels.
+ *   - `isActive` determines the active nav item based on the current pathname.
+ *   - Header dynamically displays the active page label and the logged-in
+ *     admin's name/role from `AdminAuthContext`.
+ *   - Logout button calls `logout()` and navigates to the login page.
+ *
+ * Admin-specific Features:
+ *   - Sidebar navigation covering all admin modules (products, orders, etc.)
+ *   - Active route highlighting
+ *   - Admin user profile display in header
+ *   - Logout with navigation
+ */
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import {

@@ -1,3 +1,39 @@
+/**
+ * ProductInfo Component
+ *
+ * Displays detailed product information on a product detail page.
+ * This is the main content area showing product metadata, pricing,
+ * stock status, specifications, and purchase actions.
+ *
+ * Features:
+ *   - Product badges (category, condition, status)
+ *   - Product name and star rating display
+ *   - Price display with discount calculation and original price strikethrough
+ *   - Stock status indicator with count
+ *   - Product description
+ *   - Key specifications table (shows first 4 specs)
+ *   - Quantity selector with increment/decrement buttons
+ *   - Add to Cart and Buy Now buttons
+ *   - Wishlist toggle button with loading state
+ *   - Trust badges section (delivery, warranty, returns)
+ *
+ * Props:
+ *   - product: Product object with name, category, condition, status, description
+ *   - price: Current selling price (number)
+ *   - originalPrice: Original price before discount (number)
+ *   - discount: Discount percentage (number)
+ *   - inStock: Boolean indicating if product is available
+ *   - stock: Number of items in stock
+ *   - rating: Average rating value
+ *   - reviews: Number of reviews
+ *   - specifications: Array of [key, value] pairs
+ *   - quantity: Current selected quantity
+ *   - onDecrease: Callback to decrease quantity
+ *   - onIncrease: Callback to increase quantity
+ *   - onAddToCart: Callback for Add to Cart action
+ *   - onBuyNow: Callback for Buy Now action
+ */
+
 import { Star, Minus, Plus, ShoppingCart, Heart, Check, TruckIcon, Shield, RotateCcw } from 'lucide-react';
 import { formatPrice } from './helpers';
 import { useWishlist } from '../WishlistContext';
@@ -18,11 +54,13 @@ export function ProductInfo({
   onAddToCart,
   onBuyNow,
 }) {
+  // Wishlist state from context
   const { toggleWishlist, isInWishlist, isToggling } = useWishlist();
   const inWishlist = isInWishlist(product);
   const toggling = isToggling(product);
   return (
     <div className="flex flex-col gap-5">
+      {/* Product badges - category, condition, status */}
       <div className="flex flex-wrap items-center gap-2">
         {product.category && (
           <span className="text-xs border border-primary/20 bg-primary/10 text-primary px-2 py-1 rounded">
@@ -37,21 +75,26 @@ export function ProductInfo({
         )}
       </div>
 
+      {/* Product name */}
       <h1 className="text-2xl md:text-3xl font-bold text-foreground">{product.name}</h1>
 
+      {/* Star rating display - only shown if there are ratings or reviews */}
       {(rating > 0 || reviews > 0) && (
         <StarRating rating={rating} reviews={reviews} />
       )}
 
+      {/* Price section with discount display */}
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-2xl font-bold text-foreground">
           R{formatPrice(price)}
         </span>
         {discount > 0 && (
           <>
+            {/* Original price with strikethrough */}
             <span className="text-base text-muted-foreground line-through">
               R{formatPrice(originalPrice)}
             </span>
+            {/* Discount percentage badge */}
             <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-1 rounded">
               Save {discount}%
             </span>
@@ -59,6 +102,7 @@ export function ProductInfo({
         )}
       </div>
 
+      {/* Stock status indicator */}
       <div className="flex items-center gap-1.5">
         {inStock ? (
           <>
@@ -72,12 +116,14 @@ export function ProductInfo({
         )}
       </div>
 
+      {/* Product description */}
       {product.description && (
         <p className="text-sm text-muted-foreground leading-relaxed">
           {product.description}
         </p>
       )}
 
+      {/* Key specifications - shows first 4 specs in a table format */}
       {specifications.length > 0 && (
         <div>
           <p className="text-sm font-semibold text-foreground mb-3">
@@ -88,7 +134,7 @@ export function ProductInfo({
               <div
                 key={key}
                 className={`grid grid-cols-1 md:grid-cols-[120px_1fr] text-sm px-4 py-2.5 ${
-                  i % 2 === 0 ? 'bg-muted' : 'bg-white'
+                  i % 2 === 0 ? 'bg-muted' : 'bg-white'  // Alternating row backgrounds
                 }`}
               >
                 <span className="text-muted-foreground">{key}:</span>
@@ -99,6 +145,7 @@ export function ProductInfo({
         </div>
       )}
 
+      {/* Quantity selector with increment/decrement buttons */}
       <div>
         <p className="text-sm font-medium text-foreground mb-2" id="quantity-label">
           Quantity
@@ -110,28 +157,29 @@ export function ProductInfo({
         >
           <button
             type="button"
-            className="px-3 py-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+            className="px-4 py-3 text-muted-foreground hover:text-foreground disabled:opacity-40 min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={onDecrease}
             disabled={!inStock}
             aria-label="Decrease quantity"
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Minus className="h-4 w-4" />
           </button>
-          <span className="px-4 py-2 text-sm font-semibold border-x border-border min-w-[40px] text-center">
+          <span className="px-4 py-3 text-sm font-semibold border-x border-border min-w-[48px] text-center">
             {quantity}
           </span>
           <button
             type="button"
-            className="px-3 py-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+            className="px-4 py-3 text-muted-foreground hover:text-foreground disabled:opacity-40 min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={onIncrease}
             disabled={!inStock}
             aria-label="Increase quantity"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
 
+      {/* Action buttons - Add to Cart and Wishlist */}
       <div className="flex gap-3">
         <button
           type="button"
@@ -142,6 +190,7 @@ export function ProductInfo({
           <ShoppingCart className="h-4 w-4" />
           Add to Cart
         </button>
+        {/* Wishlist toggle button with loading spinner state */}
         <button
           type="button"
           className={`min-h-[46px] w-[46px] flex items-center justify-center rounded-md border-2 border-black transition-colors ${
@@ -162,6 +211,7 @@ export function ProductInfo({
         </button>
       </div>
 
+      {/* Buy Now button */}
       <button
         type="button"
         className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-md border-2 border-black bg-white text-lg font-semibold text-primary shadow-sm transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
@@ -171,14 +221,22 @@ export function ProductInfo({
         Buy Now
       </button>
 
+      {/* Trust badges section */}
       <TrustBadges />
     </div>
   );
 }
 
+/**
+ * TrustBadges Component
+ *
+ * Displays trust-building badges for the product page.
+ * Shows free delivery, warranty, and returns information.
+ */
 function TrustBadges() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border border-border rounded-xl p-4 bg-muted">
+      {/* Free Delivery badge */}
       <div className="flex items-center gap-3">
         <div className="text-muted-foreground" aria-hidden="true">
           <TruckIcon className="h-5 w-5" />
@@ -188,6 +246,7 @@ function TrustBadges() {
           <p className="text-xs text-muted-foreground">On orders over R500</p>
         </div>
       </div>
+      {/* Warranty badge */}
       <div className="flex items-center gap-3">
         <div className="text-muted-foreground" aria-hidden="true">
           <Shield className="h-5 w-5" />
@@ -197,6 +256,7 @@ function TrustBadges() {
           <p className="text-xs text-muted-foreground">Extended coverage included</p>
         </div>
       </div>
+      {/* Returns badge */}
       <div className="flex items-center gap-3">
         <div className="text-muted-foreground" aria-hidden="true">
           <RotateCcw className="h-5 w-5" />
@@ -210,6 +270,16 @@ function TrustBadges() {
   );
 }
 
+/**
+ * StarRating Component (local)
+ *
+ * Displays a star rating with review count.
+ * Rounds the rating to nearest integer for display.
+ *
+ * Props:
+ *   - rating: Numeric rating value (will be rounded)
+ *   - reviews: Number of reviews to display
+ */
 function StarRating({ rating = 0, reviews = 0 }) {
   const rounded = Math.round(Number(rating || 0));
   return (
@@ -220,8 +290,8 @@ function StarRating({ rating = 0, reviews = 0 }) {
             key={star}
             className={`h-4 w-4 ${
               star <= rounded
-                ? 'fill-amber-400 text-amber-400'
-                : 'fill-muted text-muted-foreground'
+                ? 'fill-amber-400 text-amber-400'      // Filled star (amber)
+                : 'fill-muted text-muted-foreground'    // Empty star (muted)
             }`}
           />
         ))}

@@ -1,3 +1,23 @@
+/**
+ * AdminCategoriesPage
+ *
+ * Purpose:
+ *   CRUD interface for managing product categories. Similar in structure to
+ *   AdminBrandsPage but without a logo field. Categories are searchable by
+ *   name or slug and displayed in a table with create/edit/delete actions.
+ *
+ * Key Variables:
+ *   - categories: list of all categories fetched from the API
+ *   - editingCategory: tracks which category is being edited (null = create mode)
+ *   - form: current form state bound to the dialog inputs
+ *   - filteredCategories: derived list filtered by searchQuery
+ *
+ * Admin-specific Features:
+ *   - Create/Edit dialog with name, slug, and status fields
+ *   - Client-side search filtering
+ *   - Delete confirmation via window.confirm
+ *   - Global admin-data-changed event to refresh related components
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';

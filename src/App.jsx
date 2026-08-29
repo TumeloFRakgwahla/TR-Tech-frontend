@@ -1,9 +1,34 @@
+/**
+ * TR-Tech Frontend — Root Application Component
+ *
+ * Defines the entire client-side route tree for the TR-Tech platform.
+ * Uses React.lazy + Suspense for code-splitting heavy admin/account routes
+ * so the initial bundle only contains public-facing pages.
+ *
+ * Structure:
+ * 1. Public routes — home, shop, services, repairs, contact, etc.
+ * 2. Admin routes  — protected by AdminProtectedRoute, lazy-loaded
+ * 3. Account routes — protected by ProtectedRoute, lazy-loaded
+ *
+ * The nested <Route> pattern under /admin and /account enables layout
+ * components (AdminLayout, AccountLayout) to wrap child routes via
+ * <Outlet />, keeping navigation/sidebar logic in one place.
+ */
+
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+
+// Providers wrap the entire app with auth, cart, wishlist, and UI contexts
 import { Providers } from './components/Providers';
+
+// Route guards prevent unauthenticated access to protected areas
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminProtectedRoute } from './components/AdminProtectedRoute';
+
+// Global error boundary catches render errors and shows a fallback UI
 import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Public pages — eagerly loaded for fast initial navigation
 import Home from './pages/HomePage';
 import About from './pages/AboutPage';
 import Services from './pages/ServicesPage';
@@ -14,11 +39,18 @@ import { RepairsPage } from './pages/RepairsPage';
 import Cart from './pages/CartPage';
 import Checkout from './pages/CheckoutPage';
 import Wishlist from './pages/WishlistPage';
+
+// Admin pages — lazy loaded to reduce initial bundle size
 import AdminLogin from './pages/Admin/AdminLoginPage';
 import { AdminLayout } from './pages/Admin/AdminLayout';
+
+// Account pages — lazy loaded; only fetched when user navigates to /account
 import { AccountLayout } from './components/AccountLayout';
 
-
+/**
+ * Lazy-loaded admin modules.
+ * React.lazy splits these into separate chunks loaded on demand.
+ */
 const AdminDashboard = React.lazy(() => import('./pages/Admin/AdminDashboard'));
 const AdminRepairs = React.lazy(() => import('./pages/Admin/AdminRepairsPage'));
 const ProductManagement = React.lazy(() => import('./pages/Admin/ProductManagement'));
@@ -32,6 +64,9 @@ const UserManagement = React.lazy(() => import('./pages/Admin/UserManagement'));
 const AdminCategories = React.lazy(() => import('./pages/Admin/AdminCategoriesPage'));
 const AdminBrands = React.lazy(() => import('./pages/Admin/AdminBrandsPage'));
 
+/**
+ * Lazy-loaded customer account modules.
+ */
 const AccountDashboard = React.lazy(() => import('./pages/account/AccountDashboard'));
 const ProfilePage = React.lazy(() => import('./pages/account/ProfilePage'));
 const AddressesPage = React.lazy(() => import('./pages/account/AddressesPage'));
@@ -43,6 +78,10 @@ const SecurityPage = React.lazy(() => import('./pages/account/SecurityPage'));
 const NotificationsPage = React.lazy(() => import('./pages/account/NotificationsPage'));
 const PaymentMethodsPage = React.lazy(() => import('./pages/account/PaymentMethodsPage'));
 
+/**
+ * Loading fallback shown while lazy chunks are being fetched.
+ * Suspense requires a fallback for every lazy boundary.
+ */
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -51,10 +90,14 @@ const PageLoader = () => (
 
 function App() {
   return (
+    // Providers must be outermost so all descendants can access context
     <Providers>
+      {/* ErrorBoundary catches any render-phase or lifecycle errors */}
       <ErrorBoundary>
+        {/* Suspense wraps lazy routes so the PageLoader shows during chunk fetches */}
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            {/* ── Public Routes ─────────────────────────────── */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
@@ -65,6 +108,9 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/wishlist" element={<Wishlist />} />
+
+            {/* ── Admin Routes ─────────────────────────────── */}
+            {/* Admin login is public; everything else under /admin requires admin auth */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin"
@@ -88,6 +134,9 @@ function App() {
               <Route path="categories" element={<AdminCategories />} />
               <Route path="brands" element={<AdminBrands />} />
             </Route>
+
+            {/* ── Customer Account Routes ─────────────────── */}
+            {/* All /account routes require an authenticated customer session */}
             <Route
               path="/account"
               element={

@@ -1,10 +1,29 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+/**
+ * TR-Tech Frontend — useScrollIndicators Hook
+ *
+ * Attaches scroll-awareness to a horizontally scrollable container.
+ * Returns a ref to attach to the container and a className string
+ * that toggles CSS classes indicating whether left/right scroll affordances
+ * should be visible.
+ *
+ * Usage:
+ *   const { ref, className } = useScrollIndicators();
+ *   <div ref={ref} className={className}>...</div>
+ */
+
 export function useScrollIndicators() {
   const ref = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
+  /**
+   * Recalculates scroll position state.
+   *
+   * Uses a 2px threshold to avoid flickering indicators when the scroll
+   * position is extremely close to (but not exactly at) an edge.
+   */
   const checkScroll = useCallback(() => {
     const el = ref.current;
     if (!el) return;

@@ -1,3 +1,21 @@
+/**
+ * OrderDetailPage.jsx
+ *
+ * Purpose: Display full details for a single order, identified by route param.
+ * Structure:
+ *   - statusConfig: maps order status to Tailwind badge color classes
+ *   - OrderDetailPage component: fetches order by ID from AccountContext and renders items, tracking, address, payment info
+ *
+ * Features:
+ * - Retrieves order ID from URL params via useParams
+ * - Looks up the order from AccountContext's orders array
+ * - Shows order not found state with link back to orders list
+ * - Displays order items with subtotal, shipping, discount, and total breakdown
+ * - Optional tracking section with tracking number and external tracking URL
+ * - Sidebar with delivery address, payment method/status, and optional notes
+ * - Download invoice button (placeholder with toast notification)
+ */
+
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAccount } from '../../components/AccountContext';
@@ -7,6 +25,7 @@ import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, Download, Loader2 } from 'lucide-react';
 
+// Maps order status to Tailwind badge color classes
 const statusConfig = {
   Pending: { color: 'bg-muted text-muted-foreground', label: 'Pending' },
   Processing: { color: 'bg-primary text-primary-foreground', label: 'Processing' },
@@ -17,10 +36,13 @@ const statusConfig = {
 };
 
 export function OrderDetailPage() {
+  // Get order ID from URL route parameter
   const { id } = useParams();
   const { orders, loading } = useAccount();
+  // Find the specific order matching the route param ID
   const order = orders.find((o) => o._id === id);
 
+  // Loading state while orders are being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -29,6 +51,7 @@ export function OrderDetailPage() {
     );
   }
 
+  // Order not found or user lacks access
   if (!order) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -44,11 +67,13 @@ export function OrderDetailPage() {
     );
   }
 
+  // Resolve status config with fallback to Pending
   const status = statusConfig[order.orderStatus] || statusConfig['Pending'];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-4xl">
+        {/* Breadcrumb-style back button and order header */}
         <div className="mb-6">
           <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground mb-4">
             <Link to="/account/orders">
@@ -58,9 +83,11 @@ export function OrderDetailPage() {
           </Button>
           <div className="flex items-center justify-between">
             <div>
+              {/* Order number: uses human-friendly orderNumber or last 6 chars of _id */}
               <h1 className="text-3xl md:text-4xl font-bold text-foreground">
                 Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
               </h1>
+              {/* Placed date formatted for South Africa locale */}
               <p className="text-muted-foreground mt-1">
                 Placed on {new Date(order.createdAt).toLocaleDateString('en-ZA', {
                   weekday: 'long',
@@ -70,20 +97,24 @@ export function OrderDetailPage() {
                 })}
               </p>
             </div>
+            {/* Status badge */}
             <Badge className={`${status.color} text-sm font-medium px-3 py-1`}>
               {status.label}
             </Badge>
           </div>
         </div>
 
+        {/* Two-column layout: items/tracking on left, address/payment on right */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            {/* Order items card */}
             <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
                 Order Items
               </h2>
               <div className="space-y-4">
+                {/* Each line item with name, condition, quantity and line total */}
                 {order.items?.map((item, index) => (
                   <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-border">
                     <div>
@@ -94,6 +125,7 @@ export function OrderDetailPage() {
                   </div>
                 ))}
               </div>
+              {/* Price breakdown section */}
               <div className="mt-4 pt-4 border-t border-border space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -103,12 +135,14 @@ export function OrderDetailPage() {
                   <span className="text-muted-foreground">Shipping</span>
                   <span className="font-medium text-green-600">{(order.shippingCost || 0) === 0 ? 'Free' : `R${(order.shippingCost || 0).toFixed(2)}`}</span>
                 </div>
+                {/* Discount line only shown when a discount was applied */}
                 {order.discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Discount</span>
                     <span className="font-medium text-green-600">-R{order.discount.toFixed(2)}</span>
                   </div>
                 )}
+                {/* Final total */}
                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
                   <span>Total</span>
                   <span>R{(order.totalAmount || 0).toFixed(2)}</span>
@@ -116,6 +150,7 @@ export function OrderDetailPage() {
               </div>
             </Card>
 
+            {/* Tracking information card: only shown when trackingNumber exists */}
             {order.trackingNumber && (
               <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
                 <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -123,6 +158,7 @@ export function OrderDetailPage() {
                   Tracking Information
                 </h2>
                 <p className="text-muted-foreground">Tracking Number: <span className="font-mono font-medium">{order.trackingNumber}</span></p>
+                {/* Optional external tracking URL */}
                 {order.trackingUrl && (
                   <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm mt-2 inline-block">
                     Track Package
@@ -132,7 +168,9 @@ export function OrderDetailPage() {
             )}
           </div>
 
+          {/* Sidebar with address, payment, notes and invoice */}
           <div className="space-y-6">
+            {/* Delivery address card */}
             <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
@@ -151,6 +189,7 @@ export function OrderDetailPage() {
               )}
             </Card>
 
+            {/* Payment information card */}
             <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" />
@@ -162,6 +201,7 @@ export function OrderDetailPage() {
               </div>
             </Card>
 
+            {/* Optional order notes card */}
             {order.notes && (
               <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
                 <h2 className="text-lg font-semibold text-foreground mb-2">Order Notes</h2>
@@ -169,6 +209,7 @@ export function OrderDetailPage() {
               </Card>
             )}
 
+            {/* Download invoice button: placeholder action */}
             <Button
               variant="outline"
               className="w-full border-border text-foreground hover:bg-accent"

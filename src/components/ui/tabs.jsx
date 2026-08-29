@@ -1,9 +1,31 @@
+/**
+ * Tabs Component
+ *
+ * A tabbed interface component built on Radix UI's Tabs primitive.
+ * Provides accessible tab navigation with animated active states.
+ *
+ * Features:
+ *   - Dark theme styling (slate-700 background for tab list)
+ *   - Blue active state for selected tab (bg-blue-600, text-white)
+ *   - Keyboard navigation support (arrow keys to switch tabs)
+ *   - Animated transitions between tab states
+ *   - Content panels mount/unmount based on active tab
+ *
+ * Components:
+ *   - Tabs: Root context provider
+ *   - TabsList: Container for tab triggers with rounded background
+ *   - TabsTrigger: Individual tab button with active state styling
+ *   - TabsContent: Panel that renders when its tab is active
+ */
+
 import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '../../lib/utils';
 
+// Root - manages tab selection state
 const Tabs = TabsPrimitive.Root;
 
+// List - flex container with dark background for tab buttons
 const TabsList = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
@@ -16,6 +38,7 @@ const TabsList = React.forwardRef(({ className, ...props }, ref) => (
 ));
 TabsList.displayName = TabsPrimitive.List.displayName;
 
+// Trigger - individual tab button with blue active state
 const TabsTrigger = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
@@ -28,6 +51,7 @@ const TabsTrigger = React.forwardRef(({ className, ...props }, ref) => (
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
+// Content - panel that shows when associated tab is active
 const TabsContent = React.forwardRef(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}

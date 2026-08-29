@@ -1,3 +1,26 @@
+/**
+ * AdminDashboard
+ *
+ * Purpose:
+ *   Main admin dashboard providing an at-a-glance view of store performance.
+ *   Aggregates stats, recent orders, top products, low stock alerts, and
+ *   revenue analytics from multiple API endpoints loaded in parallel.
+ *
+ * Structure:
+ *   - Uses `useAdminAuth` to personalize the welcome message.
+ *   - `loadData` fetches stats, recent orders, low stock, and top products
+ *     concurrently via `Promise.all`.
+ *   - `statCards` memoizes the summary cards with trend indicators.
+ *   - `aggregateOrdersByMonth` transforms raw orders into chart-ready data.
+ *   - Revenue is visualized with a Recharts LineChart.
+ *   - Low stock section calculates a fill percentage against a fixed threshold.
+ *
+ * Key Variables:
+ *   - stats: aggregated revenue, orders, customers, and products sold
+ *   - salesData: monthly revenue and sales counts for the chart
+ *   - lowStockProducts: items where stock is at or below threshold
+ *   - topProducts: highest-value active products for the sidebar list
+ */
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';

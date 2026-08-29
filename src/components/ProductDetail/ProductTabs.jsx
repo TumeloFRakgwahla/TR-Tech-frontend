@@ -1,3 +1,23 @@
+/**
+ * ProductTabs Component
+ *
+ * Displays product information in a tabbed interface with four sections:
+ * Description, Specifications, Reviews, and Shipping.
+ *
+ * Features:
+ *   - Tab navigation with active state indicator (bottom border)
+ *   - Description tab: Shows product description with marketing copy
+ *   - Specifications tab: Full specifications table with alternating row colors
+ *   - Reviews tab: Review count display or empty state message
+ *   - Shipping tab: Delivery and processing information
+ *   - Responsive tab list with horizontal scroll on small screens
+ *
+ * Props:
+ *   - product: Product object containing description and other details
+ *   - specifications: Array of [key, value] pairs for the specs table
+ *   - reviews: Number of reviews (used to display count in tab label)
+ */
+
 import { Card } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -5,12 +25,14 @@ export function ProductTabs({ product, specifications, reviews }) {
   return (
     <Card className="mb-14 rounded-xl border border-border bg-muted shadow-sm">
       <Tabs defaultValue="description" className="p-6">
-        <TabsList className="w-full justify-start border-b border-border rounded-none h-auto p-0 bg-transparent gap-0">
+        {/* Tab navigation list with bottom border indicator style */}
+        <TabsList className="w-full justify-start border-b border-border rounded-none h-auto p-0 bg-transparent gap-0 overflow-x-auto scrollbar-hide flex-nowrap">
           {[
             { value: 'description', label: 'Description' },
             { value: 'specifications', label: 'Specifications' },
             {
               value: 'reviews',
+              // Dynamically show review count in tab label
               label: `Reviews${reviews > 0 ? ` (${reviews})` : ''}`,
             },
             { value: 'shipping', label: 'Shipping' },
@@ -25,6 +47,7 @@ export function ProductTabs({ product, specifications, reviews }) {
           ))}
         </TabsList>
 
+        {/* Description tab content */}
         <TabsContent value="description" className="mt-6">
           <div>
             <h3 className="text-base font-bold text-foreground mb-2">
@@ -42,6 +65,7 @@ export function ProductTabs({ product, specifications, reviews }) {
           </div>
         </TabsContent>
 
+        {/* Specifications tab content - full table of all specs */}
         <TabsContent value="specifications" className="mt-6">
           <div>
             <h3 className="text-base font-bold text-foreground mb-4">
@@ -52,7 +76,7 @@ export function ProductTabs({ product, specifications, reviews }) {
                 <div
                   key={key}
                   className={`grid grid-cols-1 md:grid-cols-[140px_1fr] text-sm px-4 py-3 ${
-                    i % 2 === 0 ? 'bg-muted' : 'bg-white'
+                    i % 2 === 0 ? 'bg-muted' : 'bg-white'  // Alternating row backgrounds
                   }`}
                 >
                   <span className="text-muted-foreground font-medium">
@@ -65,6 +89,7 @@ export function ProductTabs({ product, specifications, reviews }) {
           </div>
         </TabsContent>
 
+        {/* Reviews tab content - shows count or empty state */}
         <TabsContent value="reviews" className="mt-6">
           <div>
             <h3 className="text-base font-bold text-foreground mb-4">
@@ -78,6 +103,7 @@ export function ProductTabs({ product, specifications, reviews }) {
           </div>
         </TabsContent>
 
+        {/* Shipping tab content - delivery and processing info */}
         <TabsContent value="shipping" className="mt-6">
           <div className="space-y-3">
             <h3 className="text-base font-bold text-foreground mb-4">

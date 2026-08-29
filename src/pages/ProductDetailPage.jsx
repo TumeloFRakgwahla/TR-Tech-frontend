@@ -1,3 +1,25 @@
+/**
+ * TR-Tech — Product Detail Page
+ *
+ * Full product view with image gallery, product info, tabs, and related products.
+ *
+ * Features:
+ * - Dynamic product loading by ID from URL params
+ * - Image gallery with thumbnail selection and error handling
+ * - Price display with discount calculation and original/compare-at price
+ * - Stock status and quantity selector with min/max constraints
+ * - Add to Cart and Buy Now actions (Buy Now redirects to checkout)
+ * - Product tabs for description, specifications, and reviews
+ * - Related products section filtered by same category
+ * - Sticky mobile Add to Cart bar positioned above BottomNav
+ *
+ * Data flow:
+ * 1. Product fetched by ID on mount (with cancellation support)
+ * 2. Related products fetched after main product loads
+ * 3. Multiple memoized derived values (price, discount, stock, specs)
+ * 4. Loading/error/empty states handled with appropriate UI
+ */
+
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -20,21 +42,26 @@ export function ProductDetailPage() {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
+  // Product state
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
+
+  // Related products state
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(false);
 
+  // Derived values via useMemo for performance
   const imageUrls = useMemo(() => getProductImageUrls(product), [product]);
   const price = useMemo(() => Number(product?.price || 0), [product]);
   const originalPrice = useMemo(
     () => Number(product?.originalPrice || product?.compareAtPrice || 0),
     [product]
   );
+  // Calculate discount percentage if original price is higher
   const discount = useMemo(
     () => (originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0),
     [originalPrice, price]
@@ -49,6 +76,7 @@ export function ProductDetailPage() {
   const reviews = useMemo(() => Number(product?.reviews || 0), [product]);
   const specifications = useMemo(() => buildSpecifications(product, stock), [product, stock]);
 
+  // Fetch product by ID with cancellation support to prevent state updates on unmounted component
   useEffect(() => {
     let cancelled = false;
     async function fetchProduct() {
@@ -75,6 +103,7 @@ export function ProductDetailPage() {
     };
   }, [id]);
 
+  // Fetch related products by category (excluding current product)
   useEffect(() => {
     let cancelled = false;
     async function fetchRelated() {
@@ -100,21 +129,25 @@ export function ProductDetailPage() {
     };
   }, [product?._id, product?.category]);
 
+  // Track image load errors to show fallback
   const handleImageError = useCallback((url) => {
     setImageErrors((prev) => ({ ...prev, [url]: true }));
   }, []);
 
+  // Add current product with selected quantity to cart
   const handleAddToCart = useCallback(() => {
     if (!inStock || !product) return;
     addToCart(product, quantity);
   }, [inStock, product, quantity, addToCart]);
 
+  // Add to cart then redirect to checkout page
   const handleBuyNow = useCallback(() => {
     if (!inStock || !product) return;
     addToCart(product, quantity);
     navigate('/checkout');
   }, [inStock, product, quantity, addToCart, navigate]);
 
+  // Quantity controls with min/max constraints
   const decreaseQuantity = useCallback(() => {
     setQuantity((q) => Math.max(1, q - 1));
   }, []);
@@ -250,6 +283,7 @@ export function ProductDetailPage() {
 
 export default ProductDetailPage;
 
+// Page shell wrapper providing consistent layout (Navbar, Footer, BottomNav)
 function PageShell({ children }) {
   return (
     <div className="min-h-screen bg-muted">

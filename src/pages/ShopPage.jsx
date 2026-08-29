@@ -1,3 +1,30 @@
+/**
+ * TR-Tech — Shop Page (Product Catalog)
+ *
+ * Main product browsing page with filtering, sorting, and search capabilities.
+ *
+ * Features:
+ * - Product grid with responsive columns (1-3 based on viewport)
+ * - Full-featured filter system: categories, brands, price range, in-stock
+ * - Search with debounced input (250ms) matching name, description, category, brand
+ * - Sort options: featured, price asc/desc, rating
+ * - Mobile filter drawer with focus trap and escape handling
+ * - URL parameter support for initial category/brand filtering
+ * - Image error handling with fallback placeholder
+ * - Wishlist toggle integration on each product card
+ * - Skeleton loading state during data fetch
+ * - "admin-data-changed" event listener for real-time updates
+ *
+ * Architecture:
+ * - useDebounce: custom hook for delayed search filtering
+ * - useFilters: custom hook encapsulating all filter state and logic
+ * - ProductCard: presentational component for individual products
+ * - ProductCardSkeleton: loading placeholder
+ * - FilterChips: horizontal quick-filter buttons
+ * - FilterSidebar: full filter panel (desktop sidebar / mobile drawer)
+ * - ShopContent: main component orchestrating data and layout
+ */
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -13,8 +40,10 @@ import { StarRating } from '../components/ProductDetail';
 import { FALLBACK_CATEGORIES, FALLBACK_BRANDS, SORT_OPTIONS } from '../constants';
 import { useScrollIndicators } from '../hooks/useScrollIndicators';
 
+// Price slider step increment (in ZAR)
 const PRICE_STEP = 100;
 
+// Debounce hook: delays value updates to reduce re-renders during rapid input
 function useDebounce(value, delay = 250) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -26,6 +55,7 @@ function useDebounce(value, delay = 250) {
   return debouncedValue;
 }
 
+// Custom hook encapsulating all filter state, actions, and derived values
 function useFilters(maxPrice = 30000) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
@@ -34,18 +64,21 @@ function useFilters(maxPrice = 30000) {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery);
 
+  // Toggle category selection (add if not present, remove if present)
   const toggleCategory = useCallback((cat) => {
     setSelectedCategories(prev =>
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
   }, []);
 
+  // Toggle brand selection
   const toggleBrand = useCallback((brand) => {
     setSelectedBrands(prev =>
       prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
     );
   }, []);
 
+  // Reset all filters to defaults
   const clearAll = useCallback(() => {
     setSelectedCategories([]);
     setSelectedBrands([]);
@@ -54,6 +87,7 @@ function useFilters(maxPrice = 30000) {
     setSearchQuery('');
   }, [maxPrice]);
 
+  // Count of active filters for badge display
   const activeFilterCount = useMemo(() => (
     selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0)
   ), [selectedCategories, selectedBrands, inStockOnly, priceRange, maxPrice]);
@@ -70,8 +104,10 @@ function useFilters(maxPrice = 30000) {
   };
 }
 
+// Individual product card with image, discount badge, wishlist toggle, and add-to-cart
 function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
   const id = product._id || product.id;
+  // Calculate discount percentage if original price exceeds current price
   const discount = useMemo(() => {
     if (product.originalPrice && product.originalPrice > product.price) {
       return Math.round((1 - product.price / product.originalPrice) * 100);
@@ -83,6 +119,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
     setImageErrors(prev => ({ ...prev, [id]: true }));
   }, [id, setImageErrors]);
 
+  // Wishlist integration
   const { toggleWishlist, isInWishlist, isToggling } = useWishlist();
   const inWishlist = isInWishlist(product);
   const toggling = isToggling(product);
@@ -181,6 +218,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
   );
 }
 
+// Skeleton placeholder shown while products are loading
 function ProductCardSkeleton() {
   return (
     <div className="bg-white rounded-xl overflow-hidden border border-border shadow-sm animate-pulse">
@@ -199,6 +237,7 @@ function ProductCardSkeleton() {
   );
 }
 
+// Horizontal scrollable quick-filter chips (In Stock, Under R1000, Top Rated, Clear All)
 function FilterChips({ filters }) {
   const quickFilters = [
     { label: 'In Stock', active: filters.inStockOnly, toggle: () => filters.setInStockOnly(!filters.inStockOnly) },
@@ -235,6 +274,7 @@ function FilterChips({ filters }) {
   );
 }
 
+// Full filter sidebar with collapsible sections for categories, brands, price, and stock
 function FilterSidebar({ filters, maxPrice, categories, brands }) {
   const {
     selectedCategories, toggleCategory,
@@ -244,6 +284,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
     clearAll, isFiltered,
   } = filters;
 
+  // Collapsible section state for filter groups
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
     brands: true,
@@ -258,20 +299,24 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
     }));
   };
 
+  // Price input editing state (allows direct numeric input alongside slider)
   const [priceInputValue, setPriceInputValue] = useState(priceRange);
   const [isEditingPrice, setIsEditingPrice] = useState(false);
 
+  // Sync price input value with actual price range when not actively editing
   useEffect(() => {
     if (!isEditingPrice) {
       setPriceInputValue(priceRange);
     }
   }, [priceRange, isEditingPrice]);
 
+  // Strip non-numeric characters from price input
   const handlePriceInputChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     setPriceInputValue(value ? Number(value) : 0);
   };
 
+  // Clamp price value to valid range on blur
   const handlePriceInputBlur = () => {
     setIsEditingPrice(false);
     setPriceRange(Math.min(Math.max(0, priceInputValue), maxPrice));
@@ -631,10 +676,12 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
 }
 
 
+// Main shop component orchestrating data fetching, filtering, sorting, and layout
 function ShopContent() {
   const { addToCart } = useCart();
   const [searchParams] = useSearchParams();
 
+  // Data state
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -644,16 +691,19 @@ function ShopContent() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
 
+  // Read initial filter values from URL params (e.g., ?category=Laptops&brand=Apple)
   const initialCategory = searchParams.get('category');
   const initialBrand = searchParams.get('brand');
 
   const filters = useFilters(30000);
 
+  // Calculate max price from actual product data (fallback to 30000)
   const maxPrice = useMemo(() => {
     const max = products.reduce((max, p) => Math.max(max, Number(p.price) || 0), 0);
     return max > 0 ? max : 30000;
   }, [products]);
 
+  // Fetch categories and brands in parallel with fallback to constants
   const fetchCategoriesAndBrands = useCallback(async () => {
     const [catRes, brandRes] = await Promise.allSettled([
       categoriesAPI.getActive(),
@@ -675,6 +725,7 @@ function ShopContent() {
     }
   }, []);
 
+  // Fetch all products from API
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -694,11 +745,13 @@ function ShopContent() {
     }
   }, []);
 
+  // Initial data load
   useEffect(() => {
     fetchProducts();
     fetchCategoriesAndBrands();
   }, [fetchProducts, fetchCategoriesAndBrands]);
 
+  // Apply initial category filter from URL when categories are loaded
   useEffect(() => {
     if (initialCategory && categories.length > 0) {
       const match = categories.find(c => c.toLowerCase() === initialCategory.toLowerCase());
@@ -708,6 +761,7 @@ function ShopContent() {
     }
   }, [initialCategory, categories, filters]);
 
+  // Apply initial brand filter from URL when brands are loaded
   useEffect(() => {
     if (initialBrand && brands.length > 0) {
       const match = brands.find(b => b.toLowerCase() === initialBrand.toLowerCase());
@@ -717,6 +771,7 @@ function ShopContent() {
     }
   }, [initialBrand, brands, filters]);
 
+  // Refresh products when window regains focus (handles back navigation)
   useEffect(() => {
     const handleFocus = () => {
       fetchProducts();
@@ -725,6 +780,7 @@ function ShopContent() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchProducts]);
 
+  // Focus trap and escape handler for mobile filter drawer
   useEffect(() => {
     if (!mobileFiltersOpen) return;
 
@@ -763,6 +819,7 @@ function ShopContent() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileFiltersOpen]);
 
+  // Listen for admin data changes to refresh products/categories/brands
   useEffect(() => {
     const handler = (e) => {
       if (e.detail?.type === 'categories' || e.detail?.type === 'brands') {
@@ -775,6 +832,7 @@ function ShopContent() {
     return () => window.removeEventListener('admin-data-changed', handler);
   }, [fetchProducts, fetchCategoriesAndBrands]);
 
+  // Reset price range to max when products are loaded
   useEffect(() => {
     if (!loading && products.length > 0) {
       filters.setPriceRange(maxPrice);
@@ -785,7 +843,7 @@ function ShopContent() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Use debounced search for filtering
+  // Filter products based on all active filter criteria
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const catMatch = filters.selectedCategories.length === 0 ||
@@ -803,6 +861,7 @@ function ShopContent() {
     });
   }, [products, filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery]);
 
+  // Sort filtered products by selected option
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
       if (sortBy === 'price-asc') return (a.price || 0) - (b.price || 0);

@@ -1,178 +1,279 @@
-# Welcome to TR-Tech Repairs & Designs Frontend! 🚀
+# TR-Tech Repairs & Designs — Frontend
 
-Hey there! This is the frontend part of our awesome website for TR-Tech Repairs & Designs. We're all about fixing tech gadgets and creating cool designs, and this React app brings that to life in a sleek, user-friendly way. Whether you're on your phone, tablet, or desktop, it looks great and works smoothly.
+React 19 + Vite 7 + Tailwind CSS client for the TR-Tech Repairs & Designs platform. Provides a responsive storefront, repair booking flow, customer account portal, and an admin dashboard.
 
-## What Makes This Special? ✨
+## Tech Stack
 
-We've poured our hearts into making this site responsive, so it adapts perfectly to any screen size. The design is modern and professional, using Tailwind CSS and some fantastic shadcn/ui components. Navigation is super fast thanks to React Router, and we've even integrated WhatsApp for easy chatting with our team. It's all about that clean, business vibe that says "we know what we're doing."
+- **React 19** — UI library
+- **Vite 7** — dev server, build, and test runner
+- **React Router DOM 7** — client-side routing
+- **Tailwind CSS 3** — utility-first styling
+- **shadcn/ui + Radix UI** — accessible component primitives
+- **Lucide React** — icon library
+- **Recharts** — admin analytics charts
+- **Sonner** — toast notifications
+- **Vitest + Testing Library** — unit and integration tests
+- **ESLint** — code quality
 
-## The Tech Behind the Magic 🛠️
+## Prerequisites
 
-We're using some top-notch tools here:
-- **React 18** – Keeps things snappy and interactive
-- **Vite** – For lightning-fast development and builds
-- **Tailwind CSS** – Makes styling a breeze with utility classes
-- **React Router** – Handles all the page hopping
-- **Lucide React** – Gorgeous icons that pop
-- **shadcn/ui** – High-quality components that just work
+- Node.js 18+
+- npm 9+
 
-## How the Project is Organized 📂
+## Getting Started
 
-Here's a quick peek at the structure – it's pretty straightforward:
+```bash
+# Install dependencies
+npm install
+
+# Start dev server (http://localhost:5173)
+npm run dev
+
+# Run tests
+npm run test
+
+# Lint
+npm run lint
+
+# Production build (outputs to dist/)
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_API_URL=/api/v1
+VITE_WHATSAPP_NUMBER=27712345678
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API base path (relative path enables Vite proxy) | `/api/v1` |
+| `VITE_WHATSAPP_NUMBER` | WhatsApp number for contact links | `27712345678` |
+
+## Project Structure
 
 ```
 tr-tech-frontend/
-├── public/                 # Static stuff like our logo
-│   └── TR_Tech_logo.png   # The TR-Tech logo
+├── public/                        # Static assets
+│   └── TR_Tech_logo.png
 ├── src/
-│   ├── components/        # Reusable bits for the UI
-│   │   ├── Navbar.jsx     # The top navigation bar
-│   │   ├── Hero.jsx       # That eye-catching main banner
-│   │   ├── Services.jsx   # Showcasing what we offer
-│   │   ├── Why-Choose-Us.jsx # Why we're the best choice
-│   │   ├── CTA.jsx        # Those "get in touch" buttons
-│   │   └── Footer.jsx     # The bottom of the page
-│   ├── pages/            # Full pages for different sections
-│   │   ├── HomePage.jsx   # The landing page
-│   │   ├── AboutPage.jsx  # Learn about us
-│   │   ├── ServicesPage.jsx # Dive deep into services
-│   │   ├── ShopPage.jsx   # Browse our products
-│   │   ├── ContactPage.jsx # How to reach us
-│   │   └── RepairsPage.jsx # Book a repair
-│   ├── App.jsx           # The heart of the app, with all the routing
-│   ├── main.jsx          # Where everything kicks off
-│   └── index.css         # Global styles to keep things consistent
-├── package.json          # All our dependencies and scripts
-├── vite.config.js        # Vite setup
-├── tailwind.config.cjs   # Tailwind config for colors and such
-└── README.md            # You're reading this!
+│   ├── components/
+│   │   ├── ui/                    # shadcn/ui components
+│   │   ├── Navbar.jsx             # Top navigation
+│   │   ├── BottomNav.jsx          # Mobile bottom navigation
+│   │   ├── Footer.jsx             # Site footer
+│   │   ├── Hero.jsx               # Landing page hero
+│   │   ├── Services.jsx           # Services showcase
+│   │   ├── Why-Choose-Us.jsx      # Trust/value section
+│   │   ├── CTA.jsx                # Call-to-action blocks
+│   │   ├── ProductCarousel.jsx    # Featured products slider
+│   │   ├── ProductDetail/         # Product detail sub-components
+│   │   ├── CartDrawer.jsx         # Slide-out cart panel
+│   │   ├── MiniCart.jsx           # Compact cart preview
+│   │   ├── CategoryChips.jsx      # Category filter chips
+│   │   ├── TrustSignals.jsx       # Trust badges
+│   │   ├── Skeleton.jsx           # Loading placeholders
+│   │   ├── ResponsiveImage.jsx    # Adaptive image component
+│   │   ├── Sidebar.jsx            # Admin sidebar navigation
+│   │   ├── Providers.jsx          # Context provider wrapper
+│   │   ├── AuthContext.jsx         # Customer auth state
+│   │   ├── AdminAuthContext.jsx    # Admin auth state
+│   │   ├── AccountContext.jsx      # Account data state
+│   │   ├── CartContext.jsx         # Cart state
+│   │   ├── WishlistContext.jsx     # Wishlist state
+│   │   ├── AuthModal.jsx           # Login/register modal
+│   │   ├── AuthModalContext.jsx    # Auth modal state
+│   │   ├── CheckoutModal.jsx       # Checkout flow modal
+│   │   ├── ErrorBoundary.jsx       # Error boundary wrapper
+│   │   ├── ProtectedRoute.jsx      # Customer route guard
+│   │   ├── AdminProtectedRoute.jsx # Admin route guard
+│   │   └── AccountLayout.jsx       # Customer account shell
+│   ├── pages/
+│   │   ├── HomePage.jsx
+│   │   ├── AboutPage.jsx
+│   │   ├── ServicesPage.jsx
+│   │   ├── ShopPage.jsx
+│   │   ├── ProductDetailPage.jsx
+│   │   ├── CartPage.jsx
+│   │   ├── CheckoutPage.jsx
+│   │   ├── RepairsPage.jsx
+│   │   ├── ContactPage.jsx
+│   │   ├── WishlistPage.jsx
+│   │   ├── Admin/
+│   │   │   ├── AdminLoginPage.jsx
+│   │   │   ├── AdminLayout.jsx
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── AdminRepairsPage.jsx
+│   │   │   ├── ProductManagement.jsx
+│   │   │   ├── ServicesManagement.jsx
+│   │   │   ├── OrderManagement.jsx
+│   │   │   ├── CustomerManagement.jsx
+│   │   │   ├── InventoryManagement.jsx
+│   │   │   ├── MarketingManagement.jsx
+│   │   │   ├── ReportsAnalytics.jsx
+│   │   │   ├── UserManagement.jsx
+│   │   │   ├── AdminCategoriesPage.jsx
+│   │   │   └── AdminBrandsPage.jsx
+│   │   └── account/
+│   │       ├── AccountDashboard.jsx
+│   │       ├── ProfilePage.jsx
+│   │       ├── AddressesPage.jsx
+│   │       ├── OrdersPage.jsx
+│   │       ├── OrderDetailPage.jsx
+│   │       ├── AccountRepairsPage.jsx
+│   │       ├── RepairDetailPage.jsx
+│   │       ├── SecurityPage.jsx
+│   │       ├── NotificationsPage.jsx
+│   │       └── PaymentMethodsPage.jsx
+│   ├── services/
+│   │   └── api.js                  # Centralized API client
+│   ├── hooks/                      # Custom React hooks
+│   ├── utils/                      # Helper functions
+│   ├── lib/                        # Shared utilities
+│   ├── data/                       # Static/mock data
+│   ├── constants.js                # App-wide constants
+│   ├── App.jsx                     # Route definitions
+│   ├── main.jsx                    # React entry point
+│   ├── index.css                   # Global styles
+│   └── test/
+│       ├── setup.js                # Vitest setup
+│       ├── api.test.js
+│       ├── helpers.test.js
+│       ├── sanitize.test.js
+│       ├── image-url.test.js
+│       ├── home-page.test.jsx
+│       ├── shop-page.test.jsx
+│       ├── contact-page.test.jsx
+│       ├── cart-page.test.jsx
+│       ├── admin-login.test.jsx
+│       ├── admin-protected-route.test.jsx
+│       ├── auth-modal.test.jsx
+│       ├── protected-route.test.jsx
+│       ├── profile-page.test.jsx
+│       └── integration.test.jsx
+├── package.json
+├── vite.config.js
+├── tailwind.config.cjs
+├── postcss.config.js
+├── eslint.config.js
+├── components.json
+├── Dockerfile
+├── nginx.conf
+└── .env
 ```
 
-## Let's Get You Up and Running 🚀
+## Routing
 
-### What You'll Need First
+| Path | Description |
+|------|-------------|
+| `/` | Home page |
+| `/about` | About TR-Tech |
+| `/services` | Service offerings |
+| `/shop` | Product catalog |
+| `/products/:id` | Product detail |
+| `/cart` | Shopping cart |
+| `/checkout` | Checkout flow |
+| `/book-repair` | Repair booking form |
+| `/contact` | Contact page |
+| `/wishlist` | Wishlist |
+| `/account/*` | Customer account (protected) |
+| `/admin/login` | Admin login |
+| `/admin/*` | Admin dashboard (protected) |
 
-- Node.js (version 16 or later should do the trick)
-- npm or yarn – your choice!
+Admin and account routes use `React.lazy` code-splitting for faster initial loads.
 
-### Step-by-Step Setup
+## API Integration
 
-1. **Grab the code** (if you haven't already)
-   ```bash
-   git clone <repository-url>
-   cd TR-Tech-Repairs-and-Designs/tr-tech-frontend
-   ```
+The app communicates with the Express/MongoDB backend via `src/services/api.js`. Key API modules:
 
-2. **Get the dependencies installed**
-   ```bash
-   npm install
-   ```
+- `productsAPI` — CRUD + low-stock alerts
+- `servicesAPI` — CRUD
+- `ordersAPI` — CRUD + stats + status updates + customer orders
+- `contactAPI` — submit + list
+- `repairsAPI` — CRUD + customer repairs
+- `authAPI` — register, login, profile, logout
+- `adminAuthAPI` — admin login/logout
+- `cartAPI` — CRUD + clear
+- `wishlistAPI` — CRUD + check
+- `accountAPI` — profile, addresses, notifications, sessions
+- `paymentMethodsAPI` — CRUD + set default
+- `categoriesAPI` — CRUD + active
+- `brandsAPI` — CRUD + active
+- `usersAPI` — CRUD + reset password
+- `marketingAPI` — coupons, campaigns, promotions
+- `uploadAPI` — image upload/delete
+- `healthCheck` — backend health
 
-3. **Fire up the dev server**
-   ```bash
-   npm run dev
-   ```
+The API client handles CSRF token caching, request timeouts (15s), and automatic retry on 419 responses. 401 responses dispatch a `trtech:unauthorized` custom event for global logout handling.
 
-4. **Check it out in your browser**
-   Head over to `http://localhost:5173` (or whatever port it tells you)
+## Vite Configuration
 
-### Ready for the Real World?
+- **Path alias**: `@` maps to `src/`
+- **Dev proxy**: `/api` and `/uploads` are proxied to `http://localhost:5000`
+- **Code splitting**: `recharts` and core vendor bundles are split into separate chunks
+- **Test env**: Pre-seeds `VITE_API_URL` and `VITE_WHATSAPP_NUMBER` for Vitest
 
-When you're done tinkering, run:
+## Styling
+
+Tailwind CSS with a CSS-variable-based design system. Custom configuration in `tailwind.config.cjs`:
+
+- Extended breakpoints (`xsm` at 375px)
+- CSS custom properties for theme colors (background, foreground, primary, secondary, etc.)
+- Custom animations (slide, fade)
+- Safe-area inset spacing for mobile
+- Touch target minimums (44px)
+
+## Docker
+
+Multi-stage production build:
+
 ```bash
-npm run build
-```
-This'll create a polished production build in the `dist/` folder, ready to deploy.
+# Build image
+docker build -t tr-tech-frontend .
 
-## Diving into the Code 📖
-
-### The Key Players
-
-- **App.jsx**: This is where all the page routing happens – think of it as the traffic cop.
-- **Navbar.jsx**: Sticks to the top with links to everywhere.
-- **Hero.jsx**: The big, bold intro section with those call-to-action buttons.
-- **ContactPage.jsx**: All about getting in touch, including our WhatsApp magic.
-
-### Styling It Up
-
-We're all about Tailwind CSS here, with custom tweaks in `tailwind.config.cjs`. Everything follows a nice design system for colors and spacing – keeps things looking pro.
-
-### How Navigation Works
-
-React Router takes care of jumping between pages:
-- `/` – Home sweet home
-- `/about` – Our story
-- `/services` – What we can do for you
-- `/shop` – Check out our gear
-- `/book-repair` – Schedule a fix
-- `/contact` – Let's chat
-
-## Want to Make It Your Own? 🔧
-
-### Tweak the Colors and Brand
-
-Jump into `tailwind.config.cjs` and play around:
-
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: '#your-favorite-color',
-      secondary: '#another-great-one',
-      // Add more as you like
-    }
-  }
-}
+# Run container (exposes port 80)
+docker run -p 80:80 tr-tech-frontend
 ```
 
-### Add a New Page
+The production container uses nginx:alpine with:
+- Gzip compression
+- SPA fallback (`try_files $uri $uri/ /index.html`)
+- `/api` proxy to backend service
+- Static asset caching (1 year for hashed assets)
 
-Easy peasy:
-1. Whip up a new component in `src/pages/`
-2. Hook it up in `src/App.jsx` with a route
-3. Toss a link in `src/components/Navbar.jsx`
+## Authentication
 
-### Update Our Contact Info
+- **Customers**: JWT-based auth via cookies + session model for revocation
+- **Admins**: Separate admin auth context (`AdminAuthContext`) with its own login flow
+- **Protected routes**: `ProtectedRoute` and `AdminProtectedRoute` guard customer and admin pages respectively
 
-Keep things current by editing:
-- `src/components/Footer.jsx` for the footer details
-- `src/pages/ContactPage.jsx` for the full contact page
+## Testing
 
-## WhatsApp Magic 📱
+Tests run in jsdom via Vitest:
 
-Our contact form and WhatsApp button use WhatsApp's web API to start chats with pre-filled messages. The number's set up right in the contact components – super handy for quick connections.
+```bash
+npm run test        # Single run
+npm run test:watch  # Watch mode
+```
 
-## Bumps in the Road? 🐛
+Test suites cover: API client, page components, auth flows, admin access, cart, contact form, sanitization, image URLs, and integration scenarios.
 
-### Common Hiccups
+## Troubleshooting
 
-1. **Port's taken?** Switch it up in `vite.config.js` or shut down other servers.
-2. **Styles not refreshing?** Clear your browser cache or restart the dev server.
-3. **Icons missing?** Double-check Lucide React is installed properly.
+| Issue | Solution |
+|-------|----------|
+| Port 5173 in use | Change `server.port` in `vite.config.js` or stop the conflicting process |
+| Styles not refreshing | Restart dev server; Tailwind scans files at build time |
+| 401 on API calls | Ensure backend is running on port 5000; check cookie settings |
+| Icons missing | Verify `lucide-react` is installed |
+| ESLint errors | Run `npm run lint` and fix reported issues |
 
-### Pro Tips for Dev
+## License
 
-- Pop open your browser's dev tools to poke around.
-- Keep an eye on the console for any error messages.
-- Remember, Tailwind applies classes during the build – no magic at runtime.
-
-## Join the Fun! 🤝
-
-Want to contribute? Awesome!
-1. Fork the repo
-2. Spin up a feature branch
-3. Make your changes
-4. Test it out thoroughly
-5. Send over a pull request
-
-## License and Stuff 📄
-
-This is our private project for TR-Tech Repairs & Designs – proprietary and all that jazz.
-
-## Need a Hand? 📞
-
-Got questions or need support? Reach out to the dev team – we're here to help.
-
----
-
-**Crafted with love ❤️ for TR-Tech Repairs & Designs**
+Proprietary — TR-Tech Repairs & Designs internal project.
