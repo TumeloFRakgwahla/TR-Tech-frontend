@@ -1,5 +1,6 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import WhyChooseUs from '../components/Why-Choose-Us';
 import { Users, Target, Award, Heart } from 'lucide-react';
 
@@ -7,7 +8,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-20 md:pb-0 content-wrapper">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
@@ -28,8 +29,11 @@ const About = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Our Story
             </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              From a small repair shop to a comprehensive tech solutions provider.
+            </p>
           </div>
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <p className="text-lg text-muted-foreground mb-6 text-left">
               TR-Tech Repair and Designs was founded with a passion and mission for technology and customer service: to provide exceptional tech and products to
               our community.What started as a small repair shop has grown into a comprehensive tech solutions provider, offering everything from device repairs
@@ -64,36 +68,36 @@ const About = () => {
               The principles that guide everything we do at TR-Tech.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
-              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                 <Users size={24} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
+                   <Users size={24} />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Customer First</h3>
+                <p className="text-muted-foreground">Your satisfaction is our top priority. We listen, we deliver, we exceed expectations.</p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Customer First</h3>
-              <p className="text-muted-foreground">Your satisfaction is our top priority. We listen, we deliver, we exceed expectations.</p>
-            </div>
-            <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
-              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                 <Target size={24} />
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
+                   <Target size={24} />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Excellence</h3>
+                <p className="text-muted-foreground">We strive for excellence in every repair, design and product we offer. Quality is never compromised.</p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Excellence</h3>
-              <p className="text-muted-foreground">We strive for excellence in every repair, design and product we offer. Quality is never compromised.</p>
-            </div>
-            <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
-              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                 <Award size={24} />
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
+                   <Award size={24} />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Expertise</h3>
+                <p className="text-muted-foreground">Our team consists of certified technicians and experienced designers with years of industry knowledge.</p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Expertise</h3>
-              <p className="text-muted-foreground">Our team consists of certified technicians and experienced designers with years of industry knowledge.</p>
-            </div>
-            <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
-              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
-                 <Heart size={24} />
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mb-4 mx-auto">
+                   <Heart size={24} />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Integrity</h3>
+                <p className="text-muted-foreground">Honesty and transparency guide our business. We provide fair pricing and genuine advice.</p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">Integrity</h3>
-               <p className="text-muted-foreground">Honesty and transparency guide our business. We provide fair pricing and genuine advice.</p>
             </div>
-          </div>
         </div>
       </section>
 
@@ -120,6 +124,7 @@ const About = () => {
       <WhyChooseUs />
 
       <Footer />
+      <BottomNav />
       </div>
     </div>
   );

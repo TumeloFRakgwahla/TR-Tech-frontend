@@ -5,7 +5,7 @@ export function ProductTabs({ product, specifications, reviews }) {
   return (
     <Card className="mb-14 rounded-xl border border-border bg-muted shadow-sm">
       <Tabs defaultValue="description" className="p-6">
-        <TabsList className="w-full justify-start border-b border-border rounded-none h-auto p-0 bg-transparent gap-0">
+        <TabsList className="w-full justify-start border-b border-border rounded-none h-auto p-0 bg-transparent gap-0 overflow-x-auto scrollbar-hide flex-nowrap">
           {[
             { value: 'description', label: 'Description' },
             { value: 'specifications', label: 'Specifications' },

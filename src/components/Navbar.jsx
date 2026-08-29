@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Heart, User, LogOut, ShoppingCart, Search } from 'lucide-react';
+import { Menu, X, Heart, User, LogOut, ShoppingCart, Search, ChevronDown, Smartphone, Wrench, Mail, Info, Home, ShoppingBag, PhoneIcon, WrenchIcon, Phone, Book } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MiniCart } from './MiniCart';
 import { useCart } from './CartContext';
@@ -7,6 +7,7 @@ import { useWishlist } from './WishlistContext';
 import { useAuth } from './AuthContext';
 import { useAuthModal } from './AuthModalContext';
 import { toast } from 'sonner';
+import { categoriesAPI } from '../services/api';
 
 const NavLink = ({ to, children, className = '', onClick }) => {
   const location = useLocation();
@@ -34,6 +35,8 @@ const Navbar = () => {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const searchInputRef = useRef(null);
   const { wishlistCount } = useWishlist();
   const { totalItems } = useCart();
@@ -69,6 +72,28 @@ const Navbar = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchExpanded, searchQuery, navigate]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await categoriesAPI.getActive();
+        if (res.success && res.data && res.data.length > 0) {
+          setCategories(res.data.map(c => c.name));
+        }
+      } catch {
+        // keep empty — mobile menu degrades gracefully
+      }
+    };
+    fetchCategories();
+
+    const handler = (e) => {
+      if (e.detail?.type === 'categories') {
+        fetchCategories();
+      }
+    };
+    window.addEventListener('admin-data-changed', handler);
+    return () => window.removeEventListener('admin-data-changed', handler);
+  }, []);
 
   const handleAccountClick = () => {
     if (isAuthenticated) {
@@ -269,7 +294,7 @@ const Navbar = () => {
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
@@ -286,46 +311,110 @@ const Navbar = () => {
           />
           <div
             id="mobile-menu"
-            className={`absolute inset-x-0 top-16 bg-primary border-t border-primary-foreground/20 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto transition-transform duration-300 ${
+            className={`absolute inset-x-0 top-16 bg-primary border-t border-primary-foreground/20 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto transition-transform duration-200 ${
               isOpen ? 'translate-y-0' : '-translate-y-4'
             }`}
           >
-            <div className="px-4 pt-4 pb-6 space-y-1">
-              <NavLink to="/" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Home</NavLink>
-              <NavLink to="/about" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>About</NavLink>
-              <NavLink to="/services" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Services</NavLink>
-              <NavLink to="/shop" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Shop</NavLink>
-              <NavLink to="/wishlist" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Wishlist</NavLink>
-              <NavLink to="/contact" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Contact</NavLink>
-              <div className="px-4 py-3">
-                <Link
-                  to="/book-repair"
-                  className="block w-full text-center bg-white text-primary px-4 py-3.5 rounded-md font-medium hover:bg-gray-300 transition-colors min-h-[48px] flex items-center justify-center"
-                  onClick={() => setIsOpen(false)}
+
+            <div className="px-4 pt-2 pb-6 space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2">Main</p>
+              <NavLink to="/" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                <Home className="h-5 w-5 mr-3" />Home
+              </NavLink>
+              <NavLink to="/shop" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                <ShoppingBag className="h-5 w-5 mr-3" />Shop
+              </NavLink>
+
+              <button
+                onClick={() => setCategoriesOpen(!categoriesOpen)}
+                className="w-full flex items-center justify-between px-4 py-3.5 text-lg text-primary-foreground hover:text-accent transition-colors min-h-[48px]"
+              >
+                <span className="flex items-center">
+                  <Smartphone className="h-5 w-5 mr-3" />Categories
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {categoriesOpen && categories.length > 0 && (
+                <div className="pl-12 pr-4 space-y-1">
+                  {categories.map(cat => (
+                    <Link
+                      key={cat}
+                      to={`/shop?category=${encodeURIComponent(cat)}`}
+                      className="block py-2.5 text-sm text-primary-foreground/80 hover:text-accent transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {cat}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2 mt-4">Services</p>
+              <NavLink to="/services" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                <Wrench className="h-5 w-5 mr-3" />Services
+              </NavLink>
+              <Link
+                to="/book-repair"
+                className="block px-4 py-3.5 text-lg text-accent hover:text-white transition-colors min-h-[48px] flex items-center font-medium"
+                onClick={() => setIsOpen(false)}
+              >
+                <Book className="h-5 w-5 mr-3" />Book a Repair
+              </Link>
+              <Link
+                to="/account/repairs"
+                className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center"
+                onClick={() => setIsOpen(false)}
+              >
+                <Mail className="h-5 w-5 mr-3" />Track Repair
+              </Link>
+
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2 mt-4">Support</p>
+              <NavLink to="/contact" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                <Phone className="h-5 w-5 mr-3" />Contact
+              </NavLink>
+              <NavLink to="/about" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                <Info className="h-5 w-5 mr-3" />About
+              </NavLink>
+            </div>
+
+            {isAuthenticated ? (
+              <div className="px-4 pb-6 space-y-1 border-t border-primary-foreground/10 pt-4">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2">Account</p>
+                <NavLink to="/account" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                  <User className="h-5 w-5 mr-3" />My Account
+                </NavLink>
+                <NavLink to="/account/orders" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                  <ShoppingCart className="h-5 w-5 mr-3" />Orders
+                </NavLink>
+                <NavLink to="/account/repairs" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
+                  <Wrench className="h-5 w-5 mr-3" />Repairs
+                </NavLink>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-3.5 text-lg text-red-400 hover:text-red-300 transition-colors min-h-[48px] flex items-center"
                 >
-                  Book Repair
-                </Link>
+                  <LogOut className="h-5 w-5 mr-3" />Logout
+                </button>
               </div>
-              {isAuthenticated ? (
-                <>
-                  <NavLink to="/account" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>My Account</NavLink>
-                  <NavLink to="/account/orders" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Orders</NavLink>
-                  <NavLink to="/account/repairs" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>Repairs</NavLink>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-3.5 text-lg text-red-400 hover:text-red-300 transition-colors min-h-[48px] flex items-center"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
+            ) : (
+              <div className="px-4 pb-6 border-t border-primary-foreground/10 pt-4">
                 <button
                   onClick={handleAccountClick}
                   className="block w-full text-left px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center"
                 >
-                 My Account
+                  <User className="h-5 w-5 mr-3" />My Account
                 </button>
-              )}
+              </div>
+            )}
+
+            <div className="sticky bottom-0 bg-primary p-4 border-t border-primary-foreground/20">
+              <Link
+                to="/book-repair"
+                className="block w-full text-center bg-white text-primary py-3.5 rounded-md font-semibold hover:bg-gray-200 transition-colors min-h-[48px] flex items-center justify-center"
+                onClick={() => setIsOpen(false)}
+              >
+                Book a Repair
+              </Link>
             </div>
           </div>
         </div>

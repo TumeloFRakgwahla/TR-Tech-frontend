@@ -15,6 +15,7 @@
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { contactAPI } from '../services/api';
@@ -175,7 +176,7 @@ ${sanitizeWhatsAppInput(formData.message)}
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
@@ -192,11 +193,19 @@ ${sanitizeWhatsAppInput(formData.message)}
         {/* Contact Methods */}
         <section className="py-16 bg-muted">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Get in Touch
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Choose the method that works best for you.
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
               {contactMethods.map((method, index) => (
                 <div
                   key={index}
-                  className="bg-card text-card-foreground p-8 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer hover:-translate-y-1"
+                  className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer hover:-translate-y-1"
                   onClick={method.action}
                 >
                   <div className="bg-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -214,11 +223,13 @@ ${sanitizeWhatsAppInput(formData.message)}
 
             {/* Contact Form */}
             <div className="max-w-3xl mx-auto">
-              <div className="bg-card text-card-foreground p-8 rounded-lg shadow-md" data-testid="contact-form">
-                <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
-                <p className="text-muted-foreground text-sm mb-6">
-                  Fill out the form below and we'll get back to you as soon as possible
+              <div className="text-center mb-10">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Send us a Message</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Fill out the form below and we'll get back to you as soon as possible.
                 </p>
+              </div>
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md" data-testid="contact-form">
                 <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -329,8 +340,16 @@ ${sanitizeWhatsAppInput(formData.message)}
         {/* Business Hours & Location */}
         <section className="py-16 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-card text-card-foreground p-8 rounded-lg shadow-md">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Visit Us
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Find our business hours and connect with us on social media.
+              </p>
+            </div>
+            <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="bg-primary p-3 rounded-full">
                     <Clock className="h-6 w-6 text-primary-foreground" />
@@ -360,7 +379,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                 </div>
               </div>
 
-              <div className="bg-card text-card-foreground p-8 rounded-lg shadow-md">
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md">
                 <div className="flex items-start gap-4">
                   <div className="bg-primary p-3 rounded-full">
                     <MapPin className="h-6 w-6 text-primary-foreground" />
@@ -371,25 +390,25 @@ ${sanitizeWhatsAppInput(formData.message)}
                       Stay updated with our latest products, services, and special offers on social media.
                     </p>
                      <div className="flex gap-4">
-                       <a
-                         href="https://www.facebook.com/trtechrepairsanddesigns"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
-                         aria-label="Follow us on Facebook"
-                       >
-                         <Facebook className="h-6 w-6 text-primary-foreground" />
-                       </a>
-                       <a
-                         href="https://www.instagram.com/trtechrepairsanddesigns"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
-                         aria-label="Follow us on Instagram"
-                       >
-                         <Instagram className="h-6 w-6 text-primary-foreground" />
-                       </a>
-                     </div>
+                        <a
+                          href="https://www.facebook.com/trtechrepairsanddesigns"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
+                          aria-label="Follow us on Facebook"
+                        >
+                          <Facebook className="h-6 w-6 text-primary-foreground" />
+                        </a>
+                        <a
+                          href="https://www.instagram.com/trtechrepairsanddesigns"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
+                          aria-label="Follow us on Instagram"
+                        >
+                          <Instagram className="h-6 w-6 text-primary-foreground" />
+                        </a>
+                      </div>
                   </div>
                 </div>
               </div>
@@ -419,6 +438,7 @@ ${sanitizeWhatsAppInput(formData.message)}
 
       </div>
       <Footer />
+      <BottomNav />
     </div>
   );
 };

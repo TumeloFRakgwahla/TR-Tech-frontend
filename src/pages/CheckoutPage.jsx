@@ -186,7 +186,7 @@ function CheckoutPage() {
             <OrderSummary />
 
             {/* Trust Signals */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
                 <ShieldCheck className="h-6 w-6 text-primary mb-1" />
                 <span className="text-xs font-medium">Secure</span>

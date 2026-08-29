@@ -110,24 +110,24 @@ export function ProductInfo({
         >
           <button
             type="button"
-            className="px-3 py-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+            className="px-4 py-3 text-muted-foreground hover:text-foreground disabled:opacity-40 min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={onDecrease}
             disabled={!inStock}
             aria-label="Decrease quantity"
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Minus className="h-4 w-4" />
           </button>
-          <span className="px-4 py-2 text-sm font-semibold border-x border-border min-w-[40px] text-center">
+          <span className="px-4 py-3 text-sm font-semibold border-x border-border min-w-[48px] text-center">
             {quantity}
           </span>
           <button
             type="button"
-            className="px-3 py-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+            className="px-4 py-3 text-muted-foreground hover:text-foreground disabled:opacity-40 min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={onIncrease}
             disabled={!inStock}
             aria-label="Increase quantity"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>

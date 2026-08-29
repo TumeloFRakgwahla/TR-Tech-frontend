@@ -33,7 +33,7 @@ const NavButton = ({ to, icon: Icon, label, badge, onClick, isActive }) => {
           </span>
         )}
       </div>
-      <span className={`text-[10px] mt-0.5 leading-tight ${isActive ? 'font-semibold' : 'font-medium'}`}>
+      <span className={`text-xs mt-0.5 leading-snug ${isActive ? 'font-semibold' : 'font-medium'}`}>
         {label}
       </span>
     </Link>
@@ -61,7 +61,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur-md border-t border-border z-40 md:hidden safe-area-inset-bottom"
+      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 md:hidden safe-area-inset-bottom"
       role="navigation"
       aria-label="Bottom navigation"
     >

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import {Wrench, ShoppingCart, Smartphone, Laptop, Code, Palette, Settings, CheckCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { servicesAPI } from '../services/api';
@@ -78,7 +79,7 @@ const Services = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
@@ -223,6 +224,7 @@ const Services = () => {
 
       </div>
       <Footer />
+      <BottomNav />
     </div>
   );
 };
