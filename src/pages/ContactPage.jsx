@@ -1,15 +1,23 @@
 /**
- * Contact Page Component
+ * TR-Tech — Contact Page
  *
- * This page provides multiple ways for customers to get in touch with TR-Tech.
- * It includes:
- * - Contact methods (phone, WhatsApp, email) as clickable cards
- * - A contact form that sends messages via WhatsApp
- * - Business hours and location information
- * - Social media links
- * - A prominent WhatsApp chat button in the CTA section
+ * Multi-channel contact page with the following sections:
+ * 1. Hero — "Get in Touch" header with gradient background
+ * 2. Contact Methods — clickable cards for phone, WhatsApp, and email
+ * 3. Contact Form — validated form that submits to backend and opens WhatsApp
+ *    with a pre-filled message. Includes a honeypot field for spam prevention.
+ * 4. Business Hours & Location — operating hours and social media links
+ * 5. CTA — prominent WhatsApp chat button
  *
- * The form collects user information and opens WhatsApp with a pre-filled message.
+ * Form validation:
+ * - name and message are required
+ * - email is validated for format if provided
+ * - honeypot field blocks bot submissions
+ *
+ * On success:
+ * - Form data is posted to the backend
+ * - WhatsApp opens with a formatted message
+ * - Form resets to empty state
  */
 
 import { useState } from 'react';
@@ -24,18 +32,21 @@ import { WHATSAPP_NUMBER } from '../constants';
 import { toast } from 'sonner';
 
 const Contact = () => {
+  // Form state: tracks all field values including honeypot for spam prevention
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     subject: '',
     message: '',
-    _honeypot: '',
+    _honeypot: '', // Hidden field - should remain empty (bots tend to fill all fields)
   });
 
+  // Validation state: errors keyed by field name, touched tracks blur events
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
+  // Update field value and clear its error if user starts typing
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -43,11 +54,13 @@ const Contact = () => {
     }
   };
 
+  // Mark field as touched and validate on blur
   const handleBlur = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     validateField(field);
   };
 
+  // Field-level validation: name (required), message (required), email (format if provided)
   const validateField = (field) => {
     const newErrors = { ...errors };
 
@@ -81,6 +94,7 @@ const Contact = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Full form validation: runs on submit, marks all fields as touched
   const validateForm = () => {
     const newErrors = {};
 
@@ -101,9 +115,11 @@ const Contact = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Form submission: validates, checks honeypot, submits to API, opens WhatsApp
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Honeypot check: if filled, it's likely a bot submission
     if (formData._honeypot) {
       toast.error('Spam detected. Please do not fill out hidden fields.');
       return;
@@ -117,6 +133,7 @@ const Contact = () => {
       const response = await contactAPI.submit(formData);
 
       if (response.success) {
+        // Build pre-filled WhatsApp message with sanitized form data
         const message = `
 Hi! Contact Form Submission:
 
@@ -133,6 +150,7 @@ ${sanitizeWhatsAppInput(formData.message)}
 
         toast.success('Message sent successfully! Redirecting to WhatsApp...');
 
+        // Reset form to empty state after successful submission
         setFormData({
           name: '',
           email: '',
@@ -152,6 +170,7 @@ ${sanitizeWhatsAppInput(formData.message)}
     }
   };
 
+  // Contact methods displayed as clickable cards (phone, WhatsApp, email)
   const contactMethods = [
     {
       icon: Phone,

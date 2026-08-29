@@ -1,3 +1,30 @@
+/**
+ * API Client Test Suite
+ * ---------------------
+ * Tests for the centralized API client located in `src/services/api.js`.
+ *
+ * The API client wraps the native `fetch` function and provides helper
+ * objects (productsAPI, authAPI, contactAPI, ordersAPI) that handle:
+ *   - Building correct endpoint URLs from API_BASE_URL
+ *   - Attaching credentials ('include') for cookie-based auth
+ *   - Automatically fetching and caching CSRF tokens for write requests
+ *   - Propagating meaningful error messages from the server
+ *
+ * Structure:
+ *   1. Mock & helper setup (mockFetch, createMockResponse, CSRF_URL)
+ *   2. Top-level "API Client" suite with beforeEach/afterEach for isolation
+ *   3. Nested suites for each API domain: productsAPI, authAPI, contactAPI,
+ *      ordersAPI, error handling, and clearCsrfCache
+ *
+ * Mocking strategy:
+ *   - `mockFetch` is a vitest mock function that replaces the global `fetch`.
+ *   - `vi.stubGlobal('fetch', mockFetch)` swaps in the mock before each test.
+ *   - `mockResolvedValueOnce` is used for CSRF-then-request sequences because
+ *     the API client makes two sequential fetches (token fetch, then the
+ *     actual request).
+ *   - `vi.unstubAllGlobals()` restores the real fetch after each test.
+ */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   productsAPI,
@@ -8,10 +35,22 @@ import {
 } from '../services/api';
 import { API_BASE_URL } from '../constants';
 
+// Master mock for the global fetch function; each test controls its return value
 const mockFetch = vi.fn();
 
+// CSRF endpoint is derived from API_BASE_URL by stripping the /v1 suffix
 const CSRF_URL = `${API_BASE_URL.replace(/\/v1\/?$/, '')}/csrf-token`;
 
+/**
+ * Factory that builds a realistic Response-like object for mocked fetch.
+ *
+ * @param {Object} opts
+ * @param {number} opts.status - HTTP status code (default 200)
+ * @param {Object|string} opts.body - Response payload (default {})
+ * @param {string} opts.url - Request URL (default '/api/v1/test')
+ * @param {string} opts.method - HTTP method (default 'GET')
+ * @returns {Object} A mock Response with ok, status, json(), text(), headers, etc.
+ */
 function createMockResponse({ status = 200, body = {}, url = '/api/v1/test', method = 'GET' } = {}) {
   return {
     ok: status >= 200 && status < 300,
@@ -27,12 +66,16 @@ function createMockResponse({ status = 200, body = {}, url = '/api/v1/test', met
 
 describe('API Client', () => {
   beforeEach(() => {
+    // Reset the mock call history so assertions from one test don't leak into the next
     mockFetch.mockReset();
+    // Clear any cached CSRF token so each test starts with a fresh token fetch
     clearCsrfCache();
+    // Replace the global fetch with our mock for the duration of each test
     vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
+    // Restore the original global fetch after each test to avoid side effects
     vi.unstubAllGlobals();
   });
 

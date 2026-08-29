@@ -1,3 +1,16 @@
+/**
+ * TR-Tech — About Page
+ *
+ * Brand story and values page structured into four major sections:
+ * 1. Hero — gradient header with mission statement
+ * 2. Our Story — company history and evolution narrative
+ * 3. Our Values — four core principles displayed as icon cards
+ * 4. Mission & Vision — side-by-side mission/vision cards
+ *
+ * Also includes the shared WhyChooseUs component and standard page shell
+ * (Navbar, Footer, BottomNav) for consistent UX.
+ */
+
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
@@ -10,7 +23,7 @@ const About = () => {
       <Navbar />
       <div className="pt-20 md:pb-0 content-wrapper">
 
-      {/* Hero Section */}
+      {/* Hero Section - gradient banner with company tagline */}
       <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -22,7 +35,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Our Story */}
+      {/* Our Story - company history and evolution narrative */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -57,7 +70,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Our Values */}
+      {/* Our Values - four core principles as icon cards with Lucide icons */}
       <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -101,7 +114,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Mission & Vision */}
+      {/* Mission & Vision - side-by-side cards with company purpose */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -121,6 +134,7 @@ const About = () => {
         </div>
       </section>
 
+      {/* Shared Why Choose Us component - competitive advantages */}
       <WhyChooseUs />
 
       <Footer />

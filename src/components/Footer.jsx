@@ -1,10 +1,17 @@
 /**
- * Footer Component
+ * TR-Tech — Site Footer
  *
- * High-end e-commerce footer with refined typography,
- * organized navigation columns, newsletter signup,
- * social media presence, and payment method badges.
- * Maintains brand consistency via the project's CSS variable system.
+ * Comprehensive e-commerce footer with:
+ * - Brand logo and company description
+ * - Social media links (Facebook, Instagram, TikTok)
+ * - Dynamic shop category links fetched from the backend
+ * - Static navigation columns: Shop, Company, Help & Support
+ * - Newsletter signup form that redirects to WhatsApp
+ * - Payment method badges (Visa, Mastercard, PayFast, Ozow)
+ * - Copyright notice with dynamic year
+ *
+ * The shop categories are fetched on mount and refreshed when admin
+ * data changes via the `admin-data-changed` custom event.
  */
 
 import React, { useState, useEffect } from 'react';

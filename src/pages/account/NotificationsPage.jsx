@@ -1,3 +1,20 @@
+/**
+ * NotificationsPage.jsx
+ *
+ * Purpose: Allow the authenticated user to configure how they receive notifications.
+ * Structure:
+ *   - NotificationsPage component: form with toggle switches for email/SMS/WhatsApp/push,
+ *     plus a frequency radio group
+ *
+ * Features:
+ * - Toggle switches for email order updates, promotions, newsletter
+ * - Toggle switches for SMS order updates and promotions
+ * - Toggle switch for WhatsApp repair updates
+ * - Frequency selection (instant / daily / weekly digest)
+ * - Preferences loaded from AccountContext on mount with useEffect
+ * - Save button triggers updateNotificationPreferences via context
+ */
+
 import React, { useState } from 'react';
 import { useAccount } from '../../components/AccountContext';
 import { Card } from '../../components/ui/card';
@@ -5,8 +22,12 @@ import { Button } from '../../components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 export function NotificationsPage() {
+  // Get notification preferences and update action from account context
   const { notifications, updateNotificationPreferences, loading } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Local form state for all notification preference toggles
+  // Default values ensure toggles show sensible defaults before data loads
   const [prefs, setPrefs] = useState({
     emailOrderUpdates: true,
     emailPromotions: true,
@@ -18,6 +39,7 @@ export function NotificationsPage() {
     frequency: 'instant',
   });
 
+  // Sync local prefs with server-loaded notifications when they arrive
   React.useEffect(() => {
     if (notifications) {
       setPrefs({
@@ -33,10 +55,12 @@ export function NotificationsPage() {
     }
   }, [notifications]);
 
+  // Generic toggle handler that flips a boolean preference by key
   const handleToggle = (key) => {
     setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Save all preferences to the server
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -44,6 +68,7 @@ export function NotificationsPage() {
     setIsLoading(false);
   };
 
+  // Loading state while preferences are being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -55,15 +80,19 @@ export function NotificationsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-2xl">
+        {/* Page header */}
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">Notification Preferences</h1>
           <p className="text-lg text-muted-foreground mt-1">Choose how you want to receive updates</p>
         </div>
 
+        {/* Main form wrapping all preference sections */}
         <form onSubmit={handleSubmit}>
+          {/* Email notifications section */}
           <Card className="p-6 mb-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h2 className="text-lg font-semibold text-foreground mb-4">Email Notifications</h2>
             <div className="space-y-4">
+              {/* Each item renders a label + toggle switch */}
               {[
                 { key: 'emailOrderUpdates', label: 'Order Updates', desc: 'Receive emails about your order status' },
                 { key: 'emailPromotions', label: 'Promotions', desc: 'Get notified about deals and offers' },
@@ -74,6 +103,7 @@ export function NotificationsPage() {
                     <p className="font-medium text-foreground">{item.label}</p>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
+                  {/* Custom toggle switch styled as a sliding pill */}
                   <button
                     type="button"
                     onClick={() => handleToggle(item.key)}
@@ -92,6 +122,7 @@ export function NotificationsPage() {
             </div>
           </Card>
 
+          {/* SMS notifications section */}
           <Card className="p-6 mb-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h2 className="text-lg font-semibold text-foreground mb-4">SMS Notifications</h2>
             <div className="space-y-4">
@@ -122,6 +153,7 @@ export function NotificationsPage() {
             </div>
           </Card>
 
+          {/* WhatsApp notifications section */}
           <Card className="p-6 mb-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h2 className="text-lg font-semibold text-foreground mb-4">WhatsApp Notifications</h2>
             <div className="flex items-center justify-between">
@@ -145,6 +177,7 @@ export function NotificationsPage() {
             </div>
           </Card>
 
+          {/* Notification frequency section with radio buttons */}
           <Card className="p-6 mb-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
             <h2 className="text-lg font-semibold text-foreground mb-4">Notification Frequency</h2>
             <div className="space-y-2">
@@ -178,6 +211,7 @@ export function NotificationsPage() {
             </div>
           </Card>
 
+          {/* Submit button for saving all preferences */}
           <Button type="submit" disabled={isLoading} className="bg-primary text-primary-foreground hover:bg-primary/90">
             {isLoading ? (
               <>

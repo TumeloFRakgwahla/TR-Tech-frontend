@@ -1,3 +1,19 @@
+/**
+ * ProfilePage.jsx
+ *
+ * Purpose: Allow the authenticated user to view and update their profile information.
+ * Structure:
+ *   - ProfilePage component: form with fields for name, email, phone, DOB, and gender
+ *
+ * Features:
+ * - Controlled form inputs for first name, last name, email, phone, date of birth, gender
+ * - Profile data loaded from AccountContext (profile) with fallback to AuthContext (user)
+ * - Date ofBirth formatted to YYYY-MM-DD for date input compatibility
+ * - Avatar initial generated from first name
+ * - Save action calls updateProfile via context and redirects to /account on success
+ * - Cancel button navigates back without saving
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccount } from '../../components/AccountContext';
@@ -10,9 +26,13 @@ import { User, Mail, Phone, Loader2 } from 'lucide-react';
 
 export function ProfilePage() {
   const navigate = useNavigate();
+  // Get user from auth context as fallback for initial form values
   const { user } = useAuth();
+  // Get profile data and update action from account context
   const { profile, updateProfile, loading } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Local form state for profile fields
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -22,6 +42,7 @@ export function ProfilePage() {
     gender: 'prefer-not-to-say',
   });
 
+  // Populate form when profile or user data loads
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -29,10 +50,12 @@ export function ProfilePage() {
         lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
+        // Extract YYYY-MM-DD portion for date input value
         dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.split('T')[0] : '',
         gender: profile.gender || 'prefer-not-to-say',
       });
     } else if (user) {
+      // Fallback to auth user data if profile not yet loaded
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -44,10 +67,12 @@ export function ProfilePage() {
     }
   }, [profile, user]);
 
+  // Generic change handler for all form inputs
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Submit handler: calls updateProfile and redirects on success
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -67,6 +92,7 @@ export function ProfilePage() {
     }
   };
 
+  // Loading state while profile is being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -78,6 +104,7 @@ export function ProfilePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-2xl">
+        {/* Page header */}
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">Profile Information</h1>
           <p className="text-lg text-muted-foreground mt-1">Update your personal details and preferences</p>
@@ -85,7 +112,9 @@ export function ProfilePage() {
 
         <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Profile picture section with initial avatar */}
             <div className="flex items-center gap-4 mb-6">
+              {/* Avatar circle with first letter of first name */}
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
                 {(formData.firstName || 'U').charAt(0)}
               </div>
@@ -95,6 +124,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* First name and last name side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName" className="text-foreground">First Name</Label>
@@ -123,6 +153,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* Email address with mail icon */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">Email Address</Label>
               <div className="relative">
@@ -139,6 +170,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* Phone number with phone icon */}
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
               <div className="relative">
@@ -155,6 +187,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* Date of birth and gender side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dateOfBirth" className="text-foreground">Date of Birth</Label>
@@ -184,6 +217,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* Form actions: cancel or save */}
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"

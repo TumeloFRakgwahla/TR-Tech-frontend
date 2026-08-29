@@ -1,3 +1,25 @@
+/**
+ * TR-Tech — Book a Repair Page
+ *
+ * Two-section page for submitting repair requests:
+ * 1. Hero — repair booking intro with icon and headline
+ * 2. Booking Form — multi-field form capturing customer info, device details,
+ *    and issue description. On successful submission, the request is saved
+ *    via the backend API and the user is redirected to WhatsApp with a
+ *    pre-filled message containing the repair ID and issue summary.
+ * 3. What Happens Next — 4-step process visualization
+ * 4. Why Book With TR-Tech — trust section highlighting expertise and warranty
+ *
+ * Form validation:
+ * - Required: name, phone, device type, issue description
+ * - Optional: email, brand, model, additional info
+ *
+ * After submission:
+ * - API stores the repair request
+ * - WhatsApp opens with a pre-filled message for immediate follow-up
+ * - Form resets on success
+ */
+
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -10,6 +32,7 @@ import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
 import { WHATSAPP_NUMBER } from '../constants';
 
 export function RepairsPage() {
+  // Form state: captures customer info, device details, and issue description
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,6 +45,7 @@ export function RepairsPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Device type options for the select dropdown
   const deviceTypes = [
     'Smartphone',
     'Laptop',
@@ -30,13 +54,16 @@ export function RepairsPage() {
     'Other',
   ];
 
+  // Generic field change handler using key/value pattern
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Form submission: validates required fields, submits to API, opens WhatsApp
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Client-side validation for required fields
     if (!formData.name || !formData.phone || !formData.deviceType || !formData.issue) {
       toast.error('Please fill in all required fields');
       return;
@@ -62,6 +89,7 @@ export function RepairsPage() {
       });
 
       if (response.success) {
+        // Open WhatsApp with pre-filled message including repair ID for reference
         const repairId = response.data?._id;
         const message = `Hi! I've just submitted a repair request${repairId ? ` (ID: ${repairId})` : ''}. ${sanitizeWhatsAppInput(formData.issue)}`;
         window.open(createWhatsAppUrl(message, WHATSAPP_NUMBER), '_blank');

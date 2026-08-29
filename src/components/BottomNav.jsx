@@ -1,3 +1,16 @@
+/**
+ * TR-Tech — Mobile Bottom Navigation Bar
+ *
+ * Fixed navigation bar shown only on mobile viewports (below md breakpoint).
+ * Provides quick access to the five most important app sections:
+ * Home, Shop, Cart, Saved (wishlist), and Account.
+ *
+ * Behavior:
+ * - Active tab is highlighted with a top indicator bar and stronger icon stroke.
+ * - Cart and wishlist tabs show badge counts for items in those collections.
+ * - Account tab redirects unauthenticated users to the auth modal instead of /account.
+ */
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, ShoppingCart, Heart, User } from 'lucide-react';
@@ -6,6 +19,10 @@ import { useWishlist } from './WishlistContext';
 import { useAuth } from './AuthContext';
 import { useAuthModal } from './AuthModalContext';
 
+/**
+ * Individual bottom nav button.
+ * Renders an icon + label with active-state styling and optional badge.
+ */
 const NavButton = ({ to, icon: Icon, label, badge, onClick, isActive }) => {
   return (
     <Link
@@ -40,6 +57,10 @@ const NavButton = ({ to, icon: Icon, label, badge, onClick, isActive }) => {
   );
 };
 
+/**
+ * BottomNav renders the fixed bottom tab bar on mobile.
+ * Hidden on md+ breakpoints via `md:hidden`.
+ */
 export function BottomNav() {
   const location = useLocation();
   const { totalItems } = useCart();
@@ -47,11 +68,20 @@ export function BottomNav() {
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useAuthModal();
 
+  /**
+   * Determines if a given path is "active".
+   * Homepage matches exactly; all other paths match by prefix
+   * so nested routes (e.g. /account/orders) highlight the Account tab.
+   */
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
+  /**
+   * Intercept navigation to the Account tab.
+   * If the user is not authenticated, open the auth modal instead.
+   */
   const handleAccountClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();

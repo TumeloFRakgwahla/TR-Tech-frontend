@@ -1,3 +1,21 @@
+/**
+ * TR-Tech — Primary Navigation Bar
+ *
+ * A responsive navbar that adapts between desktop and mobile layouts.
+ * Key responsibilities:
+ * - Global site navigation with active-link highlighting
+ * - Persistent cart, wishlist, and account state from React contexts
+ * - Expandable mobile search overlay
+ * - Slide-out mobile menu with category drill-down
+ * - Account dropdown for authenticated users
+ *
+ * State:
+ * - isOpen: controls mobile menu visibility and body scroll lock
+ * - accountDropdownOpen: desktop account menu dropdown
+ * - searchExpanded: mobile search bar expansion
+ * - categories/categoriesOpen: fetched categories for mobile menu
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Heart, User, LogOut, ShoppingCart, Search, ChevronDown, Smartphone, Wrench, Mail, Info, Home, ShoppingBag, PhoneIcon, WrenchIcon, Phone, Book } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -9,6 +27,10 @@ import { useAuthModal } from './AuthModalContext';
 import { toast } from 'sonner';
 import { categoriesAPI } from '../services/api';
 
+/**
+ * Individual navigation link with active-state underline indicator.
+ * Matches exact path for desktop links and parent-path for mobile sections.
+ */
 const NavLink = ({ to, children, className = '', onClick }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -30,6 +52,12 @@ const NavLink = ({ to, children, className = '', onClick }) => {
   );
 };
 
+/**
+ * Main Navbar component.
+ *
+ * Desktop layout: logo | nav links | actions (wishlist, cart, account)
+ * Mobile layout: logo | search, wishlist, cart, account icons | hamburger menu
+ */
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
@@ -38,12 +66,18 @@ const Navbar = () => {
   const [categories, setCategories] = useState([]);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const searchInputRef = useRef(null);
+
+  // Context values drive badge counts and auth state across the navbar
   const { wishlistCount } = useWishlist();
   const { totalItems } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
 
+  /**
+   * Lock body scroll when mobile menu is open to prevent background scrolling.
+   * Cleanup resets overflow on unmount or menu close.
+   */
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -55,12 +89,18 @@ const Navbar = () => {
     };
   }, [isOpen]);
 
+  /**
+   * Auto-focus the search input when the mobile search bar expands.
+   */
   useEffect(() => {
     if (searchExpanded && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [searchExpanded]);
 
+  /**
+   * Navigate to shop with search query when Enter is pressed in mobile search.
+   */
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (searchExpanded && e.key === 'Enter' && searchQuery.trim()) {
@@ -73,6 +113,10 @@ const Navbar = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchExpanded, searchQuery, navigate]);
 
+  /**
+   * Fetch active categories from the backend for the mobile menu drill-down.
+   * Also listens for admin data changes to refresh categories dynamically.
+   */
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -95,6 +139,10 @@ const Navbar = () => {
     return () => window.removeEventListener('admin-data-changed', handler);
   }, []);
 
+  /**
+   * Account button handler: navigate to account if logged in,
+   * otherwise open the auth modal. Always close mobile menu.
+   */
   const handleAccountClick = () => {
     if (isAuthenticated) {
       navigate('/account');
@@ -105,6 +153,9 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
+  /**
+   * Logout handler: clears auth state, closes dropdowns, shows toast.
+   */
   const handleLogout = () => {
     logout();
     setAccountDropdownOpen(false);
@@ -128,6 +179,7 @@ const Navbar = () => {
             </Link>
           </div>
 
+          {/* Desktop navigation links and action buttons */}
           <div className="hidden md:flex items-center space-x-6">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/about">About</NavLink>
@@ -215,6 +267,7 @@ const Navbar = () => {
             )}
           </div>
 
+          {/* Mobile action icons */}
           <div className="md:hidden flex items-center">
             {searchExpanded ? (
               <div className="absolute inset-x-0 top-0 bg-primary p-2 z-50 flex items-center gap-2">
@@ -299,6 +352,7 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile slide-out menu with backdrop, categories, and account section */}
         <div
           className={`md:hidden fixed inset-0 z-40 transition-opacity duration-200 ${
             isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -377,6 +431,7 @@ const Navbar = () => {
               </NavLink>
             </div>
 
+            {/* Account section in mobile menu — conditional on auth state */}
             {isAuthenticated ? (
               <div className="px-4 pb-6 space-y-1 border-t border-primary-foreground/10 pt-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2">Account</p>
@@ -407,6 +462,7 @@ const Navbar = () => {
               </div>
             )}
 
+            {/* Sticky bottom CTA inside mobile menu */}
             <div className="sticky bottom-0 bg-primary p-4 border-t border-primary-foreground/20">
               <Link
                 to="/book-repair"

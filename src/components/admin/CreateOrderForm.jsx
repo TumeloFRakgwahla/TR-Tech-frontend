@@ -14,20 +14,35 @@ import { Plus, Trash2 } from 'lucide-react';
 import { productsAPI } from '../../services/api';
 import { PAYMENT_STATUSES } from '../../constants';
 
+/**
+ * CreateOrderForm
+ *
+ * Admin-only form for manually creating customer orders.
+ * Responsibilities:
+ * - Collect customer contact/shipping details
+ * - Allow dynamic line-item selection from the product catalog
+ * - Compute order total in real time
+ * - Submit structured payload to the parent via onSubmit callback
+ */
 export function CreateOrderForm({ onSubmit, onCancel }) {
+  // Customer information state
   const [products, setProducts] = useState([]);
   const [customerName, setCustomerName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+
+  // Order configuration state
   const [status, setStatus] = useState('Pending');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [paymentStatus, setPaymentStatus] = useState('Pending');
+
+  // Line items: each entry is a product selection with quantity override
   const [items, setItems] = useState([
     { productId: '', productName: '', quantity: 1, price: 0, image: '' },
   ]);
 
-  // Fetch products from backend
+  // Fetch products from backend so admins can select from catalog
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -42,6 +57,10 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
     fetchProducts();
   }, []);
 
+  /**
+   * Adds a new blank line item to the order.
+   * The form always starts with one item; admins add more as needed.
+   */
   const addItem = () => {
     setItems([
       ...items,
@@ -49,10 +68,21 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
     ]);
   };
 
+  /**
+   * Removes a line item by index.
+   * Prevents removing the last item so the form always has at least one row.
+   */
   const removeItem = (index) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
+  /**
+   * Updates a single field on a line item.
+   *
+   * Special handling for productId: when an admin selects a product
+   * from the dropdown, we auto-populate name, price, and image from
+   * the fetched product catalog so the admin doesn't have to type them.
+   */
   const updateItem = (index, field, value) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
@@ -69,6 +99,9 @@ export function CreateOrderForm({ onSubmit, onCancel }) {
     setItems(newItems);
   };
 
+  /**
+   * Computes the grand total for the order based on current line items.
+   */
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };

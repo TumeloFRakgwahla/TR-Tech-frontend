@@ -1,8 +1,21 @@
 /**
- * Home Page Component
+ * TR-Tech — Home Page
  *
- * Mobile-first homepage with product carousels, category navigation,
- * and trust signals optimized for conversion on small screens.
+ * Mobile-first landing page composed of high-conversion sections.
+ * Layout order is optimized for small screens and scroll-based engagement:
+ *
+ * 1. Navbar — fixed top navigation
+ * 2. Hero — primary value proposition with CTAs
+ * 3. CategoryChips — horizontal scroll for quick category browsing
+ * 4. Trending Now — featured product carousel
+ * 5. Promo Banner — free delivery offer
+ * 6. New Arrivals — newest products carousel
+ * 7. TrustSignals — quality/warranty/shipping badges
+ * 8. Services — service offering cards
+ * 9. Why-Choose-Us — competitive advantages
+ * 10. CTA — final call-to-action
+ * 11. Footer — site links and newsletter
+ * 12. BottomNav — mobile tab bar
  */
 
 import Navbar from '../components/Navbar';
@@ -32,7 +45,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Trending Products - horizontal scroll carousel */}
+        {/* Trending Products - horizontal scroll carousel fetching featured products */}
         <section className="py-6 md:py-8 bg-muted/30">
           <div className="max-w-7xl mx-auto">
             <div className="px-4 mb-4 flex items-center justify-between">
@@ -53,8 +66,8 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Promo Banner */}
-        <section className="py-4 bg-background">
+      {/* Promo Banner - free delivery offer CTA */}
+      <section className="py-4 bg-background">
           <div className="max-w-7xl mx-auto px-4">
             <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 md:p-8 text-primary-foreground">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -77,7 +90,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* New Arrivals - horizontal scroll carousel */}
+        {/* New Arrivals - horizontal scroll carousel fetching newest products */}
         <section className="py-6 md:py-8 bg-background">
           <div className="max-w-7xl mx-auto">
             <div className="px-4 mb-4 flex items-center justify-between">

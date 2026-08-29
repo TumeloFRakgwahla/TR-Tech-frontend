@@ -1,3 +1,20 @@
+/**
+ * AddressesPage.jsx
+ *
+ * Purpose: Manage the authenticated user's saved delivery and billing addresses.
+ * Structure:
+ *   - provinceOptions: static list of South African provinces
+ *   - AddressesPage component: handles listing, adding, editing, deleting, and setting default addresses
+ *
+ * Features:
+ * - Full CRUD for addresses via AccountContext (addAddress, updateAddress, deleteAddress, setDefaultAddress)
+ * - Inline form for create/edit with controlled inputs
+ * - Province dropdown restricted to South African provinces
+ * - Delivery instructions textarea for courier notes
+ * - Default address indicator with ring highlight and set-default action
+ * - Confirmation dialog before deletion
+ */
+
 import React, { useState } from 'react';
 import { useAccount } from '../../components/AccountContext';
 import { Card } from '../../components/ui/card';
@@ -7,16 +24,22 @@ import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { MapPin, Plus, Edit, Trash2, Check, Loader2 } from 'lucide-react';
 
+// Static list of South African provinces for the province dropdown
 const provinceOptions = [
   'Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal',
   'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West', 'Western Cape'
 ];
 
 export function AddressesPage() {
+  // Address CRUD actions and data from account context
   const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress, loading } = useAccount();
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Local UI state
+  const [isFormOpen, setIsFormOpen] = useState(false); // Whether the add/edit form is visible
+  const [editingId, setEditingId] = useState(null);   // ID of the address being edited (null = adding new)
+  const [isLoading, setIsLoading] = useState(false);  // Submit in-progress flag
+
+  // Form fields for the address
   const [formData, setFormData] = useState({
     type: 'delivery',
     street: '',
@@ -28,6 +51,7 @@ export function AddressesPage() {
     deliveryInstructions: '',
   });
 
+  // Reset form fields to defaults and clear editing state
   const resetForm = () => {
     setFormData({
       type: 'delivery',
@@ -42,6 +66,7 @@ export function AddressesPage() {
     setEditingId(null);
   };
 
+  // Populate form with an existing address for editing
   const handleEdit = (address) => {
     setFormData({
       type: address.type || 'delivery',
@@ -57,6 +82,7 @@ export function AddressesPage() {
     setIsFormOpen(true);
   };
 
+  // Submit handler: updates existing address or adds a new one based on editingId
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -72,16 +98,19 @@ export function AddressesPage() {
     }
   };
 
+  // Delete handler: confirms with user before calling deleteAddress
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
       await deleteAddress(id);
     }
   };
 
+  // Set an address as the user's default
   const handleSetDefault = async (id) => {
     await setDefaultAddress(id);
   };
 
+  // Loading state while addresses are being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -93,11 +122,13 @@ export function AddressesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-2xl">
+        {/* Page header with conditional Add Address button */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">Address Book</h1>
             <p className="text-lg text-muted-foreground mt-1">Manage your delivery and billing addresses</p>
           </div>
+          {/* Show Add button only when the form is closed */}
           {!isFormOpen && (
             <Button onClick={() => { resetForm(); setIsFormOpen(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" />
@@ -106,12 +137,15 @@ export function AddressesPage() {
           )}
         </div>
 
+        {/* Add/Edit form card */}
         {isFormOpen && (
           <Card className="p-6 mb-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            {/* Dynamic heading based on add vs edit mode */}
             <h2 className="text-lg font-semibold text-foreground mb-4">
               {editingId ? 'Edit Address' : 'Add New Address'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Address type selector */}
               <div className="space-y-2">
                 <Label htmlFor="type" className="text-foreground">Address Type</Label>
                 <select
@@ -126,6 +160,7 @@ export function AddressesPage() {
                 </select>
               </div>
 
+              {/* Street address */}
               <div className="space-y-2">
                 <Label htmlFor="street" className="text-foreground">Street Address</Label>
                 <Input
@@ -137,6 +172,7 @@ export function AddressesPage() {
                 />
               </div>
 
+              {/* City and Postal Code side by side */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city" className="text-foreground">City</Label>
@@ -160,6 +196,7 @@ export function AddressesPage() {
                 </div>
               </div>
 
+              {/* Province dropdown and Country input side by side */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="province" className="text-foreground">Province</Label>
@@ -185,6 +222,7 @@ export function AddressesPage() {
                 </div>
               </div>
 
+              {/* Optional delivery instructions for courier */}
               <div className="space-y-2">
                 <Label htmlFor="deliveryInstructions" className="text-foreground">Delivery Instructions (Optional)</Label>
                 <textarea
@@ -197,6 +235,7 @@ export function AddressesPage() {
                 />
               </div>
 
+              {/* Default address checkbox */}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -208,6 +247,7 @@ export function AddressesPage() {
                 <Label htmlFor="isDefault" className="text-sm text-foreground">Set as default address</Label>
               </div>
 
+              {/* Form actions: cancel or save */}
               <div className="flex gap-3 pt-2">
                 <Button
                   type="button"
@@ -230,8 +270,10 @@ export function AddressesPage() {
           </Card>
         )}
 
+        {/* Address list section */}
         <div className="space-y-4">
           {addresses.length === 0 ? (
+            /* Empty state when user has no saved addresses */
             <Card className="p-8 text-center bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground mb-4">No addresses saved yet</p>
@@ -241,24 +283,30 @@ export function AddressesPage() {
               </Button>
             </Card>
           ) : (
+            /* Render each saved address as a card */
             addresses.map((address) => (
               <Card key={address._id} className={`p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow ${address.isDefault ? 'ring-2 ring-primary' : ''}`}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
+                    {/* Type badge and default indicator */}
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="secondary" className="capitalize">{address.type}</Badge>
                       {address.isDefault && <Badge className="bg-primary text-primary-foreground">Default</Badge>}
                     </div>
+                    {/* Full address display */}
                     <p className="font-medium text-foreground">{address.street}</p>
                     <p className="text-muted-foreground">
                       {address.city}, {address.province} {address.postalCode}
                     </p>
                     <p className="text-sm text-muted-foreground">{address.country}</p>
+                    {/* Optional delivery instructions shown in italics */}
                     {address.deliveryInstructions && (
                       <p className="text-sm text-muted-foreground mt-2 italic">"{address.deliveryInstructions}"</p>
                     )}
                   </div>
+                  {/* Action buttons: set default, edit, delete */}
                   <div className="flex items-center gap-2 ml-4">
+                    {/* Set default button only shown for non-default addresses */}
                     {!address.isDefault && (
                       <Button
                         variant="ghost"

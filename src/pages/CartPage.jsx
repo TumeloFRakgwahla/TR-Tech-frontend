@@ -1,3 +1,26 @@
+/**
+ * TR-Tech — Shopping Cart Page
+ *
+ * Displays the user's cart items with full management capabilities:
+ * - Empty state with CTA to continue shopping
+ * - Cart items list with image, name, condition badge, quantity controls, and price
+ * - Order summary sidebar (desktop) and sticky bottom bar (mobile)
+ * - Clear cart functionality with confirmation dialog
+ *
+ * Cart state is managed via CartContext which provides:
+ * - cart: array of cart items
+ * - totalItems: total count of items
+ * - totalPrice: sum of all item prices * quantities
+ * - removeFromCart, updateQuantity, clearCart: mutation functions
+ *
+ * Features:
+ * - Responsive layout: stacked on mobile, sidebar on desktop
+ * - Image fallback to logo on error
+ * - Condition badges color-coded by product condition
+ * - Quantity controls with min/max constraints
+ * - Sticky mobile checkout bar positioned above BottomNav
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
@@ -10,6 +33,7 @@ import BottomNav from '../components/BottomNav';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { formatPrice } from '../lib/format';
 
+// Color-coded badge styles for product condition (new/refurbished/used)
 const conditionStyles = {
   new: 'bg-green-100 text-green-700',
   refurbished: 'bg-blue-100 text-blue-700',
@@ -17,8 +41,10 @@ const conditionStyles = {
 };
 
 function CartPage() {
+  // Destructure all cart state and mutation functions from context
   const { cart, totalItems, totalPrice, removeFromCart, updateQuantity, clearCart } = useCart();
 
+  // Clear entire cart after user confirms in browser dialog
   const handleClearCart = () => {
     if (window.confirm('Are you sure you want to clear your cart?')) {
       clearCart();
@@ -26,6 +52,7 @@ function CartPage() {
     }
   };
 
+  // Empty state: show message and CTA to browse products
   if (cart.length === 0) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -63,6 +90,7 @@ function CartPage() {
             </span>
           </div>
 
+          {/* Two-column layout: items list (2/3) + order summary (1/3) on desktop */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <div className="lg:col-span-2 space-y-3 md:space-y-4">
               {cart.map((item) => (
@@ -113,25 +141,26 @@ function CartPage() {
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3 md:mt-4">
-                      <div className="flex items-center border border-gray-200 rounded-md">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-100 rounded-l-md transition-all"
-                          disabled={item.quantity <= 1}
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        <span className="px-4 py-2 text-sm font-medium min-w-[40px] text-center">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-100 rounded-r-md transition-all"
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                      </div>
+                      {/* Quantity controls + line total price */}
+                      <div className="flex items-center justify-between mt-3 md:mt-4">
+                        <div className="flex items-center border border-gray-200 rounded-md">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-100 rounded-l-md transition-all"
+                            disabled={item.quantity <= 1}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="px-4 py-2 text-sm font-medium min-w-[40px] text-center">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-100 rounded-r-md transition-all"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
 
                       <div className="text-right">
                         <p className="text-lg font-bold text-gray-900">
@@ -159,6 +188,7 @@ function CartPage() {
               </div>
             </div>
 
+            {/* Desktop-only order summary sidebar, sticky on scroll */}
             <div className="hidden lg:block lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>

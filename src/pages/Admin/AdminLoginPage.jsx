@@ -1,3 +1,27 @@
+/**
+ * AdminLoginPage
+ *
+ * Purpose:
+ *   Secure login form for admin users. Implements client-side rate limiting
+ *   with a CAPTCHA challenge after repeated failed attempts to prevent
+ *   brute-force attacks.
+ *
+ * Structure:
+ *   - Uses `AdminAuthContext` to check authentication state and perform login.
+ *   - `generateCaptcha` creates a simple math-based CAPTCHA.
+ *   - `loadFromStorage` / `saveToStorage` persist failed attempts and lockout
+ *     timestamps in localStorage.
+ *   - `isLocked` memoizes whether the user is currently locked out.
+ *   - `handleLogin` validates inputs, checks CAPTCHA when required, calls the
+ *     auth login function, and updates attempt/lockout state accordingly.
+ *   - A cleanup timeout resets the lockout after `LOCKOUT_DURATION_MS`.
+ *
+ * Admin-specific Features:
+ *   - Role check: only users with `role === 'admin'` are allowed through.
+ *   - Progressive security: CAPTCHA appears after `MAX_FAILED_ATTEMPTS`.
+ *   - Temporary lockout for `LOCKOUT_DURATION_MS` after exceeding attempts.
+ *   - Persistent state via localStorage survives page refreshes.
+ */
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../components/AdminAuthContext';

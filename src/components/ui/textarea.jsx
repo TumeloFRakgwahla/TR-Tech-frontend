@@ -1,7 +1,24 @@
+/**
+ * Textarea Component
+ *
+ * A styled multi-line text input component for forms. Features a dark
+ * theme with slate-700 background, blue focus ring, and consistent
+ * sizing with the Input component.
+ *
+ * Features:
+ *   - Minimum height of 80px for multi-line content
+ *   - Dark theme styling (slate-700 background, slate-600 border)
+ *   - Blue focus ring for accessibility
+ *   - Placeholder text in muted slate-400
+ *   - Disabled state with reduced opacity and not-allowed cursor
+ *   - Ref forwarding for form library integration
+ */
+
 import * as React from "react"
 
 import { cn } from "../../lib/utils"
 
+// Multi-line text input with dark theme styling and focus states
 const Textarea = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <textarea

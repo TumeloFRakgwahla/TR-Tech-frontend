@@ -1,3 +1,23 @@
+/**
+ * AdminBrandsPage
+ *
+ * Purpose:
+ *   Provides CRUD (Create, Read, Update, Delete) operations for product brands
+ *   in the TR-Tech admin portal. Displays brands in a searchable data table and
+ *   opens a dialog form for creating or editing a brand.
+ *
+ * Structure:
+ *   - State management for brands list, search query, loading/error states,
+ *     dialog visibility, editing context, and form data.
+ *   - `loadBrands` fetches all brands via the brands API.
+ *   - `openCreate` / `openEdit` prepare the dialog and form state.
+ *   - `handleDelete` removes a brand with confirmation and dispatches a global
+ *     event so other components can refresh their brand/category lists.
+ *   - `handleSubmit` creates or updates a brand depending on `editingBrand`,
+ *     and parses API validation errors into user-friendly messages.
+ *   - Filtered brands are derived from the search query against name and slug.
+ *   - The table renders brand logo images, status badges, and action buttons.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
