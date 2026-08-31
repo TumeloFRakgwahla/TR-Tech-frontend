@@ -7,11 +7,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api.trtech.co.za/api/:path*"
+      "destination": "https://tr-tech-backend.vercel.app/api/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://api.trtech.co.za/uploads/:path*"
+      "destination": "https://tr-tech-backend.vercel.app/uploads/:path*"
     },
     {
       "source": "/(.*)",

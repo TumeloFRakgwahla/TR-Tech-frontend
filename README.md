@@ -57,7 +57,7 @@ VITE_WHATSAPP_NUMBER=27712345678
 | `VITE_WHATSAPP_NUMBER` | WhatsApp number for contact links | `27712345678` |
 
 > **Production / Vercel:** the SPA is served same-origin and `vercel.json` reverse-proxies
-> `/api/*` and `/uploads/*` to the `tr-tech-backend` service (`https://api.trtech.co.za`)
+> `/api/*` and `/uploads/*` to the `tr-tech-backend` service (`https://tr-tech-backend.vercel.app`)
 > on Vercel's edge. The backend URL is therefore **never exposed to the browser** — no
 > public `VITE_*` variable is committed for it. Cookie-based auth (sessions + CSRF) works
 > same-origin through the proxy. To use a different backend domain, update the proxy
@@ -280,7 +280,7 @@ independent of the `tr-tech-backend` service. Configuration lives in `vercel.jso
 - `buildCommand` — `npm run build` (outputs to `dist/`)
 - `outputDirectory` — `dist`
 - `rewrites` — `/api/*` and `/uploads/*` are reverse-proxied to the backend service
-  (`https://api.trtech.co.za`) on Vercel's edge; all other paths fall back to
+   (`https://tr-tech-backend.vercel.app`) on Vercel's edge; all other paths fall back to
   `index.html` for client-side routing (React Router).
 - `headers` — baseline security headers + long-cache for hashed `/assets/*`
 
@@ -289,7 +289,7 @@ independent of the `tr-tech-backend` service. Configuration lives in `vercel.jso
 1. Import the `tr-tech-frontend` repository into Vercel (Framework Preset: Vite — auto-detected).
 2. Vercel uses `vercel.json` automatically; no extra build settings required.
 3. Deploy. The `index.html` CSP already allows `connect-src` to `'self'` and
-   `https://api.trtech.co.za`, so the proxied API/cookie traffic is permitted.
+   `https://tr-tech-backend.vercel.app`, so the proxied API/cookie traffic is permitted.
 4. If your backend lives on a different domain, update the proxy `destination` values in
    `vercel.json` (these are server-side and never shipped to the browser).
 
