@@ -56,12 +56,13 @@ VITE_WHATSAPP_NUMBER=27712345678
 | `VITE_API_URL` | Backend API base path (relative path enables Vite proxy) | `/api/v1` |
 | `VITE_WHATSAPP_NUMBER` | WhatsApp number for contact links | `27712345678` |
 
-> **Production / Vercel:** set `VITE_API_URL` to the absolute backend URL, e.g.
-> `https://api.trtech.co.za/api/v1`, so the deployed SPA can reach the
-> `tr-tech-backend` service directly. The backend is pre-configured for CORS with
-> `credentials: true`, so cookie-based auth (sessions + CSRF) works cross-origin. A
-> production default is already provided in `vercel.json` (`env.VITE_API_URL`) and can
-> be overridden in the Vercel project settings.
+> **Production / Vercel:** the SPA is served same-origin and `vercel.json` reverse-proxies
+> `/api/*` and `/uploads/*` to the `tr-tech-backend` service (`https://tr-tech-backend.vercel.app`)
+> on Vercel's edge. The backend URL is therefore **never exposed to the browser** — no
+> public `VITE_*` variable is committed for it. Cookie-based auth (sessions + CSRF) works
+> same-origin through the proxy. To use a different backend domain, update the proxy
+> targets in `vercel.json` (or, if you prefer an explicit absolute URL, set `VITE_API_URL`,
+> noting that `VITE_`-prefixed values are inlined into the client bundle).
 
 ## Project Structure
 
@@ -278,33 +279,37 @@ independent of the `tr-tech-backend` service. Configuration lives in `vercel.jso
 
 - `buildCommand` — `npm run build` (outputs to `dist/`)
 - `outputDirectory` — `dist`
-- `rewrites` — SPA fallback so client-side routes (React Router) resolve to `index.html`
+- `rewrites` — `/api/*` and `/uploads/*` are reverse-proxied to the backend service
+   (`https://tr-tech-backend.vercel.app`) on Vercel's edge; all other paths fall back to
+  `index.html` for client-side routing (React Router).
 - `headers` — baseline security headers + long-cache for hashed `/assets/*`
-- `env.VITE_API_URL` — production backend base URL (`https://api.trtech.co.za/api/v1`)
 
 ### Deploy
 
 1. Import the `tr-tech-frontend` repository into Vercel (Framework Preset: Vite — auto-detected).
 2. Vercel uses `vercel.json` automatically; no extra build settings required.
-3. Confirm the project environment variable `VITE_API_URL` resolves to the backend
-   (`https://api.trtech.co.za/api/v1` by default, or override for a custom backend domain).
-4. Deploy. The `index.html` CSP already allows `connect-src` to `https://api.trtech.co.za`,
-   so API/cookie traffic is permitted.
+3. Deploy. The `index.html` CSP already allows `connect-src` to `'self'` and
+   `https://tr-tech-backend.vercel.app`, so the proxied API/cookie traffic is permitted.
+4. If your backend lives on a different domain, update the proxy `destination` values in
+   `vercel.json` (these are server-side and never shipped to the browser).
 
 ### Backend integration
 
-The SPA talks to `tr-tech-backend` over HTTPS using the absolute `VITE_API_URL`:
+The SPA reaches `tr-tech-backend` same-origin through the Vercel proxy — the browser only
+ever sees requests to its own domain, so no public `VITE_*` API URL is required:
 
-- `src/constants.js` reads `import.meta.env.VITE_API_URL` (falls back to `/api/v1` for local dev).
-- `src/services/api.js` sends all requests with `credentials: 'include'` and the
-  `X-CSRF-Token` header, matching the backend's double-submit CSRF + cookie session flow.
-- On the backend, ensure `FRONTEND_URL` equals this frontend's production origin
-  (default `https://tr-tech-frontend.vercel.app`) so CORS (`origin` + `credentials: true`)
-  accepts the requests. The `/uploads` route is also CORS-enabled for the frontend origin.
+- `src/constants.js` resolves `API_BASE_URL` to the relative `/api/v1` (the production default).
+- `src/services/api.js` sends every request with `credentials: 'include'` and the
+  `X-CSRF-Token` header; the proxy forwards these to the backend, and the backend's
+  `Set-Cookie` responses are stored on the frontend's own domain (same-origin).
+- Because traffic is same-origin, the backend's CORS `origin` check is not enforced by the
+  browser, but it is still good practice to set the backend `FRONTEND_URL` to this
+  frontend's production origin (default `https://tr-tech-frontend.vercel.app`).
+- The `/uploads` route is CORS-enabled on the backend and is also proxied here.
 
-> **Local dev** still uses the relative `/api/v1` path, which the Vite dev server proxies
-> to `http://localhost:5000` (see `server.proxy` in `vite.config.js`). No code change is
-> needed between environments — only `VITE_API_URL` differs.
+> **Local dev** uses the same relative `/api/v1` path, which the Vite dev server proxies to
+> `http://localhost:5000` (see `server.proxy` in `vite.config.js`). No code change is needed
+> between environments — Vercel's edge proxy replaces the local dev proxy in production.
 
 ## Troubleshooting
 
