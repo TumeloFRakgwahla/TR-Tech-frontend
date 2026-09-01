@@ -256,3 +256,86 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Mobile menu slide animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Auth modal custom styles - hide default close button */
+.auth-modal-custom > button[aria-label="Close"] {
+  display: none !important;
+}
+
+/* Auth modal mobile optimization */
+@media (max-width: 640px) {
+  .auth-modal-custom {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    animation: fadeIn 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .auth-modal-custom > div:last-child {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+/* Smooth scrolling for mobile menu */
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Mobile touch feedback */
+@media (hover: none) {
+  .nav-link:active,
+  button:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Bottom nav safe area padding */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Professional card shadows */
+.shadow-ecommerce {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Input focus styles */
+input:focus {
+  box-shadow: 0 0 0 2px rgba(3, 2, 19, 0.1);
+}

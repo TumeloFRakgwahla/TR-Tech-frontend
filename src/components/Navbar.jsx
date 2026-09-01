@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Heart, User, LogOut, ShoppingCart, Search, ChevronDown, Smartphone, Wrench, Mail, Info, Home, ShoppingBag, PhoneIcon, WrenchIcon, Phone, Book } from 'lucide-react';
+import { Menu, X, Heart, User, LogOut, ShoppingCart, Search, ChevronDown, Smartphone, Wrench, Mail, Info, Home, ShoppingBag, PhoneIcon, WrenchIcon, Phone, Book, ChevronRight, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MiniCart } from './MiniCart';
 import { useCart } from './CartContext';
@@ -31,19 +31,19 @@ import { categoriesAPI } from '../services/api';
  * Individual navigation link with active-state underline indicator.
  * Matches exact path for desktop links and parent-path for mobile sections.
  */
-const NavLink = ({ to, children, className = '', onClick }) => {
+const NavLink = ({ to, children, className = '', onClick, isMobile = false }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
-      className={`relative group transition-colors ${isActive ? 'text-white font-semibold' : 'hover:text-accent'} ${className}`}
+      className={`relative group transition-colors ${isActive ? (isMobile ? 'text-primary font-semibold' : 'text-white font-semibold') : (isMobile ? 'text-foreground' : 'hover:text-accent')} ${className}`}
       onClick={onClick}
     >
       {children}
       {isActive && (
-        <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-white rounded-full" />
+        <span className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full ${isMobile ? 'bg-primary' : 'bg-white'}`} />
       )}
       {!isActive && (
         <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-accent/0 group-hover:bg-accent rounded-full transition-colors" />
@@ -268,7 +268,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile action icons */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center text-primary-foreground">
             {searchExpanded ? (
               <div className="absolute inset-x-0 top-0 bg-primary p-2 z-50 flex items-center gap-2">
                 <input
@@ -342,131 +342,229 @@ const Navbar = () => {
             )}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2 -ml-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[40px] min-h-[40px] flex items-center justify-center backdrop-blur-sm"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
             >
-              <Menu className="h-6 w-6" />
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         {/* Mobile slide-out menu with backdrop, categories, and account section */}
         <div
-          className={`md:hidden fixed inset-0 z-40 transition-opacity duration-200 ${
+          className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
             isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
           aria-hidden={!isOpen}
         >
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
           <div
             id="mobile-menu"
-            className={`absolute inset-x-0 top-16 bg-primary border-t border-primary-foreground/20 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto transition-transform duration-200 ${
-              isOpen ? 'translate-y-0' : '-translate-y-4'
+            className={`absolute inset-x-0 top-0 bottom-0 bg-white shadow-2xl max-w-sm w-[85vw] flex flex-col transition-transform duration-300 ease-out ${
+              isOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
-
-            <div className="px-4 pt-2 pb-6 space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2">Main</p>
-              <NavLink to="/" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                <Home className="h-5 w-5 mr-3" />Home
-              </NavLink>
-              <NavLink to="/shop" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                <ShoppingBag className="h-5 w-5 mr-3" />Shop
-              </NavLink>
-
+            {/* Mobile Menu Header */}
+            <div className="bg-primary text-primary-foreground px-5 py-4 flex items-center justify-between">
+              <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3">
+                <img
+                  src="/TR_Tech_logo.png"
+                  alt="TR-Tech Logo"
+                  className="h-12 w-auto"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </Link>
               <button
-                onClick={() => setCategoriesOpen(!categoriesOpen)}
-                className="w-full flex items-center justify-between px-4 py-3.5 text-lg text-primary-foreground hover:text-accent transition-colors min-h-[48px]"
+                onClick={() => setIsOpen(false)}
+                className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-foreground/80 hover:text-white transition-colors"
+                aria-label="Close menu"
               >
-                <span className="flex items-center">
-                  <Smartphone className="h-5 w-5 mr-3" />Categories
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
+                <X className="h-6 w-6" />
               </button>
-              {categoriesOpen && categories.length > 0 && (
-                <div className="pl-12 pr-4 space-y-1">
-                  {categories.map(cat => (
-                    <Link
-                      key={cat}
-                      to={`/shop?category=${encodeURIComponent(cat)}`}
-                      className="block py-2.5 text-sm text-primary-foreground/80 hover:text-accent transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {cat}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2 mt-4">Services</p>
-              <NavLink to="/services" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                <Wrench className="h-5 w-5 mr-3" />Services
-              </NavLink>
-              <Link
-                to="/book-repair"
-                className="block px-4 py-3.5 text-lg text-accent hover:text-white transition-colors min-h-[48px] flex items-center font-medium"
-                onClick={() => setIsOpen(false)}
-              >
-                <Book className="h-5 w-5 mr-3" />Book a Repair
-              </Link>
-              <Link
-                to="/account/repairs"
-                className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center"
-                onClick={() => setIsOpen(false)}
-              >
-                <Mail className="h-5 w-5 mr-3" />Track Repair
-              </Link>
-
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2 mt-4">Support</p>
-              <NavLink to="/contact" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                <Phone className="h-5 w-5 mr-3" />Contact
-              </NavLink>
-              <NavLink to="/about" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                <Info className="h-5 w-5 mr-3" />About
-              </NavLink>
             </div>
 
-            {/* Account section in mobile menu — conditional on auth state */}
-            {isAuthenticated ? (
-              <div className="px-4 pb-6 space-y-1 border-t border-primary-foreground/10 pt-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/40 mb-2">Account</p>
-                <NavLink to="/account" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                  <User className="h-5 w-5 mr-3" />My Account
-                </NavLink>
-                <NavLink to="/account/orders" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                  <ShoppingCart className="h-5 w-5 mr-3" />Orders
-                </NavLink>
-                <NavLink to="/account/repairs" className="block px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center" onClick={() => setIsOpen(false)}>
-                  <Wrench className="h-5 w-5 mr-3" />Repairs
-                </NavLink>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-3.5 text-lg text-red-400 hover:text-red-300 transition-colors min-h-[48px] flex items-center"
-                >
-                  <LogOut className="h-5 w-5 mr-3" />Logout
-                </button>
-              </div>
-            ) : (
-              <div className="px-4 pb-6 border-t border-primary-foreground/10 pt-4">
-                <button
-                  onClick={handleAccountClick}
-                  className="block w-full text-left px-4 py-3.5 text-lg hover:text-accent transition-colors min-h-[48px] flex items-center"
-                >
-                  <User className="h-5 w-5 mr-3" />My Account
-                </button>
+            {/* User Greeting Section */}
+            {isAuthenticated && (
+              <div className="bg-gradient-to-r from-primary to-primary/90 px-5 py-4 border-b border-primary-foreground/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center text-white text-base font-bold ring-2 ring-white/30">
+                    {(user?.firstName || 'U').charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">Welcome back,</p>
+                    <p className="text-white/80 text-xs">{user?.firstName || 'User'} {user?.lastName || ''}</p>
+                  </div>
+                </div>
               </div>
             )}
 
+            {/* Scrollable Menu Content */}
+            <div className="overflow-y-auto overscroll-contain">
+              <div className="py-3">
+                <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Navigate</p>
+                <NavLink to="/" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                  <span className="flex items-center gap-4">
+                    <Home className="h-5 w-5 text-muted-foreground" />Home
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </NavLink>
+                <NavLink to="/shop" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                  <span className="flex items-center gap-4">
+                    <ShoppingBag className="h-5 w-5 text-muted-foreground" />Shop
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </NavLink>
+                <NavLink to="/services" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                  <span className="flex items-center gap-4">
+                    <Wrench className="h-5 w-5 text-muted-foreground" />Services
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </NavLink>
+                <NavLink to="/contact" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                  <span className="flex items-center gap-4">
+                    <Phone className="h-5 w-5 text-muted-foreground" />Contact
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </NavLink>
+                <NavLink to="/about" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                  <span className="flex items-center gap-4">
+                    <Info className="h-5 w-5 text-muted-foreground" />About
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </NavLink>
+              </div>
+
+              {/* Categories Section */}
+              {categories.length > 0 && (
+                <div className="py-3 border-t border-border">
+                  <button
+                    onClick={() => setCategoriesOpen(!categoriesOpen)}
+                    className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  >
+                    <span className="flex items-center gap-4">
+                      <Smartphone className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mr-2">Categories</span>
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div className={`overflow-hidden transition-all duration-200 ${categoriesOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="pl-14 pr-5 pb-2 space-y-0.5">
+                      {categories.map(cat => (
+                        <Link
+                          key={cat}
+                          to={`/shop?category=${encodeURIComponent(cat)}`}
+                          className="flex items-center justify-between py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {cat}
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions Section */}
+              <div className="py-3 border-t border-border">
+                <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</p>
+                <Link
+                  to="/book-repair"
+                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className="flex items-center gap-4">
+                    <Book className="h-5 w-5 text-accent-foreground" />Book a Repair
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </Link>
+                <Link
+                  to="/account/repairs"
+                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className="flex items-center gap-4">
+                    <Package className="h-5 w-5 text-muted-foreground" />Track Repair
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </Link>
+                <Link
+                  to="/wishlist"
+                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className="flex items-center gap-4">
+                    <Heart className="h-5 w-5 text-muted-foreground" />Wishlist
+                    {wishlistCount > 0 && (
+                      <span className="ml-auto mr-2 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                </Link>
+              </div>
+
+              {/* Account Section */}
+              <div className="py-3 border-t border-border">
+                {isAuthenticated ? (
+                  <>
+                    <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">My Account</p>
+                    <NavLink to="/account" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                      <span className="flex items-center gap-4">
+                        <User className="h-5 w-5 text-muted-foreground" />My Profile
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                    </NavLink>
+                    <NavLink to="/account/orders" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                      <span className="flex items-center gap-4">
+                        <ShoppingCart className="h-5 w-5 text-muted-foreground" />My Orders
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                    </NavLink>
+                    <NavLink to="/account/repairs" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
+                      <span className="flex items-center gap-4">
+                        <Wrench className="h-5 w-5 text-muted-foreground" />My Repairs
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                    </NavLink>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-red-50 transition-colors min-h-[48px]"
+                    >
+                      <span className="flex items-center gap-4">
+                        <LogOut className="h-5 w-5" />Sign Out
+                      </span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Account</p>
+                    <button
+                      onClick={handleAccountClick}
+                      className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                    >
+                      <span className="flex items-center gap-4">
+                        <User className="h-5 w-5 text-muted-foreground" />Sign In / Register
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* Sticky bottom CTA inside mobile menu */}
-            <div className="sticky bottom-0 bg-primary p-4 border-t border-primary-foreground/20">
+            <div className="border-t border-border p-4 py bg-white pb-safe">
               <Link
                 to="/book-repair"
-                className="block w-full text-center bg-white text-primary py-3.5 rounded-md font-semibold hover:bg-gray-200 transition-colors min-h-[48px] flex items-center justify-center"
+                className="block w-full text-center bg-primary text-primary-foreground py-3.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors min-h-[48px] flex items-center justify-center shadow-sm"
                 onClick={() => setIsOpen(false)}
               >
                 Book a Repair
