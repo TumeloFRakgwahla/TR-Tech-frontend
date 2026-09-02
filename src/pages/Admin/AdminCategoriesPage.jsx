@@ -38,11 +38,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../../components/ui/dialog';
-import { Plus, Search, Edit, Trash2, Loader2, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Loader2, X, GripVertical } from 'lucide-react';
 import { categoriesAPI } from '../../services/api';
 import { toast } from 'sonner';
 
-const emptyCategory = { name: '', slug: '', status: 'Active' };
+const ICON_OPTIONS = [
+  { value: 'Smartphone', label: 'Smartphone' },
+  { value: 'Laptop', label: 'Laptop' },
+  { value: 'Headphones', label: 'Headphones' },
+  { value: 'Gamepad2', label: 'Gaming' },
+  { value: 'Wifi', label: 'Networking' },
+  { value: 'Printer', label: 'Printer' },
+  { value: 'HardDrive', label: 'Storage' },
+  { value: 'Monitor', label: 'Monitor' },
+  { value: 'Tablet', label: 'Tablet' },
+  { value: 'Camera', label: 'Camera' },
+  { value: 'Speaker', label: 'Speaker' },
+  { value: 'Cable', label: 'Cable' },
+  { value: 'Battery', label: 'Battery' },
+  { value: 'Mouse', label: 'Mouse' },
+  { value: 'Keyboard', label: 'Keyboard' },
+  { value: 'MoreHorizontal', label: 'More' },
+];
+
+const emptyCategory = { name: '', slug: '', icon: 'MoreHorizontal', displayOrder: 0, status: 'Active' };
 
 export function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -88,6 +107,8 @@ export function AdminCategoriesPage() {
     setForm({
       name: category.name || '',
       slug: category.slug || '',
+      icon: category.icon || 'MoreHorizontal',
+      displayOrder: category.displayOrder ?? 0,
       status: category.status || 'Active',
     });
     setSubmitError('');
@@ -180,6 +201,31 @@ export function AdminCategoriesPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Icon</label>
+                <select
+                  value={form.icon}
+                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white"
+                >
+                  {ICON_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Display Order</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={999}
+                  value={form.displayOrder}
+                  onChange={(e) => setForm({ ...form, displayOrder: parseInt(e.target.value) || 0 })}
+                  className="bg-slate-700 border-slate-600 text-white"
+                  placeholder="0"
+                />
+                <p className="text-xs text-slate-400 mt-1">Lower numbers appear first</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
                 <select
                   value={form.status}
@@ -235,64 +281,70 @@ export function AdminCategoriesPage() {
             <TableRow>
               <TableHead className="text-white">Category</TableHead>
               <TableHead className="text-white">Slug</TableHead>
+              <TableHead className="text-white">Icon</TableHead>
+              <TableHead className="text-white w-20">Order</TableHead>
               <TableHead className="text-white">Status</TableHead>
               <TableHead className="text-white">Created</TableHead>
               <TableHead className="text-right text-white">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-slate-400">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                </TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-red-400">{error}</TableCell>
-              </TableRow>
-            ) : filteredCategories.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-slate-400">
-                  No categories found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredCategories.map((category) => (
-                <TableRow key={category._id}>
-                  <TableCell className="text-white font-medium">{category.name}</TableCell>
-                  <TableCell className="text-slate-300">{category.slug || '-'}</TableCell>
-                  <TableCell>
-                    <Badge className={category.status === 'Active' ? 'bg-green-600' : 'bg-slate-600'}>
-                      {category.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-slate-300">
-                    {category.createdAt ? new Date(category.createdAt).toLocaleDateString() : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-white hover:bg-slate-700"
-                        onClick={() => openEdit(category)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-400 hover:bg-slate-700"
-                        onClick={() => handleDelete(category._id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-red-400">{error}</TableCell>
+                </TableRow>
+              ) : filteredCategories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-400">
+                    No categories found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredCategories.map((category) => (
+                  <TableRow key={category._id}>
+                    <TableCell className="text-white font-medium">{category.name}</TableCell>
+                    <TableCell className="text-slate-300">{category.slug || '-'}</TableCell>
+                    <TableCell className="text-slate-300">
+                      <span className="text-xs bg-slate-700 px-2 py-1 rounded">{category.icon || 'MoreHorizontal'}</span>
+                    </TableCell>
+                    <TableCell className="text-slate-300">{category.displayOrder ?? 0}</TableCell>
+                    <TableCell>
+                      <Badge className={category.status === 'Active' ? 'bg-green-600' : 'bg-slate-600'}>
+                        {category.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-slate-300">
+                      {category.createdAt ? new Date(category.createdAt).toLocaleDateString() : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white hover:bg-slate-700"
+                          onClick={() => openEdit(category)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-400 hover:bg-slate-700"
+                          onClick={() => deleteCategory(category._id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
           </TableBody>
         </Table>
       </Card>

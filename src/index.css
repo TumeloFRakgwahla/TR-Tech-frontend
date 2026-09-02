@@ -145,6 +145,58 @@
     display: none;
   }
 
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    position: relative;
+  }
+
+  .snap-x {
+    scroll-snap-type: x mandatory;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
+
+  .scroll-container::before,
+  .scroll-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 32px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .scroll-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--background) 0%, transparent 100%);
+  }
+
+  .scroll-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--background) 0%, transparent 100%);
+  }
+
+  .scroll-container.can-scroll-left::before {
+    opacity: 1;
+  }
+
+  .scroll-container.can-scroll-right::after {
+    opacity: 1;
+  }
+
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -178,41 +230,6 @@
 
   .safe-area-inset-top {
     padding-top: env(safe-area-inset-top, 0px);
-  }
-
-  .scroll-container {
-    position: relative;
-  }
-
-  .scroll-container::before,
-  .scroll-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 24px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .scroll-container::before {
-    left: 0;
-    background: linear-gradient(to right, var(--background), transparent);
-  }
-
-  .scroll-container::after {
-    right: 0;
-    background: linear-gradient(to left, var(--background), transparent);
-  }
-
-  .scroll-container.can-scroll-left::before {
-    opacity: 1;
-  }
-
-  .scroll-container.can-scroll-right::after {
-    opacity: 1;
   }
 }
 

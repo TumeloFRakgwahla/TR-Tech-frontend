@@ -425,42 +425,46 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
             </div>
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${expandedSections.categories ? 'rotate-180' : ''}`} />
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${expandedSections.categories ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+           <div className={`overflow-hidden transition-all duration-300 ${expandedSections.categories ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-0 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
-              {categories.map(cat => {
-                const isSelected = selectedCategories.includes(cat);
-                return (
-                  <label
-                    key={cat}
-                    className={`filter-checkbox-label flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
-                      isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="relative flex-shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleCategory(cat)}
-                        className="sr-only peer"
-                      />
-                      <div className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-all ${
-                        isSelected
-                          ? 'bg-primary border-primary'
-                          : 'border-muted-foreground/40 group-hover:border-primary/60'
-                      }`}>
-                        {isSelected && (
-                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-3 px-2 text-center">No categories available</p>
+              ) : (
+                categories.map(cat => {
+                  const isSelected = selectedCategories.includes(cat);
+                  return (
+                    <label
+                      key={cat}
+                      className={`filter-checkbox-label flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
+                        isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="relative flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleCategory(cat)}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/40 group-hover:border-primary/60'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <span className={`text-sm transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'}`}>
-                      {cat}
-                    </span>
-                  </label>
-                );
-              })}
+                      <span className={`text-sm transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                        {cat}
+                      </span>
+                    </label>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -484,42 +488,46 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
           </button>
           <div className={`overflow-hidden transition-all duration-300 ${expandedSections.brands ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
             <div className="space-y-0 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
-              {brands.map(brand => {
-                const isSelected = selectedBrands.includes(brand);
-                return (
-                  <label
-                    key={brand}
-                    className={`filter-checkbox-label flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
-                      isSelected ? 'bg-secondary/5' : 'hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="relative flex-shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleBrand(brand)}
-                        className="sr-only peer"
-                      />
-                      <div className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-all ${
-                        isSelected
-                          ? 'bg-secondary border-secondary'
-                          : 'border-muted-foreground/40 group-hover:border-secondary/60'
-                      }`}>
-                        {isSelected && (
-                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
+              {brands.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-3 px-2 text-center">No brands available</p>
+              ) : (
+                brands.map(brand => {
+                  const isSelected = selectedBrands.includes(brand);
+                  return (
+                    <label
+                      key={brand}
+                      className={`filter-checkbox-label flex items-center gap-3 cursor-pointer group py-1.5 px-2 rounded-md transition-all ${
+                        isSelected ? 'bg-secondary/5' : 'hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="relative flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleBrand(brand)}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-[16px] h-[16px] rounded border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? 'bg-secondary border-secondary'
+                            : 'border-muted-foreground/40 group-hover:border-secondary/60'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <span className={`text-sm transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'}`}>
-                      {brand}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+                      <span className={`text-sm transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                        {brand}
+                      </span>
+                    </label>
+                  );
+                })
+              )}
+             </div>
+           </div>
         </div>
 
         {/* Price Range Section */}
@@ -703,7 +711,7 @@ function ShopContent() {
     return max > 0 ? max : 30000;
   }, [products]);
 
-  // Fetch categories and brands in parallel with fallback to constants
+  // Fetch categories and brands in parallel from API
   const fetchCategoriesAndBrands = useCallback(async () => {
     const [catRes, brandRes] = await Promise.allSettled([
       categoriesAPI.getActive(),
@@ -711,17 +719,17 @@ function ShopContent() {
     ]);
 
     if (catRes.status === 'fulfilled' && catRes.value.success) {
-      const catNames = (catRes.value.data || []).map((c) => c.name);
-      setCategories(catNames.length ? [...new Set(catNames)] : FALLBACK_CATEGORIES);
+      const catNames = (catRes.value.data || []).map((c) => c.name || c);
+      setCategories(catNames.length ? [...new Set(catNames)] : []);
     } else {
-      setCategories(FALLBACK_CATEGORIES);
+      setCategories([]);
     }
 
     if (brandRes.status === 'fulfilled' && brandRes.value.success) {
-      const brandNames = (brandRes.value.data || []).map((b) => b.name);
-      setBrands(brandNames.length ? [...new Set(brandNames)] : FALLBACK_BRANDS);
+      const brandNames = (brandRes.value.data || []).map((b) => b.name || b);
+      setBrands(brandNames.length ? [...new Set(brandNames)] : []);
     } else {
-      setBrands(FALLBACK_BRANDS);
+      setBrands([]);
     }
   }, []);
 
