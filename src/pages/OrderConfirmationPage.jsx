@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
-import { Check, Package, Phone, MapPin, CreditCard, ArrowLeft, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Check, Package, Phone, MapPin, CreditCard, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { ordersAPI, paymentsAPI } from '../services/api';
 import { toast } from 'sonner';
 

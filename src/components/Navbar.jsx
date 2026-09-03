@@ -17,10 +17,9 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Heart, User, LogOut, ShoppingCart, Search, ChevronDown, Smartphone, Wrench, Mail, Info, Home, ShoppingBag, PhoneIcon, WrenchIcon, Phone, Book, ChevronRight, Package } from 'lucide-react';
+import { Menu, X, Heart, User, LogOut, ShoppingCart, ChevronDown, Smartphone, Wrench, Info, Home, ShoppingBag, Phone, Book, ChevronRight, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MiniCart } from './MiniCart';
-import { useCart } from './CartContext';
 import { useWishlist } from './WishlistContext';
 import { useAuth } from './AuthContext';
 import { useAuthModal } from './AuthModalContext';
@@ -69,7 +68,6 @@ const Navbar = () => {
 
   // Context values drive badge counts and auth state across the navbar
   const { wishlistCount } = useWishlist();
-  const { totalItems } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
@@ -271,30 +269,6 @@ const Navbar = () => {
 
           {/* Mobile action icons */}
           <div className="md:hidden flex items-center text-primary-foreground">
-            <Link
-              to="/wishlist"
-              className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Wishlist"
-            >
-              <Heart className="h-6 w-6" />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              to="/cart"
-              className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="View cart"
-            >
-              <ShoppingCart className="h-6 w-6" />
-              {totalItems > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
             {isAuthenticated && (
               <button
                 onClick={handleAccountClick}

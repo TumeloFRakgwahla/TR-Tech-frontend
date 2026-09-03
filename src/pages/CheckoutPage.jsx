@@ -95,26 +95,28 @@ function ProgressBar({ currentStep }) {
   );
 }
 
-// Order summary widget showing cart items, subtotal, shipping, and total
-// compact mode used in sidebar, full mode used inline
-function OrderSummary({ compact = false }) {
-  const { cart, totalPrice } = useCart();
+// Shipping threshold constant (free shipping kick-in)
+const FREE_SHIPPING_THRESHOLD = 500;
+const SHIPPING_FEE = 50;
 
-  const getShippingCost = (subtotal) => {
-    if (subtotal >= 500) return 0;
-    return subtotal > 0 ? 50 : 0;
-  };
+// Computes shipping cost and grand total from a given subtotal
+const usePriceBreakdown = (subtotal) => {
+  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_FEE;
+  const orderTotal = subtotal + shippingCost;
+  return { shippingCost, orderTotal };
+};
 
-  const shippingCost = getShippingCost(totalPrice);
-  const orderTotal = totalPrice + shippingCost;
+// Item list for the middle of the checkout page
+function CartItemsList({ compact = false }) {
+  const { cart, removeFromCart, updateQuantity } = useCart();
 
   return (
     <div className={`bg-white rounded-xl border border-border ${compact ? 'p-4' : 'p-6'}`}>
       <h3 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
-        Order Summary
+        Cart Items
       </h3>
 
-      <div className={`space-y-3 ${compact ? 'max-h-40' : 'max-h-60'} overflow-y-auto`}>
+      <div className={`space-y-3 ${compact ? 'max-h-48' : 'max-h-60'} overflow-y-auto`}>
         {cart.map((item) => (
           <div key={item._id || item.id} className="flex items-center gap-3">
             <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
@@ -122,16 +124,53 @@ function OrderSummary({ compact = false }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-              <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <button
+                  type="button"
+                  onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
+                  className="h-5 w-5 rounded-full bg-muted hover:bg-accent flex items-center justify-center text-xs font-medium disabled:opacity-40"
+                  disabled={item.quantity <= 1}
+                >
+                  −
+                </button>
+                <span className="text-xs text-muted-foreground">Qty: {item.quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
+                  className="h-5 w-5 rounded-full bg-muted hover:bg-accent flex items-center justify-center text-xs font-medium"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <p className="text-sm font-semibold text-foreground">
               R{(item.price * item.quantity).toFixed(2)}
             </p>
+            <button
+              type="button"
+              onClick={() => removeFromCart(item._id || item.id)}
+              className="ml-1 text-muted-foreground hover:text-destructive text-xs"
+              title="Remove"
+            >
+              ×
+            </button>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+function OrderSummary({ compact = false }) {
+  const { totalPrice } = useCart();
+  const { shippingCost, orderTotal } = usePriceBreakdown(totalPrice);
 
-      <div className="border-t border-border mt-4 pt-4 space-y-2">
+  return (
+    <div className={`bg-white rounded-xl border border-border ${compact ? 'p-4' : 'p-6'}`}>
+      <h3 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
+        Order Summary
+      </h3>
+
+      <div className="space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-medium">R{totalPrice.toFixed(2)}</span>
@@ -212,7 +251,7 @@ function CheckoutPage() {
       <Navbar />
       <ProgressBar currentStep={currentStep} />
 
-      <main className="max-w-3xl mx-auto px-4 py-6 pb-24">
+      <main className="max-w-6xl mx-auto px-4 py-6 pb-24">
         {currentStep === 'review' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -225,13 +264,41 @@ function CheckoutPage() {
               </Link>
             </div>
 
-            <OrderSummary />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Items list — fills the middle on larger screens */}
+              <div className="lg:col-span-2">
+                <CartItemsList />
+              </div>
+
+              {/* Price summary + action buttons — sticky on the right */}
+              <div className="lg:col-span-1">
+                <div className="lg:sticky lg:top-24 space-y-4">
+                  <OrderSummary />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleBack}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to Cart
+                    </button>
+                    <button
+                      onClick={handleProceed}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
+                    >
+                      Proceed to Checkout
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Trust Signals */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
                 <ShieldCheck className="h-6 w-6 text-primary mb-1" />
-                <span className="text-xs font-medium">Secure</span>
+                <span className="text-xs font-medium">Secure Checkout</span>
               </div>
               <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
                 <Truck className="h-6 w-6 text-primary mb-1" />
@@ -241,23 +308,6 @@ function CheckoutPage() {
                 <Check className="h-6 w-6 text-primary mb-1" />
                 <span className="text-xs font-medium">Quality</span>
               </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleBack}
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Cart
-              </button>
-              <button
-                onClick={handleProceed}
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
-              >
-                Proceed to Checkout
-                <ArrowRight className="h-4 w-4" />
-              </button>
             </div>
           </div>
         )}
