@@ -20,6 +20,7 @@ import { Routes, Route } from 'react-router-dom';
 
 // Providers wrap the entire app with auth, cart, wishlist, and UI contexts
 import { Providers } from './components/Providers';
+import CookieConsent from './components/CookieConsent';
 
 // Route guards prevent unauthenticated access to protected areas
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -39,6 +40,9 @@ import { RepairsPage } from './pages/RepairsPage';
 import Cart from './pages/CartPage';
 import Checkout from './pages/CheckoutPage';
 import Wishlist from './pages/WishlistPage';
+import NotFoundPage from './pages/NotFoundPage';
+import TrackOrderPage from './pages/TrackOrderPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 
 // Admin pages — lazy loaded to reduce initial bundle size
 import AdminLogin from './pages/Admin/AdminLoginPage';
@@ -108,6 +112,8 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/track-order" element={<TrackOrderPage />} />
+            <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
 
             {/* ── Admin Routes ─────────────────────────────── */}
             {/* Admin login is public; everything else under /admin requires admin auth */}
@@ -156,9 +162,15 @@ function App() {
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="payment-methods" element={<PaymentMethodsPage />} />
             </Route>
+
+            {/* ── Catch-all Route ───────────────────────────── */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>
+
+      {/* Cookie Consent Banner - visible on all pages until accepted */}
+      <CookieConsent />
     </Providers>
   );
 }

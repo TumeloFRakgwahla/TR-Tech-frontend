@@ -167,7 +167,8 @@ describe('ShopPage', () => {
     render(wrapper({ children: <Shop /> }));
     await waitFor(() => {
       // MacBook Pro (stock: 0) should display an "Out of Stock" label
-      expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+      const outOfStockElements = screen.getAllByText('Out of Stock');
+      expect(outOfStockElements.length).toBeGreaterThan(0);
     });
   });
 

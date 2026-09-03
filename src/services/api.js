@@ -214,6 +214,14 @@ export const ordersAPI = {
     });
     return handleResponse(response);
   },
+
+  track: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/track${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
 };
 
 /**
@@ -629,6 +637,25 @@ export const paymentMethodsAPI = {
 };
 
 /**
+ * Payments API
+ */
+export const paymentsAPI = {
+  initializePaystack: async (data) => {
+    return apiRequest(`${API_BASE_URL}/payments/paystack/initialize`, {
+      method: 'POST',
+      body: data,
+    });
+  },
+
+  verifyPaystack: async (reference) => {
+    return apiRequest(`${API_BASE_URL}/payments/paystack/verify`, {
+      method: 'POST',
+      body: { reference },
+    });
+  },
+};
+
+/**
  * Admin Auth API
  */
 export const adminAuthAPI = {
@@ -695,6 +722,7 @@ export default {
   cart: cartAPI,
   account: accountAPI,
   paymentMethods: paymentMethodsAPI,
+  payments: paymentsAPI,
   categories: categoriesAPI,
   brands: brandsAPI,
   healthCheck,

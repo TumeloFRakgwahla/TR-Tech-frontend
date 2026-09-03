@@ -134,6 +134,141 @@ const About = () => {
         </div>
       </section>
 
+      {/* Shipping Information */}
+      <section id="shipping" className="py-16 bg-muted">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Shipping Information</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Fast, reliable delivery across South Africa</p>
+          </div>
+          <div className="max-w-4xl mx-auto bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Delivery Areas</h3>
+                <p className="text-muted-foreground">We deliver nationwide across South Africa. Delivery times vary by location:</p>
+                <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
+                  <li>Major cities (Johannesburg, Cape Town, Durban, Pretoria): 1-3 business days</li>
+                  <li>Regional areas: 3-5 business days</li>
+                  <li>Remote areas: 5-7 business days</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Shipping Costs</h3>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>Free delivery on all orders over R500</li>
+                  <li>Standard delivery (under R500): R50</li>
+                  <li>Express delivery: R100 (1-2 business days)</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Order Processing</h3>
+                <p className="text-muted-foreground">Orders are processed within 24 hours on business days. You will receive a confirmation message via WhatsApp or email once your order is dispatched.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Returns Policy */}
+      <section id="returns" className="py-16 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Returns Policy</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Hassle-free returns within 30 days</p>
+          </div>
+          <div className="max-w-4xl mx-auto bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">30-Day Return Window</h3>
+                <p className="text-muted-foreground">We offer a 30-day return policy for all products. If you are not satisfied with your purchase, you may return it within 30 days of delivery for a full refund or exchange.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Return Conditions</h3>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>Items must be in original condition with all accessories and packaging</li>
+                  <li>Products must not be damaged, modified, or show signs of misuse</li>
+                  <li>Custom orders and services are non-returnable once work has commenced</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">How to Return</h3>
+                <p className="text-muted-foreground">Contact us via WhatsApp or email to initiate a return. We will provide you with return instructions and a prepaid shipping label where applicable. Refunds are processed within 7-10 business days after we receive the returned item.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Privacy Policy */}
+      <section id="privacy" className="py-16 bg-muted">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Privacy Policy</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Your privacy is important to us</p>
+          </div>
+          <div className="max-w-4xl mx-auto bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Information We Collect</h3>
+                <p className="text-muted-foreground">We collect personal information such as your name, phone number, email address, and delivery address when you place an order, book a repair, or contact us. This information is used solely to fulfill your requests and provide customer support.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">How We Use Your Information</h3>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>To process and deliver your orders</li>
+                  <li>To communicate about repairs and services</li>
+                  <li>To improve our products and services</li>
+                  <li>To send promotional offers (only with your consent)</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Data Security</h3>
+                <p className="text-muted-foreground">We implement appropriate security measures to protect your personal information from unauthorized access, alteration, or disclosure. Your data is stored securely and is never sold to third parties.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Your Rights</h3>
+                <p className="text-muted-foreground">You have the right to access, correct, or delete your personal information at any time. Contact us if you wish to exercise these rights.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Terms of Service */}
+      <section id="terms" className="py-16 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Terms of Service</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Please review our terms and conditions</p>
+          </div>
+          <div className="max-w-4xl mx-auto bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">General Terms</h3>
+                <p className="text-muted-foreground">By using our website and services, you agree to these terms. We reserve the right to update these terms at any time. Continued use of our services constitutes acceptance of any changes.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Orders and Payments</h3>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>All orders are subject to product availability</li>
+                  <li>Prices are subject to change without notice</li>
+                  <li>Payment is due upon order confirmation</li>
+                  <li>We accept cash, card, bank transfer, and other methods as indicated at checkout</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Repairs and Services</h3>
+                <p className="text-muted-foreground">All repairs are performed by qualified technicians. We guarantee our work for the duration specified at the time of service. We are not liable for data loss; please back up your devices before repair.</p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Limitation of Liability</h3>
+                <p className="text-muted-foreground">TR-Tech Repairs and Designs shall not be liable for any indirect, incidental, special, or consequential damages arising from the use of our products or services. Our liability is limited to the purchase price of the product or service.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Shared Why Choose Us component - competitive advantages */}
       <WhyChooseUs />
 

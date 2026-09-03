@@ -369,7 +369,46 @@ ${sanitizeWhatsAppInput(formData.message)}
             </div>
             <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md">
-                <div className="flex items-start gap-4 mb-6">
+                <div className="flex items-start gap-4">
+                  <div className="bg-primary p-3 rounded-full">
+                    <MapPin className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl mb-2">Our Location</h3>
+                    <p className="text-muted-foreground mb-2">
+                      123 Tech Street, Braamfontein<br />
+                      Johannesburg, 2017<br />
+                      South Africa
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Located in the heart of Johannesburg. Free parking available on-site.
+                    </p>
+                    <div className="flex gap-3 mt-4">
+                      <a
+                        href="https://www.facebook.com/trtechrepairsanddesigns"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-primary p-2.5 rounded-full hover:scale-110 transition-transform"
+                        aria-label="Follow us on Facebook"
+                      >
+                        <Facebook className="h-5 w-5 text-primary-foreground" />
+                      </a>
+                      <a
+                        href="https://www.instagram.com/trtechrepairsanddesigns"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-primary p-2.5 rounded-full hover:scale-110 transition-transform"
+                        aria-label="Follow us on Instagram"
+                      >
+                        <Instagram className="h-5 w-5 text-primary-foreground" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md">
+                <div className="flex items-start gap-4">
                   <div className="bg-primary p-3 rounded-full">
                     <Clock className="h-6 w-6 text-primary-foreground" />
                   </div>
@@ -394,40 +433,6 @@ ${sanitizeWhatsAppInput(formData.message)}
                         </p>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-card text-card-foreground p-6 md:p-8 rounded-lg shadow-md">
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary p-3 rounded-full">
-                    <MapPin className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xl mb-4">Follow Us</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Stay updated with our latest products, services, and special offers on social media.
-                    </p>
-                     <div className="flex gap-4">
-                        <a
-                          href="https://www.facebook.com/trtechrepairsanddesigns"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
-                          aria-label="Follow us on Facebook"
-                        >
-                          <Facebook className="h-6 w-6 text-primary-foreground" />
-                        </a>
-                        <a
-                          href="https://www.instagram.com/trtechrepairsanddesigns"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-primary p-3 rounded-full hover:scale-110 transition-transform"
-                          aria-label="Follow us on Instagram"
-                        >
-                          <Instagram className="h-6 w-6 text-primary-foreground" />
-                        </a>
-                      </div>
                   </div>
                 </div>
               </div>

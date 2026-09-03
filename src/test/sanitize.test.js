@@ -109,8 +109,9 @@ describe('constants', () => {
   // Fallback categories are used when the API is unavailable
   it('exports non-empty product categories', () => {
     expect(FALLBACK_CATEGORIES.length).toBeGreaterThan(0);
-    expect(FALLBACK_CATEGORIES).toContain('Smartphones');
-    expect(FALLBACK_CATEGORIES).toContain('Laptops');
+    const categoryNames = FALLBACK_CATEGORIES.map(c => c.name);
+    expect(categoryNames).toContain('Smartphones');
+    expect(categoryNames).toContain('Laptops');
   });
 
   // Order statuses must include all lifecycle states

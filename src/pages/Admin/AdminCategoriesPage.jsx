@@ -115,7 +115,7 @@ export function AdminCategoriesPage() {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (id) => {
+   const deleteCategory = async (id) => {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
     try {
       await categoriesAPI.delete(id);

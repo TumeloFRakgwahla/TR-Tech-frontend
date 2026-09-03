@@ -145,58 +145,6 @@
     display: none;
   }
 
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .scroll-container {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    position: relative;
-  }
-
-  .snap-x {
-    scroll-snap-type: x mandatory;
-  }
-
-  .snap-start {
-    scroll-snap-align: start;
-  }
-
-  .scroll-container::before,
-  .scroll-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 32px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
-  .scroll-container::before {
-    left: 0;
-    background: linear-gradient(to right, var(--background) 0%, transparent 100%);
-  }
-
-  .scroll-container::after {
-    right: 0;
-    background: linear-gradient(to left, var(--background) 0%, transparent 100%);
-  }
-
-  .scroll-container.can-scroll-left::before {
-    opacity: 1;
-  }
-
-  .scroll-container.can-scroll-right::after {
-    opacity: 1;
-  }
-
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -230,6 +178,41 @@
 
   .safe-area-inset-top {
     padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .scroll-container {
+    position: relative;
+  }
+
+  .scroll-container::before,
+  .scroll-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .scroll-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--background), transparent);
+  }
+
+  .scroll-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--background), transparent);
+  }
+
+  .scroll-container.can-scroll-left::before {
+    opacity: 1;
+  }
+
+  .scroll-container.can-scroll-right::after {
+    opacity: 1;
   }
 }
 
@@ -274,85 +257,20 @@
   }
 }
 
-/* Mobile menu slide animation */
-@keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Auth modal custom styles - hide default close button */
-.auth-modal-custom > button[aria-label="Close"] {
-  display: none !important;
-}
-
-/* Auth modal mobile optimization */
+/* Mobile dialog responsiveness fixes */
 @media (max-width: 640px) {
-  .auth-modal-custom {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+  [data-radix-dialog-content] {
+    top: auto !important;
     bottom: 0 !important;
-    transform: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    border-radius: 0 !important;
-    animation: fadeIn 0.2s ease-out;
-    display: flex;
-    flex-direction: column;
+    transform: translateX(-50%) !important;
+    max-height: calc(100dvh - 1rem) !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    padding-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
-  
-  .auth-modal-custom > div:last-child {
-    flex: 1;
-    overflow-y: auto;
+
+  [data-radix-dialog-content] > *:last-child {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
-}
-
-/* Smooth scrolling for mobile menu */
-.overflow-y-auto {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Mobile touch feedback */
-@media (hover: none) {
-  .nav-link:active,
-  button:active {
-    opacity: 0.7;
-    transform: scale(0.98);
-  }
-}
-
-/* Bottom nav safe area padding */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-}
-
-/* Professional card shadows */
-.shadow-ecommerce {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
-}
-
-/* Input focus styles */
-input:focus {
-  box-shadow: 0 0 0 2px rgba(3, 2, 19, 0.1);
 }
