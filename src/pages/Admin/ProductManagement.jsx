@@ -76,10 +76,10 @@ export function ProductManagement() {
       ]);
       const catNames = (catRes.data || []).map(c => c.name);
       const brandNames = (brandRes.data || []).map(b => b.name);
-      setCategories(catNames.length ? [...new Set(catNames)] : FALLBACK_CATEGORIES);
+      setCategories(catNames.length ? [...new Set(catNames)] : FALLBACK_CATEGORIES.map(c => c.name));
       setBrands(brandNames.length ? [...new Set(brandNames)] : FALLBACK_BRANDS);
     } catch {
-      setCategories(FALLBACK_CATEGORIES);
+      setCategories(FALLBACK_CATEGORIES.map(c => c.name));
       setBrands(FALLBACK_BRANDS);
     }
   };
