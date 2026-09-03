@@ -44,6 +44,14 @@ function CartPage() {
   // Destructure all cart state and mutation functions from context
   const { cart, totalItems, totalPrice, removeFromCart, updateQuantity, clearCart } = useCart();
 
+  const getShippingCost = () => {
+    if (totalPrice >= 500) return 0;
+    return totalPrice > 0 ? 50 : 0;
+  };
+
+  const shippingCost = getShippingCost();
+  const orderTotal = totalPrice + shippingCost;
+
   // Clear entire cart after user confirms in browser dialog
   const handleClearCart = () => {
     if (window.confirm('Are you sure you want to clear your cart?')) {
@@ -200,12 +208,19 @@ function CartPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Shipping</span>
-                    <span className="font-medium text-green-600">Free</span>
+                    <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                      {shippingCost === 0 ? (totalPrice > 0 ? 'Free' : '—') : formatPrice(shippingCost)}
+                    </span>
                   </div>
+                  {shippingCost > 0 && (
+                    <p className="text-xs text-gray-500">
+                      Free shipping on orders over R500
+                    </p>
+                  )}
                   <div className="border-t pt-3 flex justify-between">
                     <span className="text-lg font-bold text-gray-900">Total</span>
                     <span className="text-lg font-bold text-gray-900">
-                      {formatPrice(totalPrice)}
+                      {formatPrice(orderTotal)}
                     </span>
                   </div>
                 </div>
@@ -226,7 +241,7 @@ function CartPage() {
                 </Link>
 
                 <p className="text-xs text-gray-500 text-center mt-4">
-                  Shipping and taxes calculated at checkout
+                  Taxes calculated at checkout
                 </p>
               </div>
             </div>
@@ -239,7 +254,10 @@ function CartPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs text-gray-500">Total</p>
-            <p className="text-xl font-bold text-gray-900">{formatPrice(totalPrice)}</p>
+            <p className="text-xl font-bold text-gray-900">{formatPrice(orderTotal)}</p>
+            {shippingCost > 0 && (
+              <p className="text-[10px] text-gray-500">incl. shipping</p>
+            )}
           </div>
           <Link
             to="/checkout"

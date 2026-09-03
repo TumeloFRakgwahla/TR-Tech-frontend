@@ -100,6 +100,14 @@ function ProgressBar({ currentStep }) {
 function OrderSummary({ compact = false }) {
   const { cart, totalPrice } = useCart();
 
+  const getShippingCost = (subtotal) => {
+    if (subtotal >= 500) return 0;
+    return subtotal > 0 ? 50 : 0;
+  };
+
+  const shippingCost = getShippingCost(totalPrice);
+  const orderTotal = totalPrice + shippingCost;
+
   return (
     <div className={`bg-white rounded-xl border border-border ${compact ? 'p-4' : 'p-6'}`}>
       <h3 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
@@ -130,11 +138,18 @@ function OrderSummary({ compact = false }) {
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Shipping</span>
-          <span className="font-medium text-green-600">Calculated at checkout</span>
+          <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-foreground'}`}>
+            {shippingCost === 0 ? (totalPrice > 0 ? 'Free' : '—') : `R${shippingCost.toFixed(2)}`}
+          </span>
         </div>
+        {shippingCost > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Free shipping on orders over R500
+          </p>
+        )}
         <div className="flex justify-between text-base font-bold pt-2 border-t border-border">
           <span>Total</span>
-          <span className="text-primary">R{totalPrice.toFixed(2)}</span>
+          <span className="text-primary">R{orderTotal.toFixed(2)}</span>
         </div>
       </div>
     </div>

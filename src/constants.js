@@ -22,6 +22,9 @@ export const WHATSAPP_BASE_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 // is set, it takes precedence (e.g. for cross-domain staging deployments).
 export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
+// Paystack Configuration
+export const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_f7bc28fa713fb4ad1d6e754dbeb36978ebf5056e';
+
 // Default product image (matches the backend Product schema default)
 export const PRODUCT_PLACEHOLDER_IMAGE = 'https://placehold.co/100x100/3b82f6/white?text=TR';
 
@@ -63,16 +66,17 @@ export const SORT_OPTIONS = [
 ];
 
 // Fallback product categories (used when API is unavailable)
+// Each category includes name, slug, icon, and displayOrder for admin-controlled consistency
 export const FALLBACK_CATEGORIES = [
-  'Smartphones',
-  'Laptops',
-  'Laptop Accessories',
-  'Mobile Accessories',
-  'Gaming',
-  'Networking',
-  'Printers',
-  'Storage Devices',
-  'Other'
+  { name: 'Smartphones', slug: 'smartphones', icon: 'Smartphone', displayOrder: 1 },
+  { name: 'Laptops', slug: 'laptops', icon: 'Laptop', displayOrder: 2 },
+  { name: 'Laptop Accessories', slug: 'laptop-accessories', icon: 'Cable', displayOrder: 3 },
+  { name: 'Mobile Accessories', slug: 'mobile-accessories', icon: 'Headphones', displayOrder: 4 },
+  { name: 'Gaming', slug: 'gaming', icon: 'Gamepad2', displayOrder: 5 },
+  { name: 'Networking', slug: 'networking', icon: 'Wifi', displayOrder: 6 },
+  { name: 'Printers', slug: 'printers', icon: 'Printer', displayOrder: 7 },
+  { name: 'Storage Devices', slug: 'storage-devices', icon: 'HardDrive', displayOrder: 8 },
+  { name: 'Other', slug: 'other', icon: 'MoreHorizontal', displayOrder: 9 },
 ];
 
 // Fallback product brands (used when API is unavailable)

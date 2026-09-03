@@ -6,6 +6,10 @@ import { dirname } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const backendPort = process.env.VITE_BACKEND_PORT || '5000';
+const backendHost = process.env.VITE_BACKEND_HOST || 'localhost';
+const backendUrl = `http://${backendHost}:${backendPort}`;
+
 export default defineConfig({
   plugins: [react()],
   test: {
@@ -35,12 +39,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: backendUrl,
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'http://localhost:5000',
+        target: backendUrl,
         changeOrigin: true,
         secure: false,
       },

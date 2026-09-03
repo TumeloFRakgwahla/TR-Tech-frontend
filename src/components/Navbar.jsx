@@ -117,27 +117,29 @@ const Navbar = () => {
    * Fetch active categories from the backend for the mobile menu drill-down.
    * Also listens for admin data changes to refresh categories dynamically.
    */
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await categoriesAPI.getActive();
-        if (res.success && res.data && res.data.length > 0) {
-          setCategories(res.data.map(c => c.name));
-        }
-      } catch {
-        // keep empty — mobile menu degrades gracefully
-      }
-    };
-    fetchCategories();
+   useEffect(() => {
+     const fetchCategories = async () => {
+       try {
+         const res = await categoriesAPI.getActive();
+         if (res.success && res.data && res.data.length > 0) {
+           setCategories(res.data.map(c => c.name));
+         } else {
+           setCategories(['Smartphones', 'Laptops', 'Gaming', 'Printers', 'Storage Devices', 'Mobile Accessories']);
+         }
+       } catch {
+         setCategories(['Smartphones', 'Laptops', 'Gaming', 'Printers', 'Storage Devices', 'Mobile Accessories']);
+       }
+     };
+     fetchCategories();
 
-    const handler = (e) => {
-      if (e.detail?.type === 'categories') {
-        fetchCategories();
-      }
-    };
-    window.addEventListener('admin-data-changed', handler);
-    return () => window.removeEventListener('admin-data-changed', handler);
-  }, []);
+     const handler = (e) => {
+       if (e.detail?.type === 'categories') {
+         fetchCategories();
+       }
+     };
+     window.addEventListener('admin-data-changed', handler);
+     return () => window.removeEventListener('admin-data-changed', handler);
+   }, []);
 
   /**
    * Account button handler: navigate to account if logged in,
@@ -269,42 +271,6 @@ const Navbar = () => {
 
           {/* Mobile action icons */}
           <div className="md:hidden flex items-center text-primary-foreground">
-            {searchExpanded ? (
-              <div className="absolute inset-x-0 top-0 bg-primary p-2 z-50 flex items-center gap-2">
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="flex-1 h-10 px-4 rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                  onBlur={() => {
-                    if (!searchQuery.trim()) {
-                      setSearchExpanded(false);
-                    }
-                  }}
-                  aria-label="Search products"
-                />
-                <button
-                  onClick={() => {
-                    setSearchExpanded(false);
-                    setSearchQuery('');
-                  }}
-                  className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-foreground"
-                  aria-label="Close search"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setSearchExpanded(true)}
-                className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-            )}
             <Link
               to="/wishlist"
               className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"

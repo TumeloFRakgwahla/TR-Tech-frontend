@@ -8,13 +8,15 @@ import { useCart } from './CartContext';
 import { AuthModal } from './AuthModal';
 import { toast } from 'sonner';
 import { ShoppingBag, User, MapPin, CreditCard, Check, Banknote, ArrowLeftRight, MoreHorizontal, ShieldCheck, Truck, Loader2 } from 'lucide-react';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, paymentsAPI } from '../services/api';
 import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
 import { WHATSAPP_NUMBER } from '../constants';
+import { useNavigate } from 'react-router-dom';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
   const { cart, totalPrice, clearCart } = useCart();
+  const navigate = useNavigate();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [step, setStep] = useState(isAuthenticated ? 'details' : 'auth');
   const [loading, setLoading] = useState(false);
@@ -142,6 +144,30 @@ export function CheckoutModal({ open, onOpenChange }) {
 
       if (response.success) {
         const order = response.data;
+
+        if (paymentMethod === 'Card') {
+          try {
+            const paystackResponse = await paymentsAPI.initializePaystack({
+              orderId: order._id,
+              email: deliveryDetails.email,
+              amount: order.totalAmount,
+            });
+
+            if (paystackResponse.success && paystackResponse.data?.authorizationUrl) {
+              clearCart();
+              onOpenChange(false);
+              window.location.href = paystackResponse.data.authorizationUrl;
+              return;
+            }
+
+            toast.error(paystackResponse.message || 'Failed to initialize payment. Please try again.');
+          } catch (paystackError) {
+            console.error('Paystack initialization error:', paystackError);
+            toast.error(paystackError.message || 'Payment initialization failed. Please try again.');
+          }
+          return;
+        }
+
         const orderDetails = cart
           .map((item) => `${item.name} (${item.condition}) x${item.quantity} - R${(item.price * item.quantity).toFixed(2)}`)
           .join('\n');
@@ -180,6 +206,7 @@ export function CheckoutModal({ open, onOpenChange }) {
         toast.success('Order submitted successfully! Redirecting to WhatsApp...');
         clearCart();
         onOpenChange(false);
+        navigate(`/order-confirmation?orderId=${order._id}`);
       } else {
         toast.error(response.message || 'Failed to save order');
       }
@@ -256,15 +283,18 @@ export function CheckoutModal({ open, onOpenChange }) {
           <div className="space-y-6 py-4">
             <div className="text-center">
               <User className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign in to checkout</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Checkout</h3>
               <p className="text-gray-500 mb-6">
-                Register or login to checkout faster and track your orders
+                Continue as guest or register to track your orders
               </p>
             </div>
 
-            <Button onClick={handleAuthClick} className="w-full bg-primary text-primary-foreground hover:bg-primary/90" size="lg">
-              <User className="h-4 w-4 mr-2" />
-              Register / Login
+            <Button
+              onClick={() => setStep('details')}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              size="lg"
+            >
+              Continue as Guest
             </Button>
 
             <div className="relative">
@@ -273,7 +303,7 @@ export function CheckoutModal({ open, onOpenChange }) {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-white px-2 text-gray-400">
-                  Or continue as guest
+                  Or register for faster checkout
                 </span>
               </div>
             </div>
@@ -282,9 +312,10 @@ export function CheckoutModal({ open, onOpenChange }) {
               variant="outline"
               className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               size="lg"
-              onClick={() => setStep('details')}
+              onClick={handleAuthClick}
             >
-              Continue as Guest
+              <User className="h-4 w-4 mr-2" />
+              Register / Login
             </Button>
           </div>
         )}

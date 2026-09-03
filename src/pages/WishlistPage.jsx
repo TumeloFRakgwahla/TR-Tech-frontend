@@ -22,6 +22,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import BottomNav from '../components/BottomNav';
 import { useWishlist } from '../components/WishlistContext';
 import { useCart } from '../components/CartContext';
 import { getProductImageUrl } from '../lib/imageUrl';
@@ -64,6 +65,7 @@ export function WishlistPage() {
           </div>
         </div>
         <Footer />
+        <BottomNav />
       </div>
     );
   }
@@ -182,6 +184,7 @@ export function WishlistPage() {
         )}
       </div>
       <Footer />
+      <BottomNav />
     </div>
   );
 }
