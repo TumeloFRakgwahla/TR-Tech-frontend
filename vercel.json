@@ -41,6 +41,10 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.paystack.co https://wa.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: https://*.public.blob.vercel-storage.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://tr-tech-backend.vercel.app https://*.public.blob.vercel-storage.com https://api.paystack.co https://wa.me; frame-src https://js.paystack.co https://wa.me; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; manifest-src 'self'"
         }
       ]
     },
