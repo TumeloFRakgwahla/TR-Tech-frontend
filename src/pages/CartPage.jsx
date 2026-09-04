@@ -256,7 +256,7 @@ function CartPage() {
             <p className="text-xs text-gray-500">Total</p>
             <p className="text-xl font-bold text-gray-900">{formatPrice(orderTotal)}</p>
             {shippingCost > 0 && (
-              <p className="text-[10px] text-gray-500">incl. shipping</p>
+              <p className="text-xs text-gray-500">incl. shipping</p>
             )}
           </div>
           <Link

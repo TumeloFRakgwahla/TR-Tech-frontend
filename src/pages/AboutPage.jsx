@@ -119,13 +119,13 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="bg-card p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4 text-primary">Our Mission</h3>
+              <h2 className="text-2xl font-bold mb-4 text-primary">Our Mission</h2>
               <p className="text-muted-foreground">
                 To empower our community with reliable tech solutions, innovative designs, and quality products while building lasting relationships based on trust, expertise, and exceptional service.
               </p>
             </div>
             <div className="bg-card p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4 text-primary">Our Vision</h3>
+              <h2 className="text-2xl font-bold mb-4 text-primary">Our Vision</h2>
               <p className="text-muted-foreground">
                 To be the leading technology solutions provider in South Africa, known for our expertise, reliability, and commitment to customer success.
               </p>

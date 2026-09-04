@@ -62,12 +62,27 @@ const Navbar = () => {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const hamburgerButtonRef = React.useRef(null);
+  const closeButtonRef = React.useRef(null);
 
   // Context values drive badge counts and auth state across the navbar
   const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
+
+  /**
+   * Focus management for the mobile menu (ARIA dialog pattern).
+   * On open: move focus to the close button inside the panel.
+   * On close: return focus to the hamburger trigger that opened it.
+   */
+  useEffect(() => {
+    if (isOpen) {
+      closeButtonRef.current?.focus();
+    } else {
+      hamburgerButtonRef.current?.focus();
+    }
+  }, [isOpen]);
 
   /**
    * Lock body scroll when mobile menu is open to prevent background scrolling.
@@ -161,7 +176,8 @@ const Navbar = () => {
                 src="/TR_Tech_logo.png"
                 alt="TR-Tech Logo"
                 className="h-14 md:h-20 w-auto"
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
                 decoding="async"
               />
             </Link>
@@ -269,6 +285,7 @@ const Navbar = () => {
               </button>
             )}
             <button
+              ref={hamburgerButtonRef}
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 -ml-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center backdrop-blur-sm"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
@@ -293,6 +310,9 @@ const Navbar = () => {
           />
           <div
             id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Main navigation"
             className={`absolute inset-x-0 top-0 bottom-0 bg-white shadow-2xl max-w-sm w-[85vw] flex flex-col transition-transform duration-300 ease-out ${
               isOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
@@ -309,6 +329,7 @@ const Navbar = () => {
                 />
               </Link>
               <button
+                ref={closeButtonRef}
                 onClick={() => setIsOpen(false)}
                 className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-foreground/80 hover:text-white transition-colors"
                 aria-label="Close menu"
@@ -335,7 +356,7 @@ const Navbar = () => {
             {/* Scrollable Menu Content */}
             <div className="overflow-y-auto overscroll-contain">
               <div className="py-3">
-                <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Navigate</p>
+                <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Navigate</p>
                 <NavLink to="/" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
                   <span className="flex items-center gap-4">
                     <Home className="h-5 w-5 text-muted-foreground" />Home
@@ -377,7 +398,7 @@ const Navbar = () => {
                   >
                     <span className="flex items-center gap-4">
                       <Smartphone className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mr-2">Categories</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mr-2">Categories</span>
                     </span>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -401,7 +422,7 @@ const Navbar = () => {
 
               {/* Actions Section */}
               <div className="py-3 border-t border-border">
-                <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</p>
+                <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</p>
                 <Link
                   to="/book-repair"
                   className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
@@ -449,7 +470,7 @@ const Navbar = () => {
               <div className="py-3 border-t border-border">
                 {isAuthenticated ? (
                   <>
-                    <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">My Account</p>
+                    <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">My Account</p>
                     <NavLink to="/account" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
                       <span className="flex items-center gap-4">
                         <User className="h-5 w-5 text-muted-foreground" />My Profile
@@ -479,7 +500,7 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Account</p>
+                    <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Account</p>
                     <button
                       onClick={handleAccountClick}
                       className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"

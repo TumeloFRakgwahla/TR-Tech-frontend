@@ -104,7 +104,7 @@ function CategoryChip({ category, isActive }) {
 
       <span
         className={`
-          text-[11px] sm:text-xs font-medium text-center
+          text-xs font-medium text-center
           leading-tight tracking-tight
           line-clamp-2 min-h-[28px] sm:min-h-[32px]
           flex items-center justify-center

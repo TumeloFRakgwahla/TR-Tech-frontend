@@ -212,7 +212,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
       <div className="flex flex-col flex-1 p-4 gap-2">
         {/* Brand & category meta */}
         {(product.brand || product.category) && (
-          <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-slate-500">
+          <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-slate-500">
             {product.brand && <span className="text-primary/80">{product.brand}</span>}
             {product.brand && product.category && <span className="text-slate-300">·</span>}
             {product.category && <span>{product.category}</span>}
@@ -230,7 +230,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
         <div className="flex items-center gap-1.5" aria-label={`${product.rating || 0} out of 5 stars`}>
           <StarRating rating={product.rating} reviews={product.reviews} size={3} />
           {(product.reviews || 0) > 0 && (
-            <span className="text-[11px] text-slate-500">({product.reviews})</span>
+            <span className="text-xs text-slate-500">({product.reviews})</span>
           )}
         </div>
 
@@ -247,7 +247,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
             )}
           </div>
           {discount && (
-            <p className="text-[11px] font-medium text-emerald-600 mt-0.5">
+            <p className="text-xs font-medium text-emerald-600 mt-0.5">
               You save {formatPrice((product.originalPrice || 0) - (product.price || 0))}
             </p>
           )}
@@ -414,7 +414,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
             <div>
               <h2 className="text-sm font-semibold text-slate-900">Filters</h2>
               {totalActiveFilters > 0 && (
-                <p className="text-[11px] text-slate-500">{totalActiveFilters} active</p>
+                <p className="text-xs text-slate-500">{totalActiveFilters} active</p>
               )}
             </div>
           </div>
@@ -628,14 +628,14 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
               {/* Price Range Display */}
               <div className="flex items-center justify-between mb-5 gap-3">
                 <div className="flex-1 text-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Min</span>
+                  <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Min</span>
                   <div className="mt-1 px-3 py-2 bg-slate-100 rounded-lg text-sm font-semibold text-slate-700">
                     R0
                   </div>
                 </div>
                 <div className="h-px w-6 bg-slate-300 mt-5" />
                 <div className="flex-1 text-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Max</span>
+                  <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Max</span>
                   <div
                     className="mt-1 px-3 py-2 bg-slate-100 rounded-lg text-sm font-bold text-primary cursor-pointer hover:bg-primary/10 hover:ring-2 hover:ring-primary/30 transition-all"
                     onClick={() => setIsEditingPrice(true)}
@@ -684,9 +684,9 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
               </div>
 
               <div className="flex justify-between mt-2.5 px-0.5">
-                <span className="text-[10px] text-slate-500 font-medium">R0</span>
-                <span className="text-[10px] text-slate-500 font-medium">R{Math.round(maxPrice / 2).toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 font-medium">R{maxPrice.toLocaleString()}</span>
+                <span className="text-xs text-slate-500 font-medium">R0</span>
+                <span className="text-xs text-slate-500 font-medium">R{Math.round(maxPrice / 2).toLocaleString()}</span>
+                <span className="text-xs text-slate-500 font-medium">R{maxPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -713,7 +713,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
               </div>
               <div>
                 <span className="text-sm font-semibold text-slate-900">In Stock Only</span>
-                <p className="text-[11px] text-slate-500">Hide out of stock items</p>
+                <p className="text-xs text-slate-500">Hide out of stock items</p>
               </div>
             </div>
             {inStockOnly && (
@@ -1206,21 +1206,21 @@ function ShopContent() {
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h4 className="font-semibold mb-1.5 text-slate-900">Quality Assured</h4>
+              <h2 className="font-semibold mb-1.5 text-slate-900">Quality Assured</h2>
               <p className="text-sm text-slate-500">All products tested and verified</p>
             </div>
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h4 className="font-semibold mb-1.5 text-slate-900">Warranty Included</h4>
+              <h2 className="font-semibold mb-1.5 text-slate-900">Warranty Included</h2>
               <p className="text-sm text-slate-500">Every purchase comes with warranty</p>
             </div>
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h4 className="font-semibold mb-1.5 text-slate-900">Secure Checkout</h4>
+              <h2 className="font-semibold mb-1.5 text-slate-900">Secure Checkout</h2>
               <p className="text-sm text-slate-500">Safe and convenient WhatsApp checkout</p>
             </div>
           </div>

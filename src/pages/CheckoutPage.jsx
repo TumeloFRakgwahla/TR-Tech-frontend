@@ -112,9 +112,9 @@ function CartItemsList({ compact = false }) {
 
   return (
     <div className={`bg-white rounded-xl border border-border ${compact ? 'p-4' : 'p-6'}`}>
-      <h3 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
+      <h2 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
         Cart Items
-      </h3>
+      </h2>
 
       <div className={`space-y-3 ${compact ? 'max-h-48' : 'max-h-60'} overflow-y-auto`}>
         {cart.map((item) => (
@@ -166,9 +166,9 @@ function OrderSummary({ compact = false }) {
 
   return (
     <div className={`bg-white rounded-xl border border-border ${compact ? 'p-4' : 'p-6'}`}>
-      <h3 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
+      <h2 className={`font-semibold text-foreground mb-4 ${compact ? 'text-base' : 'text-lg'}`}>
         Order Summary
-      </h3>
+      </h2>
 
       <div className="space-y-3">
         <div className="flex justify-between text-sm">
