@@ -23,8 +23,26 @@ export default function TrackOrderPage() {
 
     try {
       const params = {};
-      if (orderId.trim()) params.orderId = orderId.trim();
-      if (phone.trim()) params.phone = phone.trim();
+      const trimmedOrderId = orderId.trim();
+      const trimmedPhone = phone.trim();
+
+      if (trimmedOrderId) {
+        if (!/^[a-fA-F0-9]{24}$/.test(trimmedOrderId)) {
+          setError('Invalid order ID format. Please enter a 24-character ID.');
+          setLoading(false);
+          return;
+        }
+        params.orderId = trimmedOrderId;
+      }
+      if (trimmedPhone) {
+        params.phone = trimmedPhone;
+      }
+
+      if (!params.orderId && !params.phone) {
+        setError('Please enter an order ID or phone number.');
+        setLoading(false);
+        return;
+      }
 
       const response = await ordersAPI.track(params);
 
@@ -91,10 +109,13 @@ export default function TrackOrderPage() {
                     id="orderId"
                     type="text"
                     value={orderId}
-                    onChange={(e) => setOrderId(e.target.value)}
-                    placeholder="e.g., 65a1b2c3d4e5f6g7h8i9j0k1"
-                    className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
-                  />
+                     onChange={(e) => setOrderId(e.target.value)}
+                     placeholder="e.g., 65a1b2c3d4e5f6a7b8c9d0e1"
+                     className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
+                     pattern="[a-fA-F0-9]{24}"
+                     maxLength={24}
+                     title="Enter a valid 24-character order ID"
+                   />
                 </div>
               </div>
 
