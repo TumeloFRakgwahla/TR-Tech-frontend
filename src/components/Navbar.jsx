@@ -217,9 +217,11 @@ const Navbar = () => {
                   className="flex items-center gap-2 bg-white text-primary px-3 py-2 rounded-md hover:bg-gray-200 transition-all min-h-[44px]"
                 >
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                    {(user?.firstName || 'U').charAt(0)}
+                    {(user?.firstName?.trim()?.charAt(0) || 'U')}
                   </div>
-                  <span className="text-sm font-medium hidden lg:inline">{user?.firstName || 'Account'}</span>
+                  <span className="text-sm font-medium hidden lg:inline">
+                    {(user?.firstName?.trim() || 'Account')}
+                  </span>
                 </button>
                 {accountDropdownOpen && (
                   <>
