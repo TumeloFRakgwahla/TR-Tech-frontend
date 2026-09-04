@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import Seo from '../components/Seo';
+import { useCart } from '../components/CartContext';
 import { Check, Package, Phone, MapPin, CreditCard, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { ordersAPI, paymentsAPI } from '../services/api';
 import { toast } from 'sonner';
@@ -12,6 +13,7 @@ export default function OrderConfirmationPage() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
   const reference = searchParams.get('reference');
+  const { clearCart } = useCart();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,6 +35,7 @@ export default function OrderConfirmationPage() {
               const trackResponse = await ordersAPI.track({ orderId: verifiedOrderId });
               if (trackResponse.success) {
                 setOrder(trackResponse.data);
+                clearCart();
               } else {
                 setError(trackResponse.message || 'Order not found after verification');
               }

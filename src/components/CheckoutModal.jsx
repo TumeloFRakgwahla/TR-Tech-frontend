@@ -12,7 +12,7 @@ import { ordersAPI, paymentsAPI } from '../services/api';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
-  const { cart, totalPrice, clearCart } = useCart();
+  const { cart, totalPrice } = useCart();
   const shippingCost = totalPrice >= 500 || totalPrice === 0 ? 0 : 50;
   const orderTotal = totalPrice + shippingCost;
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -135,7 +135,10 @@ export function CheckoutModal({ open, onOpenChange }) {
     return true;
   };
 
-  // Paystack gateway — creates the order then redirects to Paystack for payment
+  // Paystack gateway — creates the order then redirects to Paystack for payment.
+  // The cart is NOT cleared here; it stays intact until payment is verified on
+  // OrderConfirmationPage. This preserves the cart if the user abandons Paystack
+  // or the payment fails.
   const handlePaystackSubmit = async () => {
     if (!validateCheckout()) return;
 
@@ -157,8 +160,8 @@ export function CheckoutModal({ open, onOpenChange }) {
       });
 
       if (paystackResponse.success && paystackResponse.data?.authorizationUrl) {
-        clearCart();
-        onOpenChange(false);
+        setStep('processing');
+        toast.info('Redirecting to Paystack to complete your payment...');
         window.location.href = paystackResponse.data.authorizationUrl;
         return;
       }
@@ -559,6 +562,21 @@ export function CheckoutModal({ open, onOpenChange }) {
                   'Place Order'
                 )}
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Processing Step — waiting for Paystack redirect */}
+        {step === 'processing' && (
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Processing Your Payment</h3>
+              <p className="text-sm text-muted-foreground">
+                You are being redirected to Paystack to complete your payment securely.
+              </p>
             </div>
           </div>
         )}
