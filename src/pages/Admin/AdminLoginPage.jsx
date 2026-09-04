@@ -25,6 +25,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../components/AdminAuthContext';
+import Seo from '../../components/Seo';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -166,7 +167,9 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <>
+      <Seo title="Admin Login — TR-Tech" noindex description="Admin login portal for TR-Tech Repairs and Designs content management system." />
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 bg-slate-800 border-slate-700">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -232,8 +235,9 @@ export default function AdminLogin() {
           <Button type="submit" disabled={isLoading || isLocked} className="w-full bg-blue-600 hover:bg-blue-700">
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
-        </form>
-      </Card>
-    </div>
+         </form>
+       </Card>
+     </div>
+    </>
   );
 }

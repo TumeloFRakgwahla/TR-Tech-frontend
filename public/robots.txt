@@ -1,0 +1,16 @@
+User-agent: *
+# Admin and account areas are behind auth — noindexing prevents Google
+# from indexing empty SPA shells rendered for unauthorized users
+Disallow: /admin/
+
+Disallow: /account/
+Disallow: /admin/login
+Disallow: /checkout
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /track-order
+Disallow: /order-confirmation
+
+# Sitemaps
+Sitemap: https://trtech.co.za/sitemap.xml
+Sitemap: https://trtech.co.za/sitemap-posts.xml
