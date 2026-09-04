@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { productsAPI } from '../services/api';
 import { useCart } from '../components/CartContext';
@@ -288,6 +289,10 @@ function PageShell({ children }) {
   return (
     <div className="min-h-screen bg-muted">
       <Navbar />
+      <Seo
+        title="Product Details"
+        description="View full details, pricing, and reviews on TR-Tech product pages. Shop quality tech with fast South Africa delivery."
+      />
       {children}
       <Footer />
       <BottomNav />

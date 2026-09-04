@@ -22,6 +22,7 @@ import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Services from '../components/Services';
 import WhyChooseUs from '../components/Why-Choose-Us';
+import Seo from '../components/Seo';
 import ProductCarousel from '../components/ProductCarousel';
 import CategoryChips from '../components/CategoryChips';
 import TrustSignals from '../components/TrustSignals';
@@ -33,7 +34,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-
+      <Seo title="Home" />
       <main>
         {/* Hero section - main banner with CTAs */}
         <Hero />

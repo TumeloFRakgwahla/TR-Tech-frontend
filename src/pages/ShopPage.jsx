@@ -25,10 +25,11 @@
  * - ShopContent: main component orchestrating data and layout
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart, ChevronDown } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
@@ -54,6 +55,8 @@ function useDebounce(value, delay = 250) {
 
   return debouncedValue;
 }
+
+const FILTER_PARAMS = ['category', 'brand', 'minPrice', 'maxPrice', 'inStock', 'sort', 'page', 'search'];
 
 // Custom hook encapsulating all filter state, actions, and derived values
 function useFilters(maxPrice = 30000) {
@@ -212,7 +215,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
       <div className="flex flex-col flex-1 p-4 gap-2">
         {/* Brand & category meta */}
         {(product.brand || product.category) && (
-          <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-slate-500">
+          <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-slate-500">
             {product.brand && <span className="text-primary/80">{product.brand}</span>}
             {product.brand && product.category && <span className="text-slate-300">·</span>}
             {product.category && <span>{product.category}</span>}
@@ -229,8 +232,8 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
         {/* Rating */}
         <div className="flex items-center gap-1.5" aria-label={`${product.rating || 0} out of 5 stars`}>
           <StarRating rating={product.rating} reviews={product.reviews} size={3} />
-          {product.reviews > 0 && (
-            <span className="text-[11px] text-slate-500">({product.reviews})</span>
+          {(product.reviews || 0) > 0 && (
+            <span className="text-xs text-slate-500">({product.reviews})</span>
           )}
         </div>
 
@@ -247,7 +250,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
             )}
           </div>
           {discount && (
-            <p className="text-[11px] font-medium text-emerald-600 mt-0.5">
+            <p className="text-xs font-medium text-emerald-600 mt-0.5">
               You save {formatPrice((product.originalPrice || 0) - (product.price || 0))}
             </p>
           )}
@@ -296,7 +299,7 @@ function ProductCardSkeleton() {
 }
 
 // Horizontal scrollable quick-filter chips with elevated active state
-function FilterChips({ filters }) {
+function FilterChips({ filters, sortBy, setSortBy }) {
   const quickFilters = [
     {
       label: 'In Stock',
@@ -313,8 +316,8 @@ function FilterChips({ filters }) {
     },
     {
       label: 'Top Rated',
-      active: false,
-      toggle: () => {},
+      active: sortBy === 'rating',
+      toggle: () => setSortBy(sortBy === 'rating' ? 'featured' : 'rating'),
     },
   ];
 
@@ -414,7 +417,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
             <div>
               <h2 className="text-sm font-semibold text-slate-900">Filters</h2>
               {totalActiveFilters > 0 && (
-                <p className="text-[11px] text-slate-500">{totalActiveFilters} active</p>
+                <p className="text-xs text-slate-500">{totalActiveFilters} active</p>
               )}
             </div>
           </div>
@@ -628,14 +631,14 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
               {/* Price Range Display */}
               <div className="flex items-center justify-between mb-5 gap-3">
                 <div className="flex-1 text-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Min</span>
+                  <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Min</span>
                   <div className="mt-1 px-3 py-2 bg-slate-100 rounded-lg text-sm font-semibold text-slate-700">
                     R0
                   </div>
                 </div>
                 <div className="h-px w-6 bg-slate-300 mt-5" />
                 <div className="flex-1 text-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Max</span>
+                  <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Max</span>
                   <div
                     className="mt-1 px-3 py-2 bg-slate-100 rounded-lg text-sm font-bold text-primary cursor-pointer hover:bg-primary/10 hover:ring-2 hover:ring-primary/30 transition-all"
                     onClick={() => setIsEditingPrice(true)}
@@ -684,9 +687,9 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
               </div>
 
               <div className="flex justify-between mt-2.5 px-0.5">
-                <span className="text-[10px] text-slate-500 font-medium">R0</span>
-                <span className="text-[10px] text-slate-500 font-medium">R{Math.round(maxPrice / 2).toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 font-medium">R{maxPrice.toLocaleString()}</span>
+                <span className="text-xs text-slate-500 font-medium">R0</span>
+                <span className="text-xs text-slate-500 font-medium">R{Math.round(maxPrice / 2).toLocaleString()}</span>
+                <span className="text-xs text-slate-500 font-medium">R{maxPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -713,7 +716,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
               </div>
               <div>
                 <span className="text-sm font-semibold text-slate-900">In Stock Only</span>
-                <p className="text-[11px] text-slate-500">Hide out of stock items</p>
+                <p className="text-xs text-slate-500">Hide out of stock items</p>
               </div>
             </div>
             {inStockOnly && (
@@ -763,7 +766,10 @@ function ShopContent() {
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState(() => {
+    const param = searchParams.get('sort');
+    return SORT_OPTIONS.some((o) => o.value === param) ? param : 'featured';
+  });
 
   // Read initial filter values from URL params (e.g., ?category=Laptops&brand=Apple)
   const initialCategory = searchParams.get('category');
@@ -866,12 +872,26 @@ function ShopContent() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchProducts]);
 
-  // Focus trap and escape handler for mobile filter drawer
+  // Focus trap, escape handler, and body-scroll-lock for mobile filter drawer
   useEffect(() => {
     if (!mobileFiltersOpen) return;
 
     const dialog = document.getElementById('mobile-filters');
     if (!dialog) return;
+
+    // Lock body scroll — preserves scroll position and prevents iOS bounce
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const originalStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
 
     const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     const focusableElements = dialog.querySelectorAll(focusableSelectors);
@@ -902,7 +922,14 @@ function ShopContent() {
     document.addEventListener('keydown', handleKeyDown);
     firstFocusable?.focus();
 
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      body.style.position = originalStyles.position;
+      body.style.top = originalStyles.top;
+      body.style.width = originalStyles.width;
+      body.style.overflow = originalStyles.overflow;
+      window.scrollTo(0, scrollY);
+    };
   }, [mobileFiltersOpen]);
 
   // Listen for admin data changes to refresh products/categories/brands
@@ -918,10 +945,14 @@ function ShopContent() {
     return () => window.removeEventListener('admin-data-changed', handler);
   }, [fetchProducts, fetchCategoriesAndBrands]);
 
-  // Reset price range to max when products are loaded
+  // Reset price range to max when products are first loaded.
+  // Subsequent refreshes (focus, admin-data-changed) must not override the
+  // user's current price filter, otherwise narrowed ranges are silently wiped.
+  const priceRangeInitializedRef = useRef(false);
   useEffect(() => {
-    if (!loading && products.length > 0) {
+    if (!loading && products.length > 0 && !priceRangeInitializedRef.current) {
       filters.setPriceRange(maxPrice);
+      priceRangeInitializedRef.current = true;
     }
   }, [loading, products.length, maxPrice, filters]);
 
@@ -953,6 +984,11 @@ function ShopContent() {
       if (sortBy === 'price-asc') return (a.price || 0) - (b.price || 0);
       if (sortBy === 'price-desc') return (b.price || 0) - (a.price || 0);
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'newest') {
+        const aTime = new Date(a.createdAt || 0).getTime();
+        const bTime = new Date(b.createdAt || 0).getTime();
+        return bTime - aTime;
+      }
       return 0;
     });
   }, [filteredProducts, sortBy]);
@@ -960,6 +996,11 @@ function ShopContent() {
   return (
     <>
       <Navbar />
+      <Seo
+        title="Shop"
+        description="Browse TR-Tech's full range of tech products — smartphones, laptops, gaming gear, printers, storage, and accessories. Filter by brand, price, and category."
+        noindex={FILTER_PARAMS.some((p) => searchParams.has(p))}
+      />
       <div className="min-h-screen bg-slate-50 pt-16 md:pt-20">
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-12 md:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -982,18 +1023,28 @@ function ShopContent() {
                   id="product-search"
                   type="search"
                   value={filters.searchQuery}
-onChange={e => filters.setSearchQuery(e.target.value)}
+                  onChange={e => filters.setSearchQuery(e.target.value)}
                   placeholder="Search products, brands, categories..."
                   className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-100/70 border border-transparent rounded-full text-slate-900 placeholder:text-slate-400 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-white transition-all min-h-[44px]"
                 />
+                {filters.searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => filters.setSearchQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Row 2 — Filters, Count, Sort */}
             <div className="flex items-center gap-2 pb-3">
-              {/* Mobile filter trigger */}
-              <button
-                className="md:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 min-h-[36px] px-3 rounded-full border border-slate-200 bg-white hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
+               {/* Tablet + mobile filter trigger (hidden at lg where sidebar is visible) */}
+               <button
+                 className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 min-h-[36px] px-3 rounded-full border border-slate-200 bg-white hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
                 aria-expanded={mobileFiltersOpen}
                 aria-controls="mobile-filters"
@@ -1041,7 +1092,7 @@ onChange={e => filters.setSearchQuery(e.target.value)}
             {/* Row 3 — Horizontal filter chips */}
             <div className="pb-3 -mx-4 sm:-mx-6 lg:-mx-8">
               <div className="px-4 sm:px-6 lg:px-8">
-                <FilterChips filters={filters} />
+                <FilterChips filters={filters} sortBy={sortBy} setSortBy={setSortBy} />
               </div>
             </div>
           </div>
@@ -1050,8 +1101,8 @@ onChange={e => filters.setSearchQuery(e.target.value)}
         {/* Main content area */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="flex gap-6 lg:gap-8">
-            <aside className="hidden md:block w-64 lg:w-72 flex-shrink-0" aria-label="Product filters">
-              <div className="sticky top-[140px] md:top-[156px]">
+            <aside className="hidden lg:block w-64 lg:w-72 flex-shrink-0" aria-label="Product filters">
+              <div className="sticky top-[140px] lg:top-[156px]">
                 <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
               </div>
             </aside>
@@ -1064,7 +1115,7 @@ onChange={e => filters.setSearchQuery(e.target.value)}
               >
                 <div
                   id="mobile-filters"
-                  className="absolute bottom-0 inset-x-0 max-h-[88vh] bg-white rounded-t-3xl overflow-y-auto animate-slide-up pb-safe shadow-2xl"
+                  className="absolute bottom-0 inset-x-0 max-h-[88dvh] bg-white rounded-t-3xl overflow-y-auto animate-slide-up pb-safe shadow-2xl"
                   onClick={e => e.stopPropagation()}
                   role="dialog"
                   aria-modal="true"
@@ -1184,21 +1235,21 @@ onChange={e => filters.setSearchQuery(e.target.value)}
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h4 className="font-semibold mb-1.5 text-slate-900">Quality Assured</h4>
+              <h2 className="font-semibold mb-1.5 text-slate-900">Quality Assured</h2>
               <p className="text-sm text-slate-500">All products tested and verified</p>
             </div>
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h4 className="font-semibold mb-1.5 text-slate-900">Warranty Included</h4>
+              <h2 className="font-semibold mb-1.5 text-slate-900">Warranty Included</h2>
               <p className="text-sm text-slate-500">Every purchase comes with warranty</p>
             </div>
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h4 className="font-semibold mb-1.5 text-slate-900">Secure Checkout</h4>
+              <h2 className="font-semibold mb-1.5 text-slate-900">Secure Checkout</h2>
               <p className="text-sm text-slate-500">Safe and convenient WhatsApp checkout</p>
             </div>
           </div>

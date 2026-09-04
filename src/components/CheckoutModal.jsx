@@ -7,16 +7,14 @@ import { useAuth } from './AuthContext';
 import { useCart } from './CartContext';
 import { AuthModal } from './AuthModal';
 import { toast } from 'sonner';
-import { ShoppingBag, User, MapPin, CreditCard, Check, Banknote, ArrowLeftRight, MoreHorizontal, ShieldCheck, Truck, Loader2 } from 'lucide-react';
+import { ShoppingBag, User, MapPin, CreditCard, Check, ShieldCheck, Truck, Loader2 } from 'lucide-react';
 import { ordersAPI, paymentsAPI } from '../services/api';
-import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
-import { WHATSAPP_NUMBER } from '../constants';
-import { useNavigate } from 'react-router-dom';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
-  const { cart, totalPrice, clearCart } = useCart();
-  const navigate = useNavigate();
+  const { cart, totalPrice } = useCart();
+  const shippingCost = totalPrice >= 500 || totalPrice === 0 ? 0 : 50;
+  const orderTotal = totalPrice + shippingCost;
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [step, setStep] = useState(isAuthenticated ? 'details' : 'auth');
   const [loading, setLoading] = useState(false);
@@ -32,7 +30,6 @@ export function CheckoutModal({ open, onOpenChange }) {
     province: user?.address?.province || '',
     notes: '',
   });
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
 
   useEffect(() => {
     if (open) {
@@ -100,126 +97,79 @@ export function CheckoutModal({ open, onOpenChange }) {
     setAuthModalOpen(false);
   }, []);
 
-  const handleSubmitOrder = async () => {
+  const buildOrderData = (method = 'Card') => ({
+    items: cart.map((item) => ({
+      product: item._id || item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      condition: item.condition,
+    })),
+    customer: {
+      name: deliveryDetails.name,
+      email: deliveryDetails.email,
+      phone: deliveryDetails.phone,
+      address: {
+        street: deliveryDetails.street,
+        city: deliveryDetails.city,
+        postalCode: deliveryDetails.postalCode,
+        province: deliveryDetails.province,
+      },
+    },
+    totalAmount: orderTotal,
+    paymentMethod: method,
+    status: 'Pending',
+    paymentStatus: 'Pending',
+    notes: deliveryDetails.notes,
+  });
+
+  const validateCheckout = () => {
     if (!cart || cart.length === 0) {
       toast.error('Your cart is empty. Add items before checkout.');
-      return;
+      return false;
     }
-
     if (!validateDetails()) {
       toast.error('Please fix the errors above');
-      return;
+      return false;
     }
+    return true;
+  };
+
+  // Paystack gateway — creates the order then redirects to Paystack for payment.
+  // The cart is NOT cleared here; it stays intact until payment is verified on
+  // OrderConfirmationPage. This preserves the cart if the user abandons Paystack
+  // or the payment fails.
+  const handlePaystackSubmit = async () => {
+    if (!validateCheckout()) return;
 
     setLoading(true);
-
     try {
-      const orderData = {
-        items: cart.map(item => ({
-          product: item._id || item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          condition: item.condition
-        })),
-        customer: {
-          name: deliveryDetails.name,
-          email: deliveryDetails.email,
-          phone: deliveryDetails.phone,
-          address: {
-            street: deliveryDetails.street,
-            city: deliveryDetails.city,
-            postalCode: deliveryDetails.postalCode,
-            province: deliveryDetails.province
-          }
-        },
-        totalAmount: totalPrice,
-        paymentMethod: paymentMethod,
-        status: 'Pending',
-        paymentStatus: 'Pending',
-        notes: deliveryDetails.notes
-      };
-
+      const orderData = buildOrderData('Card');
       const response = await ordersAPI.create(orderData);
 
-      if (response.success) {
-        const order = response.data;
-
-        if (paymentMethod === 'Card') {
-          try {
-            const paystackResponse = await paymentsAPI.initializePaystack({
-              orderId: order._id,
-              email: deliveryDetails.email,
-              amount: order.totalAmount,
-            });
-
-            if (paystackResponse.success && paystackResponse.data?.authorizationUrl) {
-              clearCart();
-              onOpenChange(false);
-              window.location.href = paystackResponse.data.authorizationUrl;
-              return;
-            }
-
-            toast.error(paystackResponse.message || 'Failed to initialize payment. Please try again.');
-          } catch (paystackError) {
-            console.error('Paystack initialization error:', paystackError);
-            toast.error(paystackError.message || 'Payment initialization failed. Please try again.');
-          }
-          return;
-        }
-
-        const orderDetails = cart
-          .map((item) => `${item.name} (${item.condition}) x${item.quantity} - R${(item.price * item.quantity).toFixed(2)}`)
-          .join('\n');
-
-        const estimatedDelivery = new Date();
-        estimatedDelivery.setDate(estimatedDelivery.getDate() + 3);
-        const deliveryDate = estimatedDelivery.toLocaleDateString('en-ZA', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-
-        const message = [
-          `Hi! I'd like to place an order:`,
-          ``,
-          `Order ID: ${order._id}`,
-          ``,
-          `Customer: ${sanitizeWhatsAppInput(deliveryDetails.name)}`,
-          `Email: ${sanitizeWhatsAppInput(deliveryDetails.email)}`,
-          `Phone: ${sanitizeWhatsAppInput(deliveryDetails.phone)}`,
-          `Address: ${sanitizeWhatsAppInput(deliveryDetails.street)}, ${sanitizeWhatsAppInput(deliveryDetails.city)}, ${sanitizeWhatsAppInput(deliveryDetails.province)} ${sanitizeWhatsAppInput(deliveryDetails.postalCode)}`,
-          ``,
-          `ORDER DETAILS:`,
-          orderDetails,
-          ``,
-          `Payment Method: ${sanitizeWhatsAppInput(paymentMethod)}`,
-          `Total: R${order.totalAmount.toFixed(2)}`,
-          ``,
-          `Estimated Delivery: ${deliveryDate}`,
-          ``,
-          `Notes: ${sanitizeWhatsAppInput(deliveryDetails.notes) || 'None'}`
-        ].join('\n');
-
-        window.open(createWhatsAppUrl(message, WHATSAPP_NUMBER), '_blank');
-        toast.success('Order submitted successfully! Redirecting to WhatsApp...');
-        clearCart();
-        onOpenChange(false);
-        navigate(`/order-confirmation?orderId=${order._id}`);
-      } else {
+      if (!response.success) {
         toast.error(response.message || 'Failed to save order');
+        return;
       }
+
+      const order = response.data;
+      const paystackResponse = await paymentsAPI.initializePaystack({
+        orderId: order._id,
+        email: deliveryDetails.email,
+        amount: order.totalAmount,
+      });
+
+      if (paystackResponse.success && paystackResponse.data?.authorizationUrl) {
+        setStep('processing');
+        toast.info('Redirecting to Paystack to complete your payment...');
+        window.location.href = paystackResponse.data.authorizationUrl;
+        return;
+      }
+
+      toast.error(paystackResponse.message || 'Failed to initialize payment. Please try again.');
     } catch (error) {
-      console.error('Error submitting order:', error);
-      const message = error.message || '';
-      if (message.toLowerCase().includes('insufficient stock')) {
-        toast.error(message);
-      } else if (message.toLowerCase().includes('not found')) {
-        toast.error('One or more items in your cart are no longer available. Please remove them and try again.');
-      } else {
-        toast.error('Failed to submit order. Please try again.');
-      }
+      console.error('Paystack payment error:', error);
+      toast.error(error.message || 'Payment initialization failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -236,7 +186,7 @@ export function CheckoutModal({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white text-gray-900 border-gray-200 shadow-xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white text-gray-900 border-gray-200 shadow-xl" data-testid="checkout-modal">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-gray-900">
             <ShoppingBag className="h-5 w-5" />
@@ -293,6 +243,7 @@ export function CheckoutModal({ open, onOpenChange }) {
               onClick={() => setStep('details')}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               size="lg"
+              data-testid="checkout-continue-guest"
             >
               Continue as Guest
             </Button>
@@ -449,6 +400,7 @@ export function CheckoutModal({ open, onOpenChange }) {
               </Button>
               <Button
                 className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                data-testid="checkout-continue-confirm"
                 onClick={() => {
                   if (validateDetails()) {
                     setStep('payment');
@@ -463,57 +415,48 @@ export function CheckoutModal({ open, onOpenChange }) {
           </div>
         )}
 
-        {/* Payment Method Step */}
+        {/* Payment Step — Paystack gateway (no method selection) */}
         {step === 'payment' && (
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-2 mb-4">
               <CreditCard className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-gray-900">Select Payment Method</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Payment Method</h3>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              {[
-                { key: 'Cash', label: 'Cash', icon: Banknote },
-                { key: 'Card', label: 'Card', icon: CreditCard },
-                { key: 'Transfer', label: 'Transfer', icon: ArrowLeftRight },
-                { key: 'Other', label: 'Other', icon: MoreHorizontal },
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setPaymentMethod(key)}
-                  className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
-                    paymentMethod === key
-                      ? 'border-primary bg-primary/5 shadow-sm'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`h-5 w-5 ${paymentMethod === key ? 'text-primary' : 'text-gray-400'}`} />
-                    <span className={`font-medium ${paymentMethod === key ? 'text-gray-900' : 'text-gray-600'}`}>{label}</span>
-                  </div>
-                  {paymentMethod === key && (
-                    <Check className="h-5 w-5 text-primary" />
-                  )}
-                </button>
-              ))}
+            <p className="text-sm text-gray-500">
+              Your order will be processed securely through Paystack. No payment method selection is required.
+            </p>
+
+            <div className="flex items-center justify-between p-4 border border-primary rounded-lg bg-primary/5">
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <span className="font-medium text-gray-900">Paystack</span>
+              </div>
+              <Check className="h-5 w-5 text-primary" />
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <ShieldCheck className="h-3 w-3" />
+              <span>SSL Encrypted &middot; Secure Checkout</span>
+            </div>
+
+            <div className="mt-2">
               <Button
-                variant="outline"
-                className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                onClick={() => setStep('details')}
-              >
-                Back
-              </Button>
-              <Button
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                data-testid="checkout-continue-payment"
                 onClick={() => setStep('confirmation')}
               >
                 Continue to Confirm
               </Button>
             </div>
+
+            <Button
+              variant="outline"
+              className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              onClick={() => setStep('details')}
+            >
+              Back
+            </Button>
           </div>
         )}
 
@@ -522,7 +465,7 @@ export function CheckoutModal({ open, onOpenChange }) {
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-2 mb-4">
               <Check className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-gray-900">Order Summary</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Confirm your order</h3>
             </div>
 
             {/* Cart Items */}
@@ -560,7 +503,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <CreditCard className="h-4 w-4 text-primary" />
                 Payment Method:
               </h4>
-              <p className="text-sm capitalize text-gray-600">{paymentMethod}</p>
+              <p className="text-sm capitalize text-gray-600">Paystack</p>
             </div>
 
             {/* Estimated Delivery */}
@@ -581,7 +524,7 @@ export function CheckoutModal({ open, onOpenChange }) {
             {/* Total */}
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200">
               <span className="font-semibold text-gray-900">Total</span>
-              <span className="text-2xl font-bold text-gray-900">R{totalPrice.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-gray-900">R{orderTotal.toFixed(2)}</span>
             </div>
 
             {/* Trust Signals */}
@@ -606,7 +549,8 @@ export function CheckoutModal({ open, onOpenChange }) {
               </Button>
               <Button
                 className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={handleSubmitOrder}
+                data-testid="checkout-place-order"
+                onClick={handlePaystackSubmit}
                 disabled={loading}
               >
                 {loading ? (
@@ -615,18 +559,33 @@ export function CheckoutModal({ open, onOpenChange }) {
                     Processing...
                   </>
                 ) : (
-                  'Place Order via WhatsApp'
+                  'Place Order'
                 )}
               </Button>
             </div>
           </div>
         )}
+
+        {/* Processing Step — waiting for Paystack redirect */}
+        {step === 'processing' && (
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Processing Your Payment</h3>
+              <p className="text-sm text-muted-foreground">
+                You are being redirected to Paystack to complete your payment securely.
+              </p>
+            </div>
+          </div>
+        )}
       </DialogContent>
 
-      <AuthModal 
-        open={authModalOpen} 
-        onOpenChange={handleAuthClose} 
-        onSuccess={handleAuthSuccess} 
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={handleAuthClose}
+        onSuccess={handleAuthSuccess}
       />
     </Dialog>
   );

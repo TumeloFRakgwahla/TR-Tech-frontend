@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAdminAuth } from '../components/AdminAuthContext';
+import Seo from '../components/Seo';
 
 export function AdminProtectedRoute({ children, redirectTo = '/admin/login' }) {
   const { isAuthenticated, user, loading } = useAdminAuth();
@@ -20,5 +21,12 @@ export function AdminProtectedRoute({ children, redirectTo = '/admin/login' }) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  return children;
+  // Admin pages are behind auth — noindex to prevent crawling by search
+  // engines that might hit the auth-gated SPA shell
+  return (
+    <>
+      <Seo noindex title="Admin — TR-Tech" />
+      {children}
+    </>
+  );
 }

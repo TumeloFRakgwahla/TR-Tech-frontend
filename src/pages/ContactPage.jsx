@@ -24,6 +24,7 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { contactAPI } from '../services/api';
@@ -195,6 +196,10 @@ ${sanitizeWhatsAppInput(formData.message)}
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Seo
+        title="Contact Us"
+        description="Contact TR-Tech Repairs and Designs. We're here to help with all your tech repair, design, and product questions. WhatsApp, email, or phone."
+      />
       <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}
@@ -376,12 +381,10 @@ ${sanitizeWhatsAppInput(formData.message)}
                   <div>
                     <h3 className="font-bold text-xl mb-2">Our Location</h3>
                     <p className="text-muted-foreground mb-2">
-                      123 Tech Street, Braamfontein<br />
-                      Johannesburg, 2017<br />
-                      South Africa
+                      Address available on request — contact us for our workshop location
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Located in the heart of Johannesburg. Free parking available on-site.
+                      Serving clients across Gauteng and throughout South Africa with remote and walk-in services.
                     </p>
                     <div className="flex gap-3 mt-4">
                       <a

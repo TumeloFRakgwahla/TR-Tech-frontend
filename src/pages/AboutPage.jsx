@@ -15,12 +15,17 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import WhyChooseUs from '../components/Why-Choose-Us';
+import Seo from '../components/Seo';
 import { Users, Target, Award, Heart } from 'lucide-react';
 
 const About = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Seo
+        title="About Us"
+        description="TR-Tech Repairs and Designs was founded with a passion for technology and customer service. We offer expert tech repairs, graphic design, and quality tech products in South Africa."
+      />
       <div className="pt-20 md:pb-0 content-wrapper">
 
       {/* Hero Section - gradient banner with company tagline */}
@@ -36,7 +41,7 @@ const About = () => {
       </section>
 
       {/* Our Story - company history and evolution narrative */}
-      <section className="py-16 bg-background">
+      <section className="py-16 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -46,26 +51,40 @@ const About = () => {
               From a small repair shop to a comprehensive tech solutions provider.
             </p>
           </div>
-          <div className="max-w-7xl mx-auto">
-            <p className="text-lg text-muted-foreground mb-6 text-left">
-              TR-Tech Repair and Designs was founded with a passion and mission for technology and customer service: to provide exceptional tech and products to
-              our community.What started as a small repair shop has grown into a comprehensive tech solutions provider, offering everything from device repairs
-              to professional graphic design services.
-            </p>
+          <div className="max-w-4xl mx-auto bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Our Journey</h3>
+                <p className="text-muted-foreground">
+                  TR-Tech Repair and Designs was founded with a passion and mission for technology and customer service: to provide exceptional tech and products to
+                  our community.What started as a small repair shop has grown into a comprehensive tech solutions provider, offering everything from device repairs
+                  to professional graphic design services.
+                </p>
+              </div>
 
-            <p className="text-lg text-muted-foreground mb-6 text-left">
-              We understand how essential technology is in today's world. Whether it's your smartphone, laptop, or tablet, these devices keep you connected to
-              what matters most. That's why we're dedicated to providing fast, reliable repairs that get your devices back in your hands as quickly as possible.
-            </p>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Our Mission</h3>
+                <p className="text-muted-foreground">
+                  We understand how essential technology is in today's world. Whether it's your smartphone, laptop, or tablet, these devices keep you connected to
+                  what matters most. That's why we're dedicated to providing fast, reliable repairs that get your devices back in your hands as quickly as possible.
+                </p>
+              </div>
 
-            <p className="text-lg text-muted-foreground mb-6 text-left">
-              Beyond repairs, we've expanded our services to include professional graphic design and branding. Our creative team works with businesses and individuals
-              to bring their visions to life, creating stunning designs that make an impact.
-            </p>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Our Vision</h3>
+                <p className="text-muted-foreground">
+                  Beyond repairs, we've expanded our services to include professional graphic design and branding. Our creative team works with businesses and individuals
+                  to bring their visions to life, creating stunning designs that make an impact.
+                </p>
+              </div>
 
-            <p className="text-lg text-muted-foreground text-left">
-              We also offer a curated selection of new and pre-owned tech products, giving our customers access to quality devices at competitive prices.
-            </p>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-primary">Our Products</h3>
+                <p className="text-muted-foreground">
+                  We also offer a curated selection of new and pre-owned tech products, giving our customers access to quality devices at competitive prices.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -119,13 +138,13 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="bg-card p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4 text-primary">Our Mission</h3>
+              <h2 className="text-2xl font-bold mb-4 text-primary">Our Mission</h2>
               <p className="text-muted-foreground">
                 To empower our community with reliable tech solutions, innovative designs, and quality products while building lasting relationships based on trust, expertise, and exceptional service.
               </p>
             </div>
             <div className="bg-card p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold mb-4 text-primary">Our Vision</h3>
+              <h2 className="text-2xl font-bold mb-4 text-primary">Our Vision</h2>
               <p className="text-muted-foreground">
                 To be the leading technology solutions provider in South Africa, known for our expertise, reliability, and commitment to customer success.
               </p>

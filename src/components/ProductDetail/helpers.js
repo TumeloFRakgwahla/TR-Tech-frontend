@@ -11,17 +11,7 @@
  */
 
 import { getProductImageUrl as getCanonicalProductImageUrl } from '../../lib/imageUrl';
-
-// Locale for price formatting (South African Rand)
-const PRICE_LOCALE = 'en-ZA';
-
-/**
- * Extracts the product ID from a product object.
- * Supports both _id (MongoDB) and id formats.
- */
-export function getProductId(product) {
-  return product?._id || product?.id;
-}
+import { formatPrice as formatPriceFromLib } from '../../lib/format';
 
 // Re-export the canonical image URL getter
 export { getCanonicalProductImageUrl as getProductImageUrl };
@@ -32,6 +22,26 @@ export { getCanonicalProductImageUrl as getProductImageUrl };
  */
 export function getPublicImageUrl(url) {
   return getCanonicalProductImageUrl(url);
+}
+
+/**
+ * Extracts the product ID from a product object.
+ * Supports both _id (MongoDB) and id formats.
+ */
+export function getProductId(product) {
+  return product?._id || product?.id;
+}
+
+/**
+ * Formats a price value for display using South African locale.
+ * Delegates to the shared lib/format.js formatPrice for consistency.
+ * Returns just the number (e.g., "1 234") — callers prepend currency.
+ *
+ * @param {number|string} value - Price value to format
+ * @returns {string} Formatted number string
+ */
+export function formatPrice(value) {
+  return formatPriceFromLib(value, { showDecimals: false, currency: '' });
 }
 
 /**
@@ -64,14 +74,6 @@ export function buildSpecifications(product, stock) {
     ['Stock', stock],
     ['Status', product?.status || 'Active'],
   ];
-}
-
-/**
- * Formats a price value for display using South African locale.
- * Adds thousand separators (e.g., 1234567 -> "1 234 567").
- */
-export function formatPrice(value) {
-  return Number(value || 0).toLocaleString(PRICE_LOCALE);
 }
 
 /**

@@ -16,11 +16,10 @@
  * - categories/categoriesOpen: fetched categories for mobile menu
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Heart, User, LogOut, ShoppingCart, Search, ChevronDown, Smartphone, Wrench, Mail, Info, Home, ShoppingBag, PhoneIcon, WrenchIcon, Phone, Book, ChevronRight, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, X, Heart, User, LogOut, ShoppingCart, ChevronDown, Smartphone, Wrench, Info, Home, ShoppingBag, Phone, Book, ChevronRight, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MiniCart } from './MiniCart';
-import { useCart } from './CartContext';
 import { useWishlist } from './WishlistContext';
 import { useAuth } from './AuthContext';
 import { useAuthModal } from './AuthModalContext';
@@ -61,57 +60,59 @@ const NavLink = ({ to, children, className = '', onClick, isMobile = false }) =>
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [searchExpanded, setSearchExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const searchInputRef = useRef(null);
+  const hamburgerButtonRef = React.useRef(null);
+  const closeButtonRef = React.useRef(null);
 
   // Context values drive badge counts and auth state across the navbar
   const { wishlistCount } = useWishlist();
-  const { totalItems } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
 
   /**
-   * Lock body scroll when mobile menu is open to prevent background scrolling.
-   * Cleanup resets overflow on unmount or menu close.
+   * Focus management for the mobile menu (ARIA dialog pattern).
+   * On open: move focus to the close button inside the panel.
+   * On close: return focus to the hamburger trigger that opened it.
    */
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      closeButtonRef.current?.focus();
     } else {
-      document.body.style.overflow = 'unset';
+      hamburgerButtonRef.current?.focus();
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   /**
-   * Auto-focus the search input when the mobile search bar expands.
+   * Lock body scroll when mobile menu is open to prevent background scrolling.
+   * Uses the fixed-position + scrollY-preservation pattern so that:
+   *   1. iOS Safari rubber-band scroll is prevented
+   *   2. The user's scroll position is restored on close (no jump to top)
+   * Cleanup restores the original styles and scroll position.
    */
   useEffect(() => {
-    if (searchExpanded && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [searchExpanded]);
-
-  /**
-   * Navigate to shop with search query when Enter is pressed in mobile search.
-   */
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (searchExpanded && e.key === 'Enter' && searchQuery.trim()) {
-        navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
-        setSearchExpanded(false);
-        setSearchQuery('');
-      }
+    if (!isOpen) return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const originalStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
     };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [searchExpanded, searchQuery, navigate]);
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    return () => {
+      body.style.position = originalStyles.position;
+      body.style.top = originalStyles.top;
+      body.style.width = originalStyles.width;
+      body.style.overflow = originalStyles.overflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
 
   /**
    * Fetch active categories from the backend for the mobile menu drill-down.
@@ -175,14 +176,15 @@ const Navbar = () => {
                 src="/TR_Tech_logo.png"
                 alt="TR-Tech Logo"
                 className="h-14 md:h-20 w-auto"
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
                 decoding="async"
               />
             </Link>
           </div>
 
-          {/* Desktop navigation links and action buttons */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Desktop navigation links and action buttons (>= 1024 px) */}
+          <div className="hidden lg:flex items-center space-x-6">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/about">About</NavLink>
             <NavLink to="/services">Services</NavLink>
@@ -205,7 +207,7 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block opacity-0 sm:opacity-100 transition-opacity duration-200">
               <MiniCart />
             </div>
             {isAuthenticated ? (
@@ -215,9 +217,11 @@ const Navbar = () => {
                   className="flex items-center gap-2 bg-white text-primary px-3 py-2 rounded-md hover:bg-gray-200 transition-all min-h-[44px]"
                 >
                   <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                    {(user?.firstName || 'U').charAt(0)}
+                    {(user?.firstName?.trim()?.charAt(0) || 'U')}
                   </div>
-                  <span className="text-sm font-medium hidden lg:inline">{user?.firstName || 'Account'}</span>
+                  <span className="text-sm font-medium hidden lg:inline">
+                    {(user?.firstName?.trim() || 'Account')}
+                  </span>
                 </button>
                 {accountDropdownOpen && (
                   <>
@@ -269,32 +273,8 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile action icons */}
-          <div className="md:hidden flex items-center text-primary-foreground">
-            <Link
-              to="/wishlist"
-              className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Wishlist"
-            >
-              <Heart className="h-6 w-6" />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              to="/cart"
-              className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="View cart"
-            >
-              <ShoppingCart className="h-6 w-6" />
-              {totalItems > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
+          {/* Mobile/tablet action icons (shown below lg breakpoint) */}
+          <div className="lg:hidden flex items-center text-primary-foreground">
             {isAuthenticated && (
               <button
                 onClick={handleAccountClick}
@@ -307,8 +287,9 @@ const Navbar = () => {
               </button>
             )}
             <button
+              ref={hamburgerButtonRef}
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 -ml-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[40px] min-h-[40px] flex items-center justify-center backdrop-blur-sm"
+              className="p-2 -ml-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center backdrop-blur-sm"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
@@ -318,9 +299,9 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile slide-out menu with backdrop, categories, and account section */}
+        {/* Mobile/tablet slide-out menu with backdrop, categories, and account section */}
         <div
-          className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
+          className={`lg:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
             isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
           aria-hidden={!isOpen}
@@ -331,12 +312,15 @@ const Navbar = () => {
           />
           <div
             id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Main navigation"
             className={`absolute inset-x-0 top-0 bottom-0 bg-white shadow-2xl max-w-sm w-[85vw] flex flex-col transition-transform duration-300 ease-out ${
               isOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
             {/* Mobile Menu Header */}
-            <div className="bg-primary text-primary-foreground px-5 py-4 flex items-center justify-between">
+            <div className="bg-primary text-primary-foreground px-5 pt-safe pt-4 pb-4 flex items-center justify-between">
               <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3">
                 <img
                   src="/TR_Tech_logo.png"
@@ -347,6 +331,7 @@ const Navbar = () => {
                 />
               </Link>
               <button
+                ref={closeButtonRef}
                 onClick={() => setIsOpen(false)}
                 className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-foreground/80 hover:text-white transition-colors"
                 aria-label="Close menu"
@@ -373,7 +358,7 @@ const Navbar = () => {
             {/* Scrollable Menu Content */}
             <div className="overflow-y-auto overscroll-contain">
               <div className="py-3">
-                <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Navigate</p>
+                <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Navigate</p>
                 <NavLink to="/" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
                   <span className="flex items-center gap-4">
                     <Home className="h-5 w-5 text-muted-foreground" />Home
@@ -415,7 +400,7 @@ const Navbar = () => {
                   >
                     <span className="flex items-center gap-4">
                       <Smartphone className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mr-2">Categories</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mr-2">Categories</span>
                     </span>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -439,7 +424,7 @@ const Navbar = () => {
 
               {/* Actions Section */}
               <div className="py-3 border-t border-border">
-                <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</p>
+                <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</p>
                 <Link
                   to="/book-repair"
                   className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
@@ -451,9 +436,15 @@ const Navbar = () => {
                   <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
                 </Link>
                 <Link
-                  to="/account/repairs"
+                  to={isAuthenticated ? "/account/repairs" : "#"}
+                  onClick={(e) => {
+                    if (!isAuthenticated) {
+                      e.preventDefault();
+                      openAuthModal();
+                    }
+                    setIsOpen(false);
+                  }}
                   className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
-                  onClick={() => setIsOpen(false)}
                 >
                   <span className="flex items-center gap-4">
                     <Package className="h-5 w-5 text-muted-foreground" />Track Repair
@@ -481,7 +472,7 @@ const Navbar = () => {
               <div className="py-3 border-t border-border">
                 {isAuthenticated ? (
                   <>
-                    <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">My Account</p>
+                    <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">My Account</p>
                     <NavLink to="/account" isMobile={true} className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]" onClick={() => setIsOpen(false)}>
                       <span className="flex items-center gap-4">
                         <User className="h-5 w-5 text-muted-foreground" />My Profile
@@ -511,7 +502,7 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <p className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Account</p>
+                    <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Account</p>
                     <button
                       onClick={handleAccountClick}
                       className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"

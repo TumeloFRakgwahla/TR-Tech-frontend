@@ -11,7 +11,7 @@
  * - Account tab redirects unauthenticated users to the auth modal instead of /account.
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, ShoppingCart, Heart, User } from 'lucide-react';
 import { useCart } from './CartContext';
@@ -59,7 +59,9 @@ const NavButton = ({ to, icon: Icon, label, badge, onClick, isActive }) => {
 
 /**
  * BottomNav renders the fixed bottom tab bar on mobile.
- * Hidden on md+ breakpoints via `md:hidden`.
+  * *Mobile/tablet bottom tab bar — hidden at the ``lg`` breakpoint (1024 px and
+  * above), where the full desktop Navbar takes over. Shows on sm and md so
+  * tablets in portrait get quick tap access to the five core sections.
  */
 export function BottomNav() {
   const location = useLocation();
@@ -67,6 +69,20 @@ export function BottomNav() {
   const { wishlistCount } = useWishlist();
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useAuthModal();
+  const [hidden, setHidden] = useState(false);
+
+  /**
+   * Hide the BottomNav while the cookie consent banner is visible so that
+   * the banner doesn't sit on top of the nav icons and obscure the last
+   * 1-2 entries. BottomNav returns once the user accepts or declines.
+   */
+  useEffect(() => {
+    const handler = (e) => {
+      setHidden(Boolean(e.detail?.visible));
+    };
+    window.addEventListener('trtech:cookie-consent', handler);
+    return () => window.removeEventListener('trtech:cookie-consent', handler);
+  }, []);
 
   /**
    * Determines if a given path is "active".
@@ -89,9 +105,11 @@ export function BottomNav() {
     }
   };
 
+  if (hidden) return null;
+
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 md:hidden safe-area-inset-bottom"
+      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 lg:hidden safe-area-inset-bottom"
       role="navigation"
       aria-label="Bottom navigation"
     >

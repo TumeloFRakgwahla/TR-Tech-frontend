@@ -29,20 +29,20 @@ const Hero = () => {
           for your technology needs.
         </p>
 
-        {/* Call-to-action buttons arranged in a responsive flex layout */}
+        {/* Call-to-action buttons — primary, secondary, tertiary hierarchy */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          {/* Primary action button - white background */}
-          <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          {/* Primary action - filled gradient with emphasis */}
+          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground border-2 border-black font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
             <Link to="/book-repair">Book Repair</Link>
           </Button>
 
-          {/* Secondary action button - outlined style */}
-          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          {/* Secondary action - outlined */}
+          <Button asChild size="lg" variant="outline" className="border-2 border-primary text-primary hover:bg-primary/10 font-bold text-lg shadow-md transition-all duration-300">
             <Link to="/shop">Shop Now</Link>
           </Button>
 
-          {/* Tertiary action button - gradient background */}
-          <Button asChild size="lg" className="bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300">
+          {/* Secondary action - outlined */}
+          <Button asChild size="lg" variant="outline" className="border-2 border-primary text-primary hover:bg-primary/10 font-bold text-lg shadow-md transition-all duration-300">
             <Link to="/contact">Contact Us</Link>
           </Button>
         </div>

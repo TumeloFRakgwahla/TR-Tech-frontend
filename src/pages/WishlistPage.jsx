@@ -23,6 +23,7 @@ import { Heart, ShoppingBag, ArrowLeft, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { useWishlist } from '../components/WishlistContext';
 import { useCart } from '../components/CartContext';
 import { getProductImageUrl } from '../lib/imageUrl';
@@ -73,6 +74,7 @@ export function WishlistPage() {
   return (
     <div className="min-h-screen bg-muted flex flex-col">
       <Navbar />
+      <Seo title="Wishlist" description="View and manage your saved wishlist items at TR-Tech. Add to cart or review your favorite tech products." noindex />
       <div className="container mx-auto flex-1 px-4 max-w-6xl py-10">
         <div className="mb-6">
           <Link

@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
+import Seo from '../components/Seo';
 
 export function ProtectedRoute({ children, requiredRole, redirectTo = '/admin/login' }) {
   const { isAuthenticated, user, loading } = useAuth();
@@ -20,5 +21,12 @@ export function ProtectedRoute({ children, requiredRole, redirectTo = '/admin/lo
     return <Navigate to={redirectTo} replace />;
   }
 
-  return children;
+  // Account pages are behind auth — noindex to prevent crawling by search
+  // engines that might hit the auth-gated SPA shell
+  return (
+    <>
+      <Seo noindex title="Account — TR-Tech" />
+      {children}
+    </>
+  );
 }

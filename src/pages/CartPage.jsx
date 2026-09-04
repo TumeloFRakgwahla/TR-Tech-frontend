@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { formatPrice } from '../lib/format';
 
@@ -65,6 +66,7 @@ function CartPage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
+        <Seo title="Cart" description="Your shopping cart. Review items, update quantities, and proceed to a secure checkout." noindex />
         <div className="flex-1 flex items-center justify-center pt-16 md:pt-20 bg-gray-50 pb-20 md:pb-0">
           <div className="text-center p-8">
             <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4 mx-auto">
@@ -89,6 +91,7 @@ function CartPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
+      <Seo title="Cart" description="Your shopping cart. Review items, update quantities, and proceed to a secure checkout." noindex />
       <div className="flex-1 pt-16 md:pt-20 py-4 md:py-8 pb-32 md:pb-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4 md:mb-6">
@@ -256,7 +259,7 @@ function CartPage() {
             <p className="text-xs text-gray-500">Total</p>
             <p className="text-xl font-bold text-gray-900">{formatPrice(orderTotal)}</p>
             {shippingCost > 0 && (
-              <p className="text-[10px] text-gray-500">incl. shipping</p>
+              <p className="text-xs text-gray-500">incl. shipping</p>
             )}
           </div>
           <Link

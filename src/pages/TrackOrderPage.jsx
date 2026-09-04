@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Search, Package, Phone, ClipboardList, ArrowLeft } from 'lucide-react';
 import { ordersAPI } from '../services/api';
 import { toast } from 'sonner';
@@ -22,8 +23,26 @@ export default function TrackOrderPage() {
 
     try {
       const params = {};
-      if (orderId.trim()) params.orderId = orderId.trim();
-      if (phone.trim()) params.phone = phone.trim();
+      const trimmedOrderId = orderId.trim();
+      const trimmedPhone = phone.trim();
+
+      if (trimmedOrderId) {
+        if (!/^[a-fA-F0-9]{24}$/.test(trimmedOrderId)) {
+          setError('Invalid order ID format. Please enter a 24-character ID.');
+          setLoading(false);
+          return;
+        }
+        params.orderId = trimmedOrderId;
+      }
+      if (trimmedPhone) {
+        params.phone = trimmedPhone;
+      }
+
+      if (!params.orderId && !params.phone) {
+        setError('Please enter an order ID or phone number.');
+        setLoading(false);
+        return;
+      }
 
       const response = await ordersAPI.track(params);
 
@@ -54,6 +73,10 @@ export default function TrackOrderPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <Seo
+        title="Track Order"
+        description="Track your TR-Tech order status by order ID or phone number. Enter your details to get real-time updates on your repair or product order."
+      />
       <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">
         <div className="max-w-2xl mx-auto px-4 py-8 md:py-12">
           <div className="mb-8">
@@ -86,10 +109,13 @@ export default function TrackOrderPage() {
                     id="orderId"
                     type="text"
                     value={orderId}
-                    onChange={(e) => setOrderId(e.target.value)}
-                    placeholder="e.g., 65a1b2c3d4e5f6g7h8i9j0k1"
-                    className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
-                  />
+                     onChange={(e) => setOrderId(e.target.value)}
+                     placeholder="e.g., 65a1b2c3d4e5f6a7b8c9d0e1"
+                     className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
+                     pattern="[a-fA-F0-9]{24}"
+                     maxLength={24}
+                     title="Enter a valid 24-character order ID"
+                   />
                 </div>
               </div>
 

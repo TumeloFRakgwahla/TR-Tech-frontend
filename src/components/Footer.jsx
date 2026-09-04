@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Facebook,
   Instagram,
@@ -108,9 +109,9 @@ const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground pt-14 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div>
-            <a href="/" className="flex items-center gap-3 mb-5">
+            <Link to="/" className="flex items-center gap-3 mb-5">
               <img
                 src="/TR_Tech_logo.png"
                 alt="TR-Tech Logo"
@@ -118,36 +119,39 @@ const Footer = () => {
                 loading="lazy"
                 decoding="async"
               />
-            </a>
+            </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed mb-6">
               Professional tech repairs, innovative graphic design, and quality
               tech products. Serving customers with reliable service since 2020.
             </p>
             <div className="flex space-x-3">
               <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground/80 hover:text-white hover:bg-primary-foreground/20 transition-all duration-200"
-                aria-label="Facebook"
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                aria-disabled="true"
+                title="Facebook link coming soon"
+                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground/40 cursor-not-allowed transition-all duration-200"
+                aria-label="Facebook (link pending)"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground/80 hover:text-white hover:bg-primary-foreground/20 transition-all duration-200"
-                aria-label="Instagram"
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                aria-disabled="true"
+                title="Instagram link coming soon"
+                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground/40 cursor-not-allowed transition-all duration-200"
+                aria-label="Instagram (link pending)"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground/80 hover:text-white hover:bg-primary-foreground/20 transition-all duration-200"
-                aria-label="TikTok"
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                aria-disabled="true"
+                title="TikTok link coming soon"
+                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground/40 cursor-not-allowed transition-all duration-200"
+                aria-label="TikTok (link pending)"
               >
                 <TikTokIcon />
               </a>

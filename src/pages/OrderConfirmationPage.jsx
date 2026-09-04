@@ -3,7 +3,9 @@ import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
-import { Check, Package, Phone, MapPin, CreditCard, ArrowLeft, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import Seo from '../components/Seo';
+import { useCart } from '../components/CartContext';
+import { Check, Package, Phone, MapPin, CreditCard, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { ordersAPI, paymentsAPI } from '../services/api';
 import { toast } from 'sonner';
 
@@ -11,6 +13,7 @@ export default function OrderConfirmationPage() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
   const reference = searchParams.get('reference');
+  const { clearCart } = useCart();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +35,7 @@ export default function OrderConfirmationPage() {
               const trackResponse = await ordersAPI.track({ orderId: verifiedOrderId });
               if (trackResponse.success) {
                 setOrder(trackResponse.data);
+                clearCart();
               } else {
                 setError(trackResponse.message || 'Order not found after verification');
               }
@@ -152,7 +156,12 @@ export default function OrderConfirmationPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">
+      <Seo
+        title="Order Confirmation"
+        description="Your TR-Tech order is confirmed. Track your order status and delivery progress in real time."
+        noindex
+      />
+      <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0 pb-safe">
         <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">

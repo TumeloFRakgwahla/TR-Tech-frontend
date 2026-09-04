@@ -104,7 +104,7 @@ function CategoryChip({ category, isActive }) {
 
       <span
         className={`
-          text-[11px] sm:text-xs font-medium text-center
+          text-xs font-medium text-center
           leading-tight tracking-tight
           line-clamp-2 min-h-[28px] sm:min-h-[32px]
           flex items-center justify-center
@@ -171,7 +171,7 @@ export default function CategoryChips() {
 
   if (isDesktopGrid) {
     return (
-      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3 max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto">
+      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3 max-w-3xl sm:max-w-4xl lg:max-w-6xl mx-auto">
         {categories.map((category) => {
           const name = category.name || category;
           const slug = category.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');

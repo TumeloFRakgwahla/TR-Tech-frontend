@@ -5,19 +5,31 @@ import { useAuth } from './AuthContext';
 import { useAuthModal } from './AuthModalContext';
 
 const WISHLIST_STORAGE_KEY = 'trtech_wishlist';
+const WISHLIST_STORAGE_VERSION = 1;
+
+// Safe localStorage read with versioning — falls back gracefully and
+// never throws. If the stored value is corrupted, we discard it and
+// start fresh so a bad entry never clears the cart silently.
+function readStorage(key, defaultValue = []) {
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) return defaultValue;
+    const parsed = JSON.parse(saved);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.version !== WISHLIST_STORAGE_VERSION && parsed.items !== undefined) {
+      return parsed.items;
+    }
+    return Array.isArray(parsed) ? parsed : defaultValue;
+  } catch {
+    try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
+    return defaultValue;
+  }
+}
 
 const WishlistStateContext = createContext(undefined);
 const WishlistDispatchContext = createContext(undefined);
 
 export function WishlistProvider({ children }) {
-  const [wishlist, setWishlist] = useState(() => {
-    try {
-      const saved = localStorage.getItem(WISHLIST_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [wishlist, setWishlist] = useState(() => readStorage(WISHLIST_STORAGE_KEY));
   const [loading, setLoading] = useState(false);
   const [togglingIds, setTogglingIds] = useState(new Set());
   const { isAuthenticated } = useAuth();
@@ -41,26 +53,49 @@ export function WishlistProvider({ children }) {
     const localIds = currentWishlist.map((p) => getProductId(p));
     const newProductIds = localIds.filter((id) => !serverIds.has(id));
 
-    if (newProductIds.length > 0) {
-      try {
-        await Promise.all(newProductIds.map((id) => wishlistAPI.add(id)));
-      } catch {
-        toast.error('Some wishlist items could not be saved to your account');
-      }
+    if (newProductIds.length === 0) {
+      return { merged: serverProducts, allSynced: true };
     }
-    return serverProducts;
+
+    try {
+      const results = await Promise.allSettled(
+        newProductIds.map((id) => wishlistAPI.add(id))
+      );
+      const failures = results.filter((r) => r.status === 'rejected');
+      if (failures.length > 0 && failures.length < newProductIds.length) {
+        toast.error('Some wishlist items could not be saved to your account');
+      } else if (failures.length === newProductIds.length) {
+        toast.error('Failed to save wishlist items. They remain in your local wishlist.');
+      }
+
+      const failedProductIds = new Set(
+        results
+          .map((r, i) => (r.status === 'rejected' ? newProductIds[i] : null))
+          .filter(Boolean)
+      );
+      const failedLocalItems = currentWishlist.filter((p) =>
+        failedProductIds.has(getProductId(p))
+      );
+
+      return {
+        merged: [...serverProducts, ...failedLocalItems],
+        allSynced: failedProductIds.size === 0,
+      };
+    } catch {
+      toast.error('Failed to save wishlist items. They remain in your local wishlist.');
+      return {
+        merged: [
+          ...serverProducts,
+          ...currentWishlist.filter((p) => !serverIds.has(getProductId(p))),
+        ],
+        allSynced: false,
+      };
+    }
   }, [getProductId]);
 
   const fetchWishlist = useCallback(async () => {
     if (!isAuthenticated) {
-      setWishlist(() => {
-        try {
-          const saved = localStorage.getItem(WISHLIST_STORAGE_KEY);
-          return saved ? JSON.parse(saved) : [];
-        } catch {
-          return [];
-        }
-      });
+      setWishlist(readStorage(WISHLIST_STORAGE_KEY));
       return;
     }
 
@@ -68,9 +103,14 @@ export function WishlistProvider({ children }) {
       setLoading(true);
       const data = await wishlistAPI.getAll();
       const serverProducts = data.data || [];
-      await mergeLocalWishlist(serverProducts);
-      const refreshed = await wishlistAPI.getAll();
-      setWishlist(refreshed.data || []);
+      const { merged, allSynced } = await mergeLocalWishlist(serverProducts);
+      setWishlist(merged);
+      // Only clear localStorage if all local items were successfully
+      // synced to the server. If any failed, keep them in localStorage
+      // so they survive page reloads for retry on next login.
+      if (allSynced) {
+        localStorage.removeItem(WISHLIST_STORAGE_KEY);
+      }
     } catch {
       toast.error('Failed to load wishlist from server');
     } finally {
