@@ -152,7 +152,7 @@ export default function OrderConfirmationPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">
+      <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0 pb-safe">
         <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">

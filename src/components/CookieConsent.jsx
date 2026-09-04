@@ -9,17 +9,25 @@ export default function CookieConsent() {
     const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!consent) {
       setVisible(true);
+      window.dispatchEvent(new CustomEvent('trtech:cookie-consent', { detail: { visible: true } }));
     }
-  }, []);
+    return () => {
+      if (visible) {
+        window.dispatchEvent(new CustomEvent('trtech:cookie-consent', { detail: { visible: false } }));
+      }
+    };
+  }, [visible]);
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
     setVisible(false);
+    window.dispatchEvent(new CustomEvent('trtech:cookie-consent', { detail: { visible: false } }));
   };
 
   const handleDecline = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
     setVisible(false);
+    window.dispatchEvent(new CustomEvent('trtech:cookie-consent', { detail: { visible: false } }));
   };
 
   if (!visible) return null;

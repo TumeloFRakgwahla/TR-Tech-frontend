@@ -71,16 +71,31 @@ const Navbar = () => {
 
   /**
    * Lock body scroll when mobile menu is open to prevent background scrolling.
-   * Cleanup resets overflow on unmount or menu close.
+   * Uses the fixed-position + scrollY-preservation pattern so that:
+   *   1. iOS Safari rubber-band scroll is prevented
+   *   2. The user's scroll position is restored on close (no jump to top)
+   * Cleanup restores the original styles and scroll position.
    */
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    if (!isOpen) return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const originalStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      body.style.position = originalStyles.position;
+      body.style.top = originalStyles.top;
+      body.style.width = originalStyles.width;
+      body.style.overflow = originalStyles.overflow;
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
@@ -255,7 +270,7 @@ const Navbar = () => {
             )}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 -ml-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[40px] min-h-[40px] flex items-center justify-center backdrop-blur-sm"
+              className="p-2 -ml-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center backdrop-blur-sm"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
@@ -283,7 +298,7 @@ const Navbar = () => {
             }`}
           >
             {/* Mobile Menu Header */}
-            <div className="bg-primary text-primary-foreground px-5 py-4 flex items-center justify-between">
+            <div className="bg-primary text-primary-foreground px-5 pt-safe pt-4 pb-4 flex items-center justify-between">
               <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3">
                 <img
                   src="/TR_Tech_logo.png"

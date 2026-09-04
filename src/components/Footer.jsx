@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Facebook,
   Instagram,
@@ -108,9 +109,9 @@ const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground pt-14 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div>
-            <a href="/" className="flex items-center gap-3 mb-5">
+            <Link to="/" className="flex items-center gap-3 mb-5">
               <img
                 src="/TR_Tech_logo.png"
                 alt="TR-Tech Logo"
@@ -118,7 +119,7 @@ const Footer = () => {
                 loading="lazy"
                 decoding="async"
               />
-            </a>
+            </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed mb-6">
               Professional tech repairs, innovative graphic design, and quality
               tech products. Serving customers with reliable service since 2020.

@@ -11,7 +11,7 @@
  * - Account tab redirects unauthenticated users to the auth modal instead of /account.
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, ShoppingCart, Heart, User } from 'lucide-react';
 import { useCart } from './CartContext';
@@ -67,6 +67,20 @@ export function BottomNav() {
   const { wishlistCount } = useWishlist();
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useAuthModal();
+  const [hidden, setHidden] = useState(false);
+
+  /**
+   * Hide the BottomNav while the cookie consent banner is visible so that
+   * the banner doesn't sit on top of the nav icons and obscure the last
+   * 1-2 entries. BottomNav returns once the user accepts or declines.
+   */
+  useEffect(() => {
+    const handler = (e) => {
+      setHidden(Boolean(e.detail?.visible));
+    };
+    window.addEventListener('trtech:cookie-consent', handler);
+    return () => window.removeEventListener('trtech:cookie-consent', handler);
+  }, []);
 
   /**
    * Determines if a given path is "active".
@@ -88,6 +102,8 @@ export function BottomNav() {
       openAuthModal();
     }
   };
+
+  if (hidden) return null;
 
   return (
     <nav

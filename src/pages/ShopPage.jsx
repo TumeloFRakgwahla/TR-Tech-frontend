@@ -994,10 +994,20 @@ function ShopContent() {
                   id="product-search"
                   type="search"
                   value={filters.searchQuery}
-onChange={e => filters.setSearchQuery(e.target.value)}
+                  onChange={e => filters.setSearchQuery(e.target.value)}
                   placeholder="Search products, brands, categories..."
                   className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-100/70 border border-transparent rounded-full text-slate-900 placeholder:text-slate-400 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-white transition-all min-h-[44px]"
                 />
+                {filters.searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => filters.setSearchQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1076,7 +1086,7 @@ onChange={e => filters.setSearchQuery(e.target.value)}
               >
                 <div
                   id="mobile-filters"
-                  className="absolute bottom-0 inset-x-0 max-h-[88vh] bg-white rounded-t-3xl overflow-y-auto animate-slide-up pb-safe shadow-2xl"
+                  className="absolute bottom-0 inset-x-0 max-h-[88dvh] bg-white rounded-t-3xl overflow-y-auto animate-slide-up pb-safe shadow-2xl"
                   onClick={e => e.stopPropagation()}
                   role="dialog"
                   aria-modal="true"

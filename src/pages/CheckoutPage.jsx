@@ -286,7 +286,8 @@ function CheckoutPage() {
                       onClick={handleProceed}
                       className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
                     >
-                      Proceed to Checkout
+                      <span className="sm:hidden">Continue</span>
+                      <span className="hidden sm:inline">Proceed to Checkout</span>
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
