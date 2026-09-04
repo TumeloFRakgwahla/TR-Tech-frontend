@@ -39,3 +39,22 @@ export function createWhatsAppUrl(message, phoneNumber = WHATSAPP_NUMBER) {
   const encoded = encodeURIComponent(safeMessage);
   return `https://wa.me/${safePhone}?text=${encoded}`;
 }
+
+/**
+ * Strips HTML tags and control characters from strings for safe meta tag
+ * injection. Prevents stored XSS through `<meta>` content attributes.
+ *
+ * @param {string} value - Raw input string (may come from DB/user content)
+ * @param {number} [maxLen=300] - Maximum output length
+ * @returns {string} Sanitized string safe for meta content/attribute values
+ */
+export function sanitizeMetaString(value, maxLen = 300) {
+  if (typeof value !== 'string') return '';
+  // eslint-disable-next-line no-control-regex
+  const controlRegex = /[\x00-\x1f\x7f]/g;
+  return value
+    .replace(/<[^>]*>/g, '')
+    .replace(controlRegex, '')
+    .trim()
+    .slice(0, maxLen);
+}

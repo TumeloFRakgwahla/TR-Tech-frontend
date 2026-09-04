@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
+import { sanitizeMetaString } from '../lib/sanitize';
 
 const DEFAULT_TITLE = 'TR-Tech Repairs and Designs | Tech Repairs, Graphic Design & Quality Products South Africa';
 const DEFAULT_DESCRIPTION =
@@ -7,21 +8,13 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_IMAGE = 'https://trtech.co.za/og-image.jpg';
 const SITE_URL = 'https://trtech.co.za';
 
-/**
- * Page-level SEO component.
- *
- * Usage (at the top of any page component, inside the main container):
- *   <Seo title="Shop — TR-Tech" description="Browse our range of ..." />
- *
- * Falls back to DEFAULT_* constants for any prop omitted, so pages that
- * only set a title still get a valid meta description + OG tags.
- */
 export function Seo({ title, description, image, noindex = false, canonical }) {
   const location = useLocation();
-  const fullTitle = title ? `${title} — TR-Tech` : DEFAULT_TITLE;
-  const fullDescription = description || DEFAULT_DESCRIPTION;
-  const fullImage = image || DEFAULT_IMAGE;
-  const canonicalUrl = canonical || `${SITE_URL}${location.pathname}`;
+  const safeTitle = sanitizeMetaString(title || '', 100);
+  const fullTitle = safeTitle ? `${safeTitle} — TR-Tech` : DEFAULT_TITLE;
+  const fullDescription = sanitizeMetaString(description || '') || DEFAULT_DESCRIPTION;
+  const fullImage = sanitizeMetaString(image || '', 500) || DEFAULT_IMAGE;
+  const canonicalUrl = sanitizeMetaString(canonical || `${SITE_URL}${location.pathname}`, 500);
 
   return (
     <Helmet>
