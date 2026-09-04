@@ -24,6 +24,7 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { toast } from 'sonner';
 import { Wrench, CheckCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
@@ -121,6 +122,10 @@ export function RepairsPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Seo
+        title="Book a Repair"
+        description="Book professional tech repair services at TR-Tech. Smartphones, laptops, tablets — fast, reliable repairs with a warranty."
+      />
 
       <div className="pt-20 md:pb-0 content-wrapper">
       {/* Hero Section */}

@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import {Wrench, ShoppingCart, Smartphone, Laptop, Code, Palette, Settings, CheckCircle } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { servicesAPI } from '../services/api';
@@ -97,6 +98,10 @@ const Services = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Seo
+        title="Services"
+        description="Professional tech repair services, graphic design, and device solutions in South Africa. Fast turnaround, quality guaranteed."
+      />
       <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}

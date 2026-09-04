@@ -26,6 +26,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { CheckoutModal } from '../components/CheckoutModal';
+import Seo from '../components/Seo';
 
 // Step definitions for the checkout progress bar
 const steps = [
@@ -249,6 +250,7 @@ function CheckoutPage() {
   return (
     <div className="min-h-screen bg-muted/30">
       <Navbar />
+      <Seo title="Checkout" description="Complete your order securely with Paystack. Review your cart, enter delivery details, and pay in seconds." noindex />
       <ProgressBar currentStep={currentStep} />
 
       <main className="max-w-6xl mx-auto px-4 py-6 pb-24">

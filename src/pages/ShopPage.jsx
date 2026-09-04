@@ -29,6 +29,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Smartphone, ShoppingCart, SlidersHorizontal, Search, X, Heart, ChevronDown } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
@@ -972,6 +973,7 @@ function ShopContent() {
   return (
     <>
       <Navbar />
+      <Seo title="Shop" description="Browse TR-Tech's full range of tech products — smartphones, laptops, gaming gear, printers, storage, and accessories. Filter by brand, price, and category." />
       <div className="min-h-screen bg-slate-50 pt-16 md:pt-20">
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-12 md:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Search, Package, Phone, ClipboardList, ArrowLeft } from 'lucide-react';
 import { ordersAPI } from '../services/api';
 import { toast } from 'sonner';
@@ -54,6 +55,10 @@ export default function TrackOrderPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <Seo
+        title="Track Order"
+        description="Track your TR-Tech order status by order ID or phone number. Enter your details to get real-time updates on your repair or product order."
+      />
       <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">
         <div className="max-w-2xl mx-auto px-4 py-8 md:py-12">
           <div className="mb-8">

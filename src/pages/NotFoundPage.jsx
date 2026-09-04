@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 
 export default function NotFoundPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <Seo title="404 — Page Not Found" noindex />
       <main className="flex-1 flex items-center justify-center px-4 pt-16 md:pt-20">
         <div className="text-center max-w-md">
           <h1 className="text-6xl font-bold text-primary mb-4">404</h1>

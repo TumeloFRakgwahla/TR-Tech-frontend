@@ -25,8 +25,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          recharts: ['recharts'],
+          // Split design-system primitives out of the main bundle so the
+          // entry only ships application code. radix = all @radix-ui/*
+          // packages (tabs, dialog, accordion, etc.), icons = lucide,
+          // ui = helper libs (cva, clsx, tailwind-merge).
+          radix: ['@radix-ui/react-tabs', '@radix-ui/react-dialog', '@radix-ui/react-accordion', '@radix-ui/react-select', '@radix-ui/react-label', '@radix-ui/react-progress', '@radix-ui/react-separator', '@radix-ui/react-slot'],
+          icons: ['lucide-react'],
+          ui: ['class-variance-authority', 'clsx', 'tailwind-merge'],
           vendor: ['react', 'react-dom', 'react-router-dom'],
+          recharts: ['recharts'],
         },
       },
     },

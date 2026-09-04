@@ -24,6 +24,7 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from 'lucide-react';
 import { Button } from "../components/button.jsx";
 import { contactAPI } from '../services/api';
@@ -195,6 +196,10 @@ ${sanitizeWhatsAppInput(formData.message)}
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Seo
+        title="Contact Us"
+        description="Contact TR-Tech Repairs and Designs. We're here to help with all your tech repair, design, and product questions. WhatsApp, email, or phone."
+      />
       <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}

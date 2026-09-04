@@ -15,12 +15,17 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import WhyChooseUs from '../components/Why-Choose-Us';
+import Seo from '../components/Seo';
 import { Users, Target, Award, Heart } from 'lucide-react';
 
 const About = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Seo
+        title="About Us"
+        description="TR-Tech Repairs and Designs was founded with a passion for technology and customer service. We offer expert tech repairs, graphic design, and quality tech products in South Africa."
+      />
       <div className="pt-20 md:pb-0 content-wrapper">
 
       {/* Hero Section - gradient banner with company tagline */}

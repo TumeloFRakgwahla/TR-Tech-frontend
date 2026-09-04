@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import Seo from '../components/Seo';
 import { Check, Package, Phone, MapPin, CreditCard, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { ordersAPI, paymentsAPI } from '../services/api';
 import { toast } from 'sonner';
@@ -152,6 +153,11 @@ export default function OrderConfirmationPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <Seo
+        title="Order Confirmation"
+        description="Your TR-Tech order is confirmed. Track your order status and delivery progress in real time."
+        noindex
+      />
       <div className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0 pb-safe">
         <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
           <div className="text-center mb-8">
