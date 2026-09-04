@@ -16,7 +16,7 @@
  * - categories/categoriesOpen: fetched categories for mobile menu
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, Heart, User, LogOut, ShoppingCart, ChevronDown, Smartphone, Wrench, Info, Home, ShoppingBag, Phone, Book, ChevronRight, Package } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MiniCart } from './MiniCart';
@@ -60,11 +60,8 @@ const NavLink = ({ to, children, className = '', onClick, isMobile = false }) =>
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [searchExpanded, setSearchExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const searchInputRef = useRef(null);
 
   // Context values drive badge counts and auth state across the navbar
   const { wishlistCount } = useWishlist();
@@ -86,30 +83,6 @@ const Navbar = () => {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
-
-  /**
-   * Auto-focus the search input when the mobile search bar expands.
-   */
-  useEffect(() => {
-    if (searchExpanded && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [searchExpanded]);
-
-  /**
-   * Navigate to shop with search query when Enter is pressed in mobile search.
-   */
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (searchExpanded && e.key === 'Enter' && searchQuery.trim()) {
-        navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
-        setSearchExpanded(false);
-        setSearchQuery('');
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [searchExpanded, searchQuery, navigate]);
 
   /**
    * Fetch active categories from the backend for the mobile menu drill-down.
@@ -425,9 +398,15 @@ const Navbar = () => {
                   <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
                 </Link>
                 <Link
-                  to="/account/repairs"
+                  to={isAuthenticated ? "/account/repairs" : "#"}
+                  onClick={(e) => {
+                    if (!isAuthenticated) {
+                      e.preventDefault();
+                      openAuthModal();
+                    }
+                    setIsOpen(false);
+                  }}
                   className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
-                  onClick={() => setIsOpen(false)}
                 >
                   <span className="flex items-center gap-4">
                     <Package className="h-5 w-5 text-muted-foreground" />Track Repair

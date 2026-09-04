@@ -25,7 +25,7 @@
  * - ShopContent: main component orchestrating data and layout
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
@@ -229,7 +229,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
         {/* Rating */}
         <div className="flex items-center gap-1.5" aria-label={`${product.rating || 0} out of 5 stars`}>
           <StarRating rating={product.rating} reviews={product.reviews} size={3} />
-          {product.reviews > 0 && (
+          {(product.reviews || 0) > 0 && (
             <span className="text-[11px] text-slate-500">({product.reviews})</span>
           )}
         </div>
@@ -763,7 +763,10 @@ function ShopContent() {
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState(() => {
+    const param = searchParams.get('sort');
+    return SORT_OPTIONS.some((o) => o.value === param) ? param : 'featured';
+  });
 
   // Read initial filter values from URL params (e.g., ?category=Laptops&brand=Apple)
   const initialCategory = searchParams.get('category');
@@ -918,10 +921,14 @@ function ShopContent() {
     return () => window.removeEventListener('admin-data-changed', handler);
   }, [fetchProducts, fetchCategoriesAndBrands]);
 
-  // Reset price range to max when products are loaded
+  // Reset price range to max when products are first loaded.
+  // Subsequent refreshes (focus, admin-data-changed) must not override the
+  // user's current price filter, otherwise narrowed ranges are silently wiped.
+  const priceRangeInitializedRef = useRef(false);
   useEffect(() => {
-    if (!loading && products.length > 0) {
+    if (!loading && products.length > 0 && !priceRangeInitializedRef.current) {
       filters.setPriceRange(maxPrice);
+      priceRangeInitializedRef.current = true;
     }
   }, [loading, products.length, maxPrice, filters]);
 
@@ -953,6 +960,11 @@ function ShopContent() {
       if (sortBy === 'price-asc') return (a.price || 0) - (b.price || 0);
       if (sortBy === 'price-desc') return (b.price || 0) - (a.price || 0);
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'newest') {
+        const aTime = new Date(a.createdAt || 0).getTime();
+        const bTime = new Date(b.createdAt || 0).getTime();
+        return bTime - aTime;
+      }
       return 0;
     });
   }, [filteredProducts, sortBy]);
