@@ -56,6 +56,8 @@ function useDebounce(value, delay = 250) {
   return debouncedValue;
 }
 
+const FILTER_PARAMS = ['category', 'brand', 'minPrice', 'maxPrice', 'inStock', 'sort', 'page', 'search'];
+
 // Custom hook encapsulating all filter state, actions, and derived values
 function useFilters(maxPrice = 30000) {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -973,7 +975,11 @@ function ShopContent() {
   return (
     <>
       <Navbar />
-      <Seo title="Shop" description="Browse TR-Tech's full range of tech products — smartphones, laptops, gaming gear, printers, storage, and accessories. Filter by brand, price, and category." />
+      <Seo
+        title="Shop"
+        description="Browse TR-Tech's full range of tech products — smartphones, laptops, gaming gear, printers, storage, and accessories. Filter by brand, price, and category."
+        noindex={FILTER_PARAMS.some((p) => searchParams.has(p))}
+      />
       <div className="min-h-screen bg-slate-50 pt-16 md:pt-20">
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-12 md:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
