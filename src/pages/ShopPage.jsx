@@ -1015,9 +1015,9 @@ function ShopContent() {
 
             {/* Row 2 — Filters, Count, Sort */}
             <div className="flex items-center gap-2 pb-3">
-              {/* Mobile filter trigger */}
-              <button
-                className="md:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 min-h-[36px] px-3 rounded-full border border-slate-200 bg-white hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
+               {/* Tablet + mobile filter trigger (hidden at lg where sidebar is visible) */}
+               <button
+                 className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 min-h-[36px] px-3 rounded-full border border-slate-200 bg-white hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
                 aria-expanded={mobileFiltersOpen}
                 aria-controls="mobile-filters"
@@ -1074,8 +1074,8 @@ function ShopContent() {
         {/* Main content area */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="flex gap-6 lg:gap-8">
-            <aside className="hidden md:block w-64 lg:w-72 flex-shrink-0" aria-label="Product filters">
-              <div className="sticky top-[140px] md:top-[156px]">
+            <aside className="hidden lg:block w-64 lg:w-72 flex-shrink-0" aria-label="Product filters">
+              <div className="sticky top-[140px] lg:top-[156px]">
                 <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
               </div>
             </aside>

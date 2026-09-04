@@ -59,7 +59,9 @@ const NavButton = ({ to, icon: Icon, label, badge, onClick, isActive }) => {
 
 /**
  * BottomNav renders the fixed bottom tab bar on mobile.
- * Hidden on md+ breakpoints via `md:hidden`.
+  * *Mobile/tablet bottom tab bar — hidden at the ``lg`` breakpoint (1024 px and
+  * above), where the full desktop Navbar takes over. Shows on sm and md so
+  * tablets in portrait get quick tap access to the five core sections.
  */
 export function BottomNav() {
   const location = useLocation();
@@ -107,7 +109,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 md:hidden safe-area-inset-bottom"
+      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 lg:hidden safe-area-inset-bottom"
       role="navigation"
       aria-label="Bottom navigation"
     >

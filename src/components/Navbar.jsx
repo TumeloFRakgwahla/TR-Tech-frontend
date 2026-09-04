@@ -183,8 +183,8 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop navigation links and action buttons */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Desktop navigation links and action buttons (>= 1024 px) */}
+          <div className="hidden lg:flex items-center space-x-6">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/about">About</NavLink>
             <NavLink to="/services">Services</NavLink>
@@ -207,7 +207,7 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block opacity-0 sm:opacity-100 transition-opacity duration-200">
               <MiniCart />
             </div>
             {isAuthenticated ? (
@@ -273,8 +273,8 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile action icons */}
-          <div className="md:hidden flex items-center text-primary-foreground">
+          {/* Mobile/tablet action icons (shown below lg breakpoint) */}
+          <div className="lg:hidden flex items-center text-primary-foreground">
             {isAuthenticated && (
               <button
                 onClick={handleAccountClick}
@@ -299,9 +299,9 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile slide-out menu with backdrop, categories, and account section */}
+        {/* Mobile/tablet slide-out menu with backdrop, categories, and account section */}
         <div
-          className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
+          className={`lg:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
             isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
           aria-hidden={!isOpen}

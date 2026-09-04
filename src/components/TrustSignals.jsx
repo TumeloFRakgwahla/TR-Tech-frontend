@@ -27,7 +27,7 @@ export default function TrustSignals() {
   return (
     <section className="py-8 md:py-12 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {trustItems.map((item) => {
             const Icon = item.icon;
             return (
