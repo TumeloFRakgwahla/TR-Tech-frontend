@@ -4,19 +4,34 @@ import { cartAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const CART_STORAGE_KEY = 'trtech_cart';
+const CART_STORAGE_VERSION = 1;
+
+// Safe localStorage read with versioning — falls back gracefully and
+// never throws. If the stored value is corrupted or from an old version,
+// we discard it and start fresh.
+function readStorage(key, defaultValue = []) {
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) return defaultValue;
+    const parsed = JSON.parse(saved);
+    // Versioned storage: if the stored data has a version that doesn't
+    // match the current format, discard it and use the default.
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.version !== CART_STORAGE_VERSION && parsed.items !== undefined) {
+      return parsed.items;
+    }
+    return Array.isArray(parsed) ? parsed : defaultValue;
+  } catch {
+    // Storage corruption — clear the bad entry so future writes are clean
+    try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
+    return defaultValue;
+  }
+}
 
 const CartStateContext = createContext(undefined);
 const CartDispatchContext = createContext(undefined);
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState(() => {
-    try {
-      const saved = localStorage.getItem(CART_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [cart, setCart] = useState(() => readStorage(CART_STORAGE_KEY));
   const [syncing, setSyncing] = useState(false);
   const cartRef = useRef(cart);
   cartRef.current = cart;
