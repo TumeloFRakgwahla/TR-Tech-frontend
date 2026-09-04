@@ -381,12 +381,10 @@ ${sanitizeWhatsAppInput(formData.message)}
                   <div>
                     <h3 className="font-bold text-xl mb-2">Our Location</h3>
                     <p className="text-muted-foreground mb-2">
-                      123 Tech Street, Braamfontein<br />
-                      Johannesburg, 2017<br />
-                      South Africa
+                      Address available on request — contact us for our workshop location
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Located in the heart of Johannesburg. Free parking available on-site.
+                      Serving clients across Gauteng and throughout South Africa with remote and walk-in services.
                     </p>
                     <div className="flex gap-3 mt-4">
                       <a

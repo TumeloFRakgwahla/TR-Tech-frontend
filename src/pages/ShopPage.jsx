@@ -299,7 +299,7 @@ function ProductCardSkeleton() {
 }
 
 // Horizontal scrollable quick-filter chips with elevated active state
-function FilterChips({ filters }) {
+function FilterChips({ filters, sortBy, setSortBy }) {
   const quickFilters = [
     {
       label: 'In Stock',
@@ -316,8 +316,8 @@ function FilterChips({ filters }) {
     },
     {
       label: 'Top Rated',
-      active: false,
-      toggle: () => {},
+      active: sortBy === 'rating',
+      toggle: () => setSortBy(sortBy === 'rating' ? 'featured' : 'rating'),
     },
   ];
 
@@ -872,12 +872,26 @@ function ShopContent() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchProducts]);
 
-  // Focus trap and escape handler for mobile filter drawer
+  // Focus trap, escape handler, and body-scroll-lock for mobile filter drawer
   useEffect(() => {
     if (!mobileFiltersOpen) return;
 
     const dialog = document.getElementById('mobile-filters');
     if (!dialog) return;
+
+    // Lock body scroll — preserves scroll position and prevents iOS bounce
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const originalStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
 
     const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     const focusableElements = dialog.querySelectorAll(focusableSelectors);
@@ -908,7 +922,14 @@ function ShopContent() {
     document.addEventListener('keydown', handleKeyDown);
     firstFocusable?.focus();
 
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      body.style.position = originalStyles.position;
+      body.style.top = originalStyles.top;
+      body.style.width = originalStyles.width;
+      body.style.overflow = originalStyles.overflow;
+      window.scrollTo(0, scrollY);
+    };
   }, [mobileFiltersOpen]);
 
   // Listen for admin data changes to refresh products/categories/brands
@@ -1071,7 +1092,7 @@ function ShopContent() {
             {/* Row 3 — Horizontal filter chips */}
             <div className="pb-3 -mx-4 sm:-mx-6 lg:-mx-8">
               <div className="px-4 sm:px-6 lg:px-8">
-                <FilterChips filters={filters} />
+                <FilterChips filters={filters} sortBy={sortBy} setSortBy={setSortBy} />
               </div>
             </div>
           </div>
