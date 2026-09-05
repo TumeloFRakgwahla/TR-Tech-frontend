@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './button.jsx';
 import { Input } from './ui/input.jsx';
 import { Label } from './ui/label.jsx';
@@ -217,34 +217,35 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
               </button>
             </div>
 
-            {/* Welcome Content */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm mb-3 border border-white/10">
-                {mode === 'login' ? (
-                  <User className="h-7 w-7 text-white" />
-                ) : (
-                  <User className="h-7 w-7 text-white" />
-                )}
+            <DialogHeader>
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm mb-3 border border-white/10">
+                  {mode === 'login' ? (
+                    <User className="h-7 w-7 text-white" />
+                  ) : (
+                    <User className="h-7 w-7 text-white" />
+                  )}
+                </div>
+                <DialogTitle className="text-xl font-bold text-white tracking-tight">
+                  {mode === 'register'
+                    ? (step === 1 ? 'Create your account' : 'Secure your account')
+                    : 'Welcome back'}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-white/60 mt-1 max-w-[250px] mx-auto leading-relaxed">
+                  {mode === 'register'
+                    ? (step === 1 ? 'Join us for a seamless shopping experience' : 'Create a strong password to protect your account')
+                    : 'Sign in to access your orders, repairs, and more'}
+                </DialogDescription>
               </div>
-              <h2 className="text-xl font-bold text-white tracking-tight">
-                {mode === 'register'
-                  ? (step === 1 ? 'Create your account' : 'Secure your account')
-                  : 'Welcome back'}
-              </h2>
-              <p className="text-sm text-white/60 mt-1 max-w-[250px] mx-auto leading-relaxed">
-                {mode === 'register'
-                  ? (step === 1 ? 'Join us for a seamless shopping experience' : 'Create a strong password to protect your account')
-                  : 'Sign in to access your orders, repairs, and more'}
-              </p>
-            </div>
 
-            {/* Step Indicator for Register */}
-            {mode === 'register' && (
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className={`h-1.5 w-8 rounded-full transition-all duration-300 ${step >= 1 ? 'bg-white' : 'bg-white/20'}`} />
-                <div className={`h-1.5 w-8 rounded-full transition-all duration-300 ${step >= 2 ? 'bg-white' : 'bg-white/20'}`} />
-              </div>
-            )}
+              {/* Step Indicator for Register */}
+              {mode === 'register' && (
+                <div className="flex items-center justify-center gap-2 mt-4">
+                  <div className={`h-1.5 w-8 rounded-full transition-all duration-300 ${step >= 1 ? 'bg-white' : 'bg-white/20'}`} />
+                  <div className={`h-1.5 w-8 rounded-full transition-all duration-300 ${step >= 2 ? 'bg-white' : 'bg-white/20'}`} />
+                </div>
+              )}
+            </DialogHeader>
           </div>
         </div>
 
