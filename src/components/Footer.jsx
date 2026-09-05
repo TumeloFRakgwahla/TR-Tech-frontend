@@ -165,12 +165,12 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {shopLinks.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-primary-foreground/70 hover:text-white transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -183,12 +183,12 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {footerNav.company.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-primary-foreground/70 hover:text-white transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -201,12 +201,12 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {footerNav.help.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-primary-foreground/70 hover:text-white transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -23,7 +23,7 @@ export const WHATSAPP_BASE_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // Paystack Configuration
-export const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_f7bc28fa713fb4ad1d6e754dbeb36978ebf5056e';
+export const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '';
 
 // Default product image (matches the backend Product schema default)
 export const PRODUCT_PLACEHOLDER_IMAGE = 'https://placehold.co/100x100/3b82f6/white?text=TR';

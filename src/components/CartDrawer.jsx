@@ -170,7 +170,7 @@ export function CartDrawer({ children }) {
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
                                 aria-label="Edit item"
                               >
-                                <Link to={`/products/${item._id || item.id}`} onClick={() => {}}>
+                                <Link to={`/products/${item._id || item.id}`}>
                                   <Edit className="h-4 w-4" />
                                 </Link>
                               </Button>

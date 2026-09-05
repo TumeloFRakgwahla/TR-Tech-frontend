@@ -94,26 +94,34 @@ const PageLoader = () => (
 
 function App() {
   return (
-    // Providers must be outermost so all descendants can access context
-    <Providers>
-      {/* ErrorBoundary catches any render-phase or lifecycle errors */}
-      <ErrorBoundary>
-        {/* Suspense wraps lazy routes so the PageLoader shows during chunk fetches */}
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* ── Public Routes ─────────────────────────────── */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/book-repair" element={<RepairsPage />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/track-order" element={<TrackOrderPage />} />
-            <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+    <>
+      {/* Skip-to-content link for keyboard accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
+      >
+        Skip to main content
+      </a>
+      <Providers>
+        {/* ErrorBoundary catches any render-phase or lifecycle errors */}
+        <ErrorBoundary>
+          {/* Suspense wraps lazy routes so the PageLoader shows during chunk fetches */}
+          <Suspense fallback={<PageLoader />}>
+            <main id="main-content">
+            <Routes>
+              {/* ── Public Routes ─────────────────────────────── */}
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/products/:id" element={<ProductDetail />} />
+              <Route path="/book-repair" element={<RepairsPage />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/track-order" element={<TrackOrderPage />} />
+              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
 
             {/* ── Admin Routes ─────────────────────────────── */}
             {/* Admin login is public; everything else under /admin requires admin auth */}
@@ -166,12 +174,14 @@ function App() {
             {/* ── Catch-all Route ───────────────────────────── */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          </main>
         </Suspense>
       </ErrorBoundary>
 
       {/* Cookie Consent Banner - visible on all pages until accepted */}
       <CookieConsent />
     </Providers>
+    </>
   );
 }
 
