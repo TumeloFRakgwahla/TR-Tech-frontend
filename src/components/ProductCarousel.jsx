@@ -123,7 +123,7 @@ export default function ProductCarousel({ endpoint, emptyMessage }) {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const url = new URL(endpoint, window.location.origin);
+        const url = endpoint.startsWith('http') ? new URL(endpoint) : new URL(endpoint, window.location.origin);
         const params = Object.fromEntries(url.searchParams);
         const response = await productsAPI.getAll(params);
         if (!cancelled && response.success) {

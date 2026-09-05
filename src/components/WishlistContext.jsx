@@ -120,6 +120,9 @@ export function WishlistProvider({ children }) {
 
   const prevAuthRef = useRef(false);
   const fetchedRef = useRef(false);
+  const fetchWishlistRef = useRef(fetchWishlist);
+  fetchWishlistRef.current = fetchWishlist;
+
   useEffect(() => {
     if (isAuthenticated && !prevAuthRef.current) {
       prevAuthRef.current = true;
@@ -132,9 +135,9 @@ export function WishlistProvider({ children }) {
 
     if (!fetchedRef.current) {
       fetchedRef.current = true;
-      fetchWishlist();
+      fetchWishlistRef.current();
     }
-  }, [isAuthenticated]); // Removed fetchWishlist from deps to break the loop
+  }, [isAuthenticated]);
 
   const addToWishlist = useCallback(async (product) => {
     const productId = getProductId(product);

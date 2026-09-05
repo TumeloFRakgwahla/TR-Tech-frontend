@@ -213,7 +213,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                 className="p-2 -mr-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 min-w-[40px] min-h-[40px] flex items-center justify-center backdrop-blur-sm"
                 aria-label="Close"
               >
-                <X className="h-5 w-5 text-black" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
@@ -301,6 +301,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                         className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -445,6 +446,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                         className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
