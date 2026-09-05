@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const COOKIE_CONSENT_KEY = 'trtech_cookie_consent';
 const COOKIE_PREFERENCES_KEY = 'trtech_cookie_preferences';
@@ -96,7 +97,12 @@ export default function CookieConsent() {
             <p className="text-sm text-gray-600 text-center md:text-left">
               We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic.
               Read our{' '}
-              <a href="/about#privacy" className="text-primary underline hover:text-primary/80">Privacy Policy</a> for more information.
+              <Link
+                to="/about#privacy"
+                className="text-primary underline hover:text-primary/80"
+              >
+                Privacy Policy
+              </Link> for more information.
             </p>
             <div className="flex flex-wrap gap-2 justify-center flex-shrink-0">
               <button

@@ -65,6 +65,7 @@ const Navbar = () => {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const hamburgerButtonRef = React.useRef(null);
   const closeButtonRef = React.useRef(null);
+  const menuRef = React.useRef(null);
 
   // Context values drive badge counts and auth state across the navbar
   const { wishlistCount } = useWishlist();
@@ -113,6 +114,47 @@ const Navbar = () => {
       body.style.overflow = originalStyles.overflow;
       window.scrollTo(0, scrollY);
     };
+  }, [isOpen]);
+
+  /**
+   * Focus trap for the mobile menu dialog.
+   * Ensures Tab/Shift+Tab cycles within the menu and Escape closes it.
+   */
+  useEffect(() => {
+    if (!isOpen || !menuRef.current) return;
+
+    const menu = menuRef.current;
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = Array.from(menu.querySelectorAll(focusableSelector));
+      if (focusableElements.length === 0) return;
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first || !menu.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !menu.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    menu.addEventListener('keydown', handleKeyDown);
+    return () => menu.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   /**
@@ -313,6 +355,7 @@ const Navbar = () => {
           />
           <div
             id="mobile-menu"
+            ref={menuRef}
             role="dialog"
             aria-modal="true"
             aria-label="Main navigation"
