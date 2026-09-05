@@ -8,9 +8,8 @@ Disallow: /admin/login
 Disallow: /checkout
 Disallow: /cart
 Disallow: /wishlist
-Disallow: /track-order
 Disallow: /order-confirmation
+Disallow: /track-order
 
 # Sitemaps
-Sitemap: https://trtech.co.za/sitemap.xml
-Sitemap: https://trtech.co.za/sitemap-posts.xml
+Sitemap: https://tr-tech-frontend.vercel.app/sitemap.xml

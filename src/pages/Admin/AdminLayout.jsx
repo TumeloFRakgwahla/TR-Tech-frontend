@@ -45,7 +45,10 @@ import {
   Wrench,
   Tags,
   Building,
+  X,
 } from 'lucide-react';
+import { useContext } from 'react';
+import { SidebarContext } from '../../components/Sidebar';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
@@ -66,6 +69,7 @@ export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAdminAuth();
+  const { isOpen, setIsOpen } = useContext(SidebarContext);
 
   const isActive = (path) => {
     if (path === '/admin') {
@@ -79,9 +83,22 @@ export function AdminLayout() {
     navigate('/admin/login');
   };
 
+  const handleNavClick = (path) => {
+    navigate(path);
+    if (window.innerWidth < 768) {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-slate-900">
+        {isOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
         <Sidebar className="!bg-slate-950">
           <SidebarHeader>
             <div className="flex items-center space-x-2 px-4 py-2">
@@ -102,10 +119,10 @@ export function AdminLayout() {
                 const active = isActive(item.path);
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={active}
-                      onClick={() => navigate(item.path)}
-                    >
+                  <SidebarMenuButton
+                    isActive={active}
+                    onClick={() => handleNavClick(item.path)}
+                  >
                       <Icon className="w-5 h-5 mr-3" />
                       {item.label}
                     </SidebarMenuButton>

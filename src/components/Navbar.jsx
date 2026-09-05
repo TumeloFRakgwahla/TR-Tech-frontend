@@ -37,6 +37,7 @@ const NavLink = ({ to, children, className = '', onClick, isMobile = false }) =>
   return (
     <Link
       to={to}
+      aria-current={isActive ? 'page' : undefined}
       className={`relative group transition-colors ${isActive ? (isMobile ? 'text-primary font-semibold' : 'text-white font-semibold') : (isMobile ? 'text-foreground' : 'hover:text-accent')} ${className}`}
       onClick={onClick}
     >

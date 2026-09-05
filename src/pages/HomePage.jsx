@@ -29,6 +29,7 @@ import TrustSignals from '../components/TrustSignals';
 import CTA from '../components/CTA';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
@@ -53,12 +54,12 @@ const Home = () => {
               <h2 className="text-lg md:text-xl font-bold text-foreground">
                 Trending Now
               </h2>
-              <a
-                href="/shop"
+              <Link
+                to="/shop"
                 className="text-sm font-medium text-primary hover:text-primary/80 min-h-[44px] flex items-center"
               >
                 See All →
-              </a>
+              </Link>
             </div>
             <ProductCarousel
               endpoint="/api/v1/products?sort=featured&limit=8"
@@ -80,12 +81,12 @@ const Home = () => {
                     Fast, reliable shipping across South Africa
                   </p>
                 </div>
-                <a
-                  href="/shop"
+                <Link
+                  to="/shop"
                   className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors min-h-[48px] flex items-center"
                 >
                   Shop Now
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -98,12 +99,12 @@ const Home = () => {
               <h2 className="text-lg md:text-xl font-bold text-foreground">
                 New Arrivals
               </h2>
-              <a
-                href="/shop?sort=newest"
+              <Link
+                to="/shop?sort=newest"
                 className="text-sm font-medium text-primary hover:text-primary/80 min-h-[44px] flex items-center"
               >
                 See All →
-              </a>
+              </Link>
             </div>
             <ProductCarousel
               endpoint="/api/v1/products?sort=newest&limit=8"
