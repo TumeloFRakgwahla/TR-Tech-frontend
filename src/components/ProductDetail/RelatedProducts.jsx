@@ -89,6 +89,8 @@ export function RelatedProductCard({ product }) {
             alt={product.name}
             crossOrigin="anonymous"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <Smartphone className="h-12 w-12 text-muted-foreground" aria-hidden="true" />

@@ -8,7 +8,7 @@
 export function Skeleton({ className = '' }) {
   return (
     <div
-      className={`animate-pulse bg-muted/60 rounded ${className}`}
+      className={`animate-pulse bg-slate-700/50 rounded ${className}`}
       aria-hidden="true"
     />
   );
@@ -30,7 +30,7 @@ export function SkeletonText({ lines = 3, className = '' }) {
 export function SkeletonCard({ className = '' }) {
   return (
     <div
-      className={`bg-white rounded-xl overflow-hidden border border-border ${className}`}
+      className={`bg-slate-800 rounded-xl overflow-hidden border border-slate-700 ${className}`}
       aria-hidden="true"
     >
       <Skeleton className="aspect-[4/3] rounded-none" />
@@ -76,7 +76,7 @@ export function SkeletonCarousel({ count = 5, className = '' }) {
           className="min-w-[160px] max-w-[180px]"
           aria-hidden="true"
         >
-          <div className="bg-white rounded-xl overflow-hidden border border-border">
+          <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
             <Skeleton className="aspect-square rounded-none" />
             <div className="p-2.5 space-y-2">
               <Skeleton className="h-3 w-full" />
@@ -125,7 +125,7 @@ export function SkeletonCart({ className = '' }) {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="bg-white rounded-lg border border-border p-4 flex gap-4"
+          className="bg-slate-800 rounded-lg border border-slate-700 p-4 flex gap-4"
           aria-hidden="true"
         >
           <Skeleton className="w-20 h-20 rounded-md flex-shrink-0" />

@@ -103,31 +103,26 @@ describe('AuthModal', () => {
 
   it('renders login form by default', () => {
     render(wrapper({ children: <AuthModal open={true} onOpenChange={vi.fn()} /> }));
-    // In login mode: email and password are required, first name is optional
-    expect(screen.getByTestId('auth-email')).toBeInTheDocument();
-    expect(screen.getByTestId('auth-password')).toBeInTheDocument();
-    expect(screen.getByTestId('auth-firstName')).toBeInTheDocument();
-  });
-
-  it('switches to login mode when clicked', () => {
-    render(wrapper({ children: <AuthModal open={true} onOpenChange={vi.fn()} /> }));
-    // Click the mode-switch button to toggle from default (register) to login
-    fireEvent.click(screen.getByTestId('auth-switch-mode'));
-    // In login mode: firstName field should be hidden, email/password remain
     expect(screen.getByTestId('auth-email')).toBeInTheDocument();
     expect(screen.getByTestId('auth-password')).toBeInTheDocument();
     expect(screen.queryByTestId('auth-firstName')).not.toBeInTheDocument();
   });
 
-  it('switches back to register from login', () => {
+  it('switches to register mode when clicked', () => {
     render(wrapper({ children: <AuthModal open={true} onOpenChange={vi.fn()} /> }));
-    // Click twice: register → login → register
+    fireEvent.click(screen.getByTestId('auth-switch-mode'));
+    expect(screen.getByTestId('auth-email')).toBeInTheDocument();
+    expect(screen.getByTestId('auth-firstName')).toBeInTheDocument();
+    expect(screen.queryByTestId('auth-password')).not.toBeInTheDocument();
+  });
+
+  it('switches back to login from register', () => {
+    render(wrapper({ children: <AuthModal open={true} onOpenChange={vi.fn()} /> }));
     fireEvent.click(screen.getByTestId('auth-switch-mode'));
     fireEvent.click(screen.getByTestId('auth-switch-mode'));
-    // In register mode: all fields including firstName should be visible
     expect(screen.getByTestId('auth-email')).toBeInTheDocument();
     expect(screen.getByTestId('auth-password')).toBeInTheDocument();
-    expect(screen.getByTestId('auth-firstName')).toBeInTheDocument();
+    expect(screen.queryByTestId('auth-firstName')).not.toBeInTheDocument();
   });
 
   it('shows validation error for empty email', async () => {

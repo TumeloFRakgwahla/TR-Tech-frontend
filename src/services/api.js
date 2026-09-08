@@ -114,13 +114,8 @@ async function handleResponse(response) {
   return data;
 }
 
-async function getCsrfHeader() {
-  const token = await getCsrfToken();
-  return token ? { 'X-CSRF-Token': token } : {};
-}
-
 function createCrudAPI(resourcePath, options = {}) {
-  const { idParam = 'id', withSignal = false } = options;
+  const { withSignal = false } = options;
 
   return {
     getAll: async (params = {}, options2 = {}) => {
@@ -259,6 +254,52 @@ export const repairsAPI = {
 };
 
 /**
+ * Notifications API
+ */
+export const notificationsAPI = {
+  getAll: async (params = {}, options = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/notifications${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+      signal: options.signal,
+    });
+    return handleResponse(response);
+  },
+
+  getUnreadCount: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/notifications/unread-count`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  markAsRead: async (id) => {
+    return apiRequest(`${API_BASE_URL}/notifications/${id}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  markAllAsRead: async () => {
+    return apiRequest(`${API_BASE_URL}/notifications/read-all`, {
+      method: 'PUT',
+    });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`${API_BASE_URL}/notifications/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  send: async (notificationData) => {
+    return apiRequest(`${API_BASE_URL}/notifications/send`, {
+      method: 'POST',
+      body: notificationData,
+    });
+  },
+};
+
+/**
  * Health Check
  */
 export const healthCheck = async () => {
@@ -356,6 +397,62 @@ export const usersAPI = {
       body: { password },
     });
   },
+
+  getRoles: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/roles`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  createRole: async (roleData) => {
+    return apiRequest(`${API_BASE_URL}/users/roles`, {
+      method: 'POST',
+      body: roleData,
+    });
+  },
+
+  updateRole: async (id, roleData) => {
+    return apiRequest(`${API_BASE_URL}/users/roles/${id}`, {
+      method: 'PUT',
+      body: roleData,
+    });
+  },
+
+  deleteRole: async (id) => {
+    return apiRequest(`${API_BASE_URL}/users/roles/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getActivityLogs: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/activity-logs${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getAdmins: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/users/admins`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  updateUserRole: async (id, role) => {
+    return apiRequest(`${API_BASE_URL}/users/${id}/role`, {
+      method: 'PUT',
+      body: { role },
+    });
+  },
+
+  toggleUserStatus: async (id, isActive) => {
+    return apiRequest(`${API_BASE_URL}/users/${id}/status`, {
+      method: 'PUT',
+      body: { isActive },
+    });
+  },
 };
 
 /**
@@ -389,6 +486,19 @@ export const marketingAPI = {
     return apiRequest(`${API_BASE_URL}/marketing/coupons/${id}`, {
       method: 'DELETE',
     });
+  },
+
+  validateCoupon: async (code, cartTotal, products = [], categories = []) => {
+    const queryString = new URLSearchParams({
+      code,
+      cartTotal: String(cartTotal),
+      products: JSON.stringify(products),
+      categories: JSON.stringify(categories),
+    }).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/marketing/coupons/validate?${queryString}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
   },
 
   getCampaigns: async (params = {}, options = {}) => {
@@ -681,6 +791,65 @@ export const adminAuthAPI = {
 };
 
 /**
+ * Settings API
+ */
+export const settingsAPI = {
+  get: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/settings`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  update: async (settingsData) => {
+    return apiRequest(`${API_BASE_URL}/settings`, {
+      method: 'PUT',
+      body: settingsData,
+    });
+  },
+};
+
+/**
+ * Support API
+ */
+export const supportAPI = {
+  submitTicket: async (ticketData) => {
+    return apiRequest(`${API_BASE_URL}/support/tickets`, {
+      method: 'POST',
+      body: ticketData,
+    });
+  },
+
+  getTickets: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetchWithTimeout(`${API_BASE_URL}/support/tickets${queryString ? `?${queryString}` : ''}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getTicket: async (id) => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/support/tickets/${id}`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  updateTicket: async (id, ticketData) => {
+    return apiRequest(`${API_BASE_URL}/support/tickets/${id}`, {
+      method: 'PUT',
+      body: ticketData,
+    });
+  },
+
+  deleteTicket: async (id) => {
+    return apiRequest(`${API_BASE_URL}/support/tickets/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
  * Categories API
  */
 export const categoriesAPI = {
@@ -725,5 +894,8 @@ export default {
   payments: paymentsAPI,
   categories: categoriesAPI,
   brands: brandsAPI,
+  settings: settingsAPI,
+  support: supportAPI,
+  notifications: notificationsAPI,
   healthCheck,
 };

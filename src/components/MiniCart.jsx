@@ -81,15 +81,17 @@ export function MiniCart() {
                   <div key={item._id || item.id} className="flex gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                      <div className="w-14 h-14 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {item.image ? (
-                          <img
-                            src={getProductImageUrl(item.image)}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = '/TR_Tech_logo.png';
-                            }}
-                          />
+                           <img
+                             src={getProductImageUrl(item.image)}
+                             alt={item.name}
+                             className="w-full h-full object-cover"
+                             loading="lazy"
+                             decoding="async"
+                             onError={(e) => {
+                               e.target.onerror = null;
+                               e.target.src = '/TR_Tech_logo.png';
+                             }}
+                           />
                         ) : (
                           <ShoppingBag className="h-6 w-6 text-gray-400" />
                         )}

@@ -1,63 +1,60 @@
-/**
- * AdminDashboard
- *
- * Purpose:
- *   Main admin dashboard providing an at-a-glance view of store performance.
- *   Aggregates stats, recent orders, top products, low stock alerts, and
- *   revenue analytics from multiple API endpoints loaded in parallel.
- *
- * Structure:
- *   - Uses `useAdminAuth` to personalize the welcome message.
- *   - `loadData` fetches stats, recent orders, low stock, and top products
- *     concurrently via `Promise.all`.
- *   - `statCards` memoizes the summary cards with trend indicators.
- *   - `aggregateOrdersByMonth` transforms raw orders into chart-ready data.
- *   - Revenue is visualized with a Recharts LineChart.
- *   - Low stock section calculates a fill percentage against a fixed threshold.
- *
- * Key Variables:
- *   - stats: aggregated revenue, orders, customers, and products sold
- *   - salesData: monthly revenue and sales counts for the chart
- *   - lowStockProducts: items where stock is at or below threshold
- *   - topProducts: highest-value active products for the sidebar list
- */
-import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
+import { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   DollarSign,
   ShoppingCart,
   Users,
   Package,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
+  Wrench,
   AlertTriangle,
-  Loader2,
+  ArrowRight,
+  Plus,
 } from 'lucide-react';
 import {
-  LineChart,
+  ComposedChart,
+  Bar,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
-import { ordersAPI, productsAPI } from '../../services/api';
+import { ordersAPI, productsAPI, repairsAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
-import { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { aggregateOrdersByMonth } from '../../utils/analytics';
+import { formatPriceWithDecimals } from '../../lib/format';
+import { StatusBadge } from '../../components/admin/StatusBadge';
+import { AdminErrorState } from '../../components/admin/AdminEmptyState';
+import { cn, getStatusConfig } from '../../lib/admin-utils';
+import { CHART_THEME } from '../../lib/chart-theme';
+import { getProductImageUrl } from '../../lib/imageUrl';
+import { Skeleton } from '../../components/Skeleton';
+import { PRODUCT_PLACEHOLDER_IMAGE } from '../../constants';
+import { filterOrdersByPeriod, aggregateOrdersByMonth, aggregateOrdersByWeek, aggregateOrdersByDay, aggregateOrdersByYear } from '../../utils/analytics';
+
+const DATE_RANGES = ['Today', 'This Week', 'This Month', 'This Year', 'Custom'];
+const CHART_TYPES = [
+  { key: 'revenue', label: 'Revenue' },
+  { key: 'orders', label: 'Orders' },
+];
+const CHART_PERIODS = [
+  { key: 'daily', label: 'Daily' },
+  { key: 'weekly', label: 'Weekly' },
+  { key: 'monthly', label: 'Monthly' },
+  { key: 'yearly', label: 'Yearly' },
+];
 
 export function AdminDashboard() {
   const { user } = useAdminAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [recentRepairs, setRecentRepairs] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
-  const [salesData, setSalesData] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
+  const [dateRange, setDateRange] = useState('This Month');
+  const [chartType, setChartType] = useState('revenue');
+  const [chartPeriod, setChartPeriod] = useState('monthly');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -68,22 +65,20 @@ export function AdminDashboard() {
       setIsLoading(true);
       setError(null);
       try {
-        const [statsRes, ordersRes, lowStockRes, productsRes] = await Promise.all([
+        const [statsRes, ordersRes, repairsRes, lowStockRes] = await Promise.all([
           ordersAPI.getStats(),
-          ordersAPI.getAll({ limit: 5 }),
+          ordersAPI.getAll({ limit: 100 }),
+          repairsAPI.getAll({ limit: 100 }),
           productsAPI.getLowStock(10),
-          productsAPI.getAll({ limit: 5, status: 'Active' }),
         ]);
 
         if (!isMounted) return;
 
         setStats(statsRes.data);
-        setRecentOrders(ordersRes.data || []);
+        setRecentOrders((ordersRes.data || []).slice(0, 5));
+        setRecentRepairs((repairsRes.data || []).slice(0, 5));
         setLowStockProducts(lowStockRes.data || []);
-        setTopProducts(productsRes.data || []);
-
-        const salesData = aggregateOrdersByMonth(ordersRes.data || []);
-        setSalesData(salesData);
+        setAllOrders(ordersRes.data || []);
       } catch (err) {
         if (!isMounted) return;
         setError(err.message || 'Failed to load dashboard data');
@@ -99,167 +94,457 @@ export function AdminDashboard() {
     };
   }, []);
 
-  const statCards = useMemo(() => {
+  const filteredOrders = useMemo(() => filterOrdersByPeriod(allOrders, dateRange), [allOrders, dateRange]);
+  const salesData = useMemo(() => {
+    switch (chartPeriod) {
+      case 'daily': return aggregateOrdersByDay(filteredOrders);
+      case 'weekly': return aggregateOrdersByWeek(filteredOrders);
+      case 'yearly': return aggregateOrdersByYear(filteredOrders);
+      default: return aggregateOrdersByMonth(filteredOrders);
+    }
+  }, [filteredOrders, chartPeriod]);
+
+  const kpis = useMemo(() => {
     if (!stats) return [];
+    const safeDiv = (current, change) => {
+      if (change == null || change === 0) return current;
+      const divisor = 1 + change / 100;
+      if (divisor === 0) return 0;
+      return current / divisor;
+    };
+    const prevRevenue = safeDiv(stats.totalRevenue || 0, stats.revenueChange);
+    const prevOrders = safeDiv(stats.totalOrders || 0, stats.ordersChange);
+    const prevCustomers = safeDiv(stats.totalCustomers || 0, stats.customersChange);
+    const prevProducts = safeDiv(stats.productsSold || 0, stats.salesChange);
     return [
-      { title: 'Total Revenue', value: `R${(stats.totalRevenue || 0).toLocaleString()}`, change: stats.revenueChange || 0, icon: DollarSign, color: 'text-green-400', bgColor: 'bg-green-600/20' },
-      { title: 'Total Orders', value: (stats.totalOrders || 0).toLocaleString(), change: stats.ordersChange || 0, icon: ShoppingCart, color: 'text-blue-400', bgColor: 'bg-blue-600/20' },
-      { title: 'Total Customers', value: (stats.totalCustomers || 0).toLocaleString(), change: stats.customersChange || 0, icon: Users, color: 'text-purple-400', bgColor: 'bg-purple-600/20' },
-      { title: 'Products Sold', value: (stats.productsSold || 0).toLocaleString(), change: stats.salesChange || 0, icon: Package, color: 'text-yellow-400', bgColor: 'bg-yellow-600/20' },
-    ];
-  }, [stats]);
+      { title: 'Total Sales', value: formatPriceWithDecimals(stats.totalRevenue || 0), current: stats.totalRevenue || 0, previous: prevRevenue, icon: DollarSign },
+      { title: 'Total Orders', value: `${(stats.totalOrders || 0).toLocaleString()} Orders`, current: stats.totalOrders || 0, previous: prevOrders, icon: ShoppingCart },
+      { title: 'Customers', value: `${(stats.totalCustomers || 0).toLocaleString()} Customers`, current: stats.totalCustomers || 0, previous: prevCustomers, icon: Users },
+      { title: 'Products', value: `${(stats.productsSold || 0).toLocaleString()} Products`, current: stats.productsSold || 0, previous: prevProducts, icon: Package },
+      { title: 'Pending Repairs', value: `${(stats.activeRepairs || 0).toLocaleString()} Repairs`, current: stats.activeRepairs || 0, previous: 0, icon: Wrench },
+      { title: 'Low Stock', value: `${(stats.lowStockCount || lowStockProducts.length).toLocaleString()} Products`, current: stats.lowStockCount || lowStockProducts.length, previous: 0, icon: AlertTriangle },
+    ].map((kpi) => {
+      let percent = 0;
+      let trend = null;
+      if (kpi.previous > 0) {
+        percent = ((kpi.current - kpi.previous) / kpi.previous) * 100;
+        trend = percent >= 0 ? 'up' : 'down';
+      } else if (kpi.current > 0 && kpi.previous === 0) {
+        percent = 100;
+        trend = 'up';
+      }
+      return {
+        ...kpi,
+        percent: Math.abs(Math.round(percent * 10) / 10),
+        trend,
+      };
+    });
+  }, [stats, lowStockProducts.length]);
+
+  useEffect(() => {
+    const cards = document.querySelectorAll('.admin-kpi-card[data-current][data-previous]');
+    cards.forEach((card) => {
+      const current = parseFloat(card.getAttribute('data-current')) || 0;
+      const previous = parseFloat(card.getAttribute('data-previous')) || 0;
+      const percentageEl = card.querySelector('[data-percentage]');
+      if (!percentageEl) return;
+
+      let percent = 0;
+      if (previous > 0) {
+        percent = ((current - previous) / previous) * 100;
+      } else if (current > 0) {
+        percent = 100;
+      }
+
+      const rounded = Math.abs(Math.round(percent * 10) / 10);
+      const isUp = percent >= 0;
+
+      percentageEl.className = `admin-kpi-change mt-2 ${isUp ? 'admin-kpi-change-up' : 'admin-kpi-change-down'}`;
+      percentageEl.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${isUp ? 'trending-up' : 'trending-down'} w-3.5 h-3.5" aria-hidden="true">
+          <path d="M16 7h6v6"></path>
+          <path d="m22 7-8.5 8.5-5-5L2 17"></path>
+        </svg>
+        <span class="admin-kpi-percentage-value">${rounded}%</span>
+      `;
+    });
+  }, [kpis]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      <div className="space-y-6">
+        <div className="grid grid-cols-6 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="admin-kpi-card">
+              <Skeleton className="h-4 w-24 mb-3" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+          ))}
+        </div>
+        <div className="admin-section-card">
+          <div className="admin-section-header">
+            <Skeleton className="h-6 w-40" />
+          </div>
+          <div className="admin-section-body">
+            <Skeleton className="h-80 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-red-400">{error}</p>
-        <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">Retry</Button>
-      </div>
-    );
+    return <AdminErrorState error={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
-    <div>
-      <div className="mb-4 py-4">
-        <p className="text-slate-400">
-          Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! Here's what's happening with your store today.
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white" style={{ letterSpacing: '-0.02em' }}>
+            Welcome back, {user?.firstName || 'Admin'} 
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'rgb(var(--tr-text-muted))' }}>
+            Here's what's happening with your store today.
+          </p>
+        </div>
+        <div className="admin-date-tabs">
+          {DATE_RANGES.map((range) => (
+            <button
+              key={range}
+              onClick={() => setDateRange(range)}
+              className={cn(
+                'admin-date-tab',
+                dateRange === range ? 'admin-date-tab-active' : ''
+              )}
+            >
+              {range}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat) => {
-          const Icon = stat.icon;
+      <div className="grid grid-cols-6 gap-3">
+        {kpis.map((kpi) => {
           return (
-            <Card key={stat.title} className="p-6 bg-slate-800 border-slate-700 hover:shadow-xl transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`h-12 w-12 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-                <div className={`flex items-center gap-1 text-sm ${stat.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {stat.change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                  <span className="font-semibold">{Math.abs(stat.change)}%</span>
+            <div key={kpi.title} className="admin-kpi-card" data-current={kpi.current} data-previous={kpi.previous}>
+              <div className="admin-kpi-header">
+                <span className="admin-kpi-label">{kpi.title}</span>
+                <div className="admin-kpi-icon">
+                  <kpi.icon className="w-5 h-5" />
                 </div>
               </div>
-              <h3 className="text-slate-400 text-sm mb-1">{stat.title}</h3>
-              <p className="text-3xl font-bold text-white">{stat.value}</p>
-            </Card>
+              <div>
+                <p className="admin-kpi-value">{kpi.value}</p>
+                <span className="admin-kpi-change mt-2" data-percentage>
+                  <span className="admin-kpi-percentage-value">0%</span>
+                </span>
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8 mb-8">
-        <Card className="lg:col-span-2 p-6 bg-slate-800 border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Revenue Analytics</h2>
+      <div className="admin-section-card">
+        <div className="admin-section-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
+          <div className="flex items-center justify-between w-full">
+            <div>
+              <h2 className="admin-section-title">Sales Overview</h2>
+              <p className="admin-section-description">Track your revenue, orders, and profit over time</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="admin-chart-tons">
+                {CHART_TYPES.map((type) => (
+                  <button
+                    key={type.key}
+                    onClick={() => setChartType(type.key)}
+                    className={cn(
+                      'admin-chart-tab',
+                      chartType === type.key ? 'admin-chart-tab-active' : ''
+                    )}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+              <div className="admin-date-tabs" style={{ marginLeft: '0.5rem' }}>
+                {CHART_PERIODS.map((period) => (
+                  <button
+                    key={period.key}
+                    onClick={() => setChartPeriod(period.key)}
+                    className={cn(
+                      'admin-date-tab',
+                      chartPeriod === period.key ? 'admin-date-tab-active' : ''
+                    )}
+                  >
+                    {period.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="h-[300px]">
+        </div>
+        <div className="admin-section-body" style={{ paddingTop: 0 }}>
+          <div className="h-[320px] chart-container">
             {salesData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="month" stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" />
-                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #374151', borderRadius: '8px', color: 'white' }} formatter={(value) => [`R${value.toLocaleString()}`, '']} />
-                  <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4 }} name="Revenue" />
-                  <Line type="monotone" dataKey="sales" stroke="#06b6d4" strokeWidth={3} dot={{ fill: '#06b6d4', r: 4 }} name="Sales" />
-                </LineChart>
+                <ComposedChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
+                  <XAxis dataKey="month" stroke={CHART_THEME.text} />
+                  <YAxis stroke={CHART_THEME.text} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: CHART_THEME.tooltip.bg, border: `1px solid ${CHART_THEME.tooltip.border}`, borderRadius: '8px', color: CHART_THEME.tooltip.text }}
+                    formatter={(value, name) => [
+                      name === 'revenue' ? formatPriceWithDecimals(value) : Number(value).toLocaleString(),
+                      name === 'revenue' ? 'Revenue' : 'Units Sold'
+                    ]}
+                  />
+                  <Bar dataKey={chartType === 'orders' ? 'orders' : 'sales'} fill={CHART_THEME.bar} radius={[4, 4, 0, 0]} name={chartType === 'orders' ? 'Orders' : 'Units Sold'} />
+                  {chartType === 'revenue' && (
+                    <Line type="monotone" dataKey="revenue" stroke={CHART_THEME.revenue} strokeWidth={3} dot={{ fill: CHART_THEME.revenue, r: 4 }} name="Revenue" />
+                  )}
+                </ComposedChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-400">No revenue data yet</div>
+              <div className="flex items-center justify-center h-full" style={{ color: 'rgb(var(--tr-text-muted))' }}>No sales data yet</div>
             )}
           </div>
-        </Card>
-
-        <Card className="p-6 bg-slate-800 border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-white">Top Products</h2>
-            <Link to="/admin/products">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700">View All <ArrowRight className="h-4 w-4 ml-2" /></Button>
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {topProducts.length === 0 ? (
-              <p className="text-slate-400 text-sm">No products to display</p>
-            ) : (
-              topProducts.map((product, index) => (
-                <div key={product._id || product.name} className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-blue-600/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-bold text-blue-400">{index + 1}</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-white">{product.name}</p>
-                      <p className="text-xs text-slate-400">Stock: {product.stock}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-bold text-green-400">R{Number(product.price).toLocaleString()}</p>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
+        </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <Card className="p-6 bg-slate-800 border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Recent Orders</h2>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="admin-section-card">
+          <div className="admin-section-header">
+            <h2 className="admin-section-title">Recent Orders</h2>
             <Link to="/admin/orders">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700">View All <ArrowRight className="h-4 w-4 ml-2" /></Button>
+              <button className="admin-quick-action-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>
+                View All <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </Link>
           </div>
-          <div className="space-y-4">
-            {recentOrders.length === 0 && <p className="text-slate-400 text-sm">No orders yet</p>}
-            {recentOrders.map((order) => (
-              <div key={order._id} className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl">
-                <div>
-                  <p className="font-semibold text-white">#{String(order._id).slice(-6).toUpperCase()}</p>
-                  <p className="text-sm text-slate-400">{order.customer?.name || 'Unknown'} • {new Date(order.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div className="text-right">
-                  <Badge className={order.status === 'Delivered' ? 'bg-green-600' : order.status === 'Shipped' ? 'bg-blue-600' : order.status === 'Processing' ? 'bg-yellow-600' : 'bg-slate-600'}>{order.status}</Badge>
-                  <p className="text-sm font-bold text-blue-400 mt-2">R{Number(order.totalAmount).toFixed(2)}</p>
-                </div>
-              </div>
+          <div className="admin-section-body" style={{ paddingTop: 0 }}>
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-8" style={{ color: 'rgb(var(--tr-text-muted))' }}>
+                        No orders yet
+                      </td>
+                    </tr>
+                  ) : (
+                    recentOrders.map((order) => (
+                      <tr key={order._id}>
+                        <td className="font-medium text-white">#{String(order._id).slice(-6).toUpperCase()}</td>
+                        <td>{typeof order.customer === 'string' ? order.customer : (order.customer?.name || 'Unknown')}</td>
+                        <td>{(order.items || []).length} items</td>
+                        <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td className="font-semibold" style={{ color: 'rgb(var(--tr-green))' }}>{formatPriceWithDecimals(order.totalAmount)}</td>
+                        <td>
+                          <span className={cn(
+                            'admin-badge',
+                            order.paymentStatus === 'Paid' ? 'admin-badge-success' : order.paymentStatus === 'Pending' ? 'admin-badge-warning' : 'admin-badge-danger'
+                          )}>
+                            {order.paymentStatus || 'Pending'}
+                          </span>
+                        </td>
+                        <td>
+                          <StatusBadge status={order.status} type="order" size="sm" />
+                        </td>
+                        <td>
+                          <button className="admin-header-btn" style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => navigate('/admin/orders')}>
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-section-card">
+          <div className="admin-section-header">
+            <h2 className="admin-section-title">Recent Repairs</h2>
+            <Link to="/admin/repairs">
+              <button className="admin-quick-action-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>
+                View All <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </Link>
+          </div>
+          <div className="admin-section-body" style={{ paddingTop: 0 }}>
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Repair ID</th>
+                    <th>Customer</th>
+                    <th>Device</th>
+                    <th>Status</th>
+                    <th>Cost</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentRepairs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8" style={{ color: 'rgb(var(--tr-text-muted))' }}>
+                        No repairs yet
+                      </td>
+                    </tr>
+                  ) : (
+                    recentRepairs.map((repair) => (
+                      <tr key={repair._id}>
+                        <td className="font-medium text-white">#{String(repair._id).slice(-6).toUpperCase()}</td>
+                        <td>{repair.customer?.name || repair.customerName || 'Unknown'}</td>
+                        <td>{repair.deviceType || repair.device || 'N/A'}</td>
+                        <td>
+                          <span className={cn(
+                            'admin-badge',
+                            getStatusConfig(repair.status, 'repair').textColor === 'text-green-400' ? 'admin-badge-success' :
+                            getStatusConfig(repair.status, 'repair').textColor === 'text-blue-400' ? 'admin-badge-info' :
+                            getStatusConfig(repair.status, 'repair').textColor === 'text-yellow-400' ? 'admin-badge-warning' :
+                            getStatusConfig(repair.status, 'repair').textColor === 'text-red-400' ? 'admin-badge-danger' : 'admin-badge-neutral'
+                          )}>
+                            {repair.status}
+                          </span>
+                        </td>
+                        <td className="font-semibold" style={{ color: 'rgb(var(--tr-green))' }}>
+                          {formatPriceWithDecimals(repair.estimatedCost || repair.cost || 0)}
+                        </td>
+                        <td>{new Date(repair.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <button className="admin-header-btn" style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => navigate('/admin/repairs')}>
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div className="admin-section-card">
+        <div className="admin-section-header">
+          <div>
+            <h2 className="admin-section-title">Low Stock Products</h2>
+            <p className="admin-section-description">Products that need restocking soon</p>
+          </div>
+          <button className="admin-quick-action-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8125rem' }} onClick={() => navigate('/admin/inventory')}>
+            <Plus className="w-4 h-4" /> Restock Product
+          </button>
+        </div>
+        <div className="admin-section-body" style={{ paddingTop: 0 }}>
+          <div className="admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Category</th>
+                  <th>Current Stock</th>
+                  <th>Minimum Stock</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lowStockProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8" style={{ color: 'rgb(var(--tr-text-muted))' }}>
+                      All products are well stocked
+                    </td>
+                  </tr>
+                ) : (
+                  lowStockProducts.map((product) => {
+                    const stockCount = Number(product.stock) || 0;
+                    const minStock = Number(product.minimumStock) || 10;
+                    const status = stockCount === 0 ? 'Out of Stock' : stockCount <= minStock ? 'Low Stock' : 'In Stock';
+                    return (
+                      <tr key={product._id}>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={getProductImageUrl(product.images?.[0] || product.image)}
+                              alt={product.name}
+                              onError={(e) => { e.target.src = PRODUCT_PLACEHOLDER_IMAGE; }}
+                              className="h-10 w-10 rounded-lg object-cover"
+                            />
+                            <span className="font-medium text-white">{product.name}</span>
+                          </div>
+                        </td>
+                         <td>{product.sku || `SKU-${String(product._id).slice(-6).toUpperCase()}`}</td>
+                        <td>{product.category || 'N/A'}</td>
+                        <td>{stockCount}</td>
+                        <td>{minStock}</td>
+                        <td>
+                          <span className={cn(
+                            'admin-badge',
+                            status === 'Out of Stock' ? 'admin-badge-danger' : status === 'Low Stock' ? 'admin-badge-warning' : 'admin-badge-success'
+                          )}>
+                            {status}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="admin-quick-action-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }} onClick={() => navigate('/admin/inventory')}>
+                            Restock
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    <div className="admin-section-card">
+        <div className="admin-section-header">
+          <h2 className="admin-section-title">Quick Actions</h2>
+        </div>
+        <div className="admin-section-body">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 max-w-5xl mx-auto">
+            {[
+              { label: 'Add Product', href: '/admin/products?add=true', primary: true },
+              { label: 'Add Service', href: '/admin/services?add=true', primary: false },
+              { label: 'New Repair', href: '/admin/repairs?add=true', primary: false },
+              { label: 'Add Customer', href: '/admin/customers?add=true', primary: false },
+              { label: 'View Orders', href: '/admin/orders', primary: false },
+              { label: 'Generate Report', href: '/admin/reports', primary: false },
+            ].map((action) => (
+              <Link key={action.label} to={action.href}>
+                <button className={cn(
+                  'admin-quick-action',
+                  action.primary ? 'admin-quick-action-primary' : 'admin-quick-action-secondary'
+                )}>
+                  <Plus className="w-4 h-4" />
+                  {action.label}
+                </button>
+              </Link>
             ))}
           </div>
-        </Card>
-
-        <Card className="p-6 bg-slate-800 border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Low Stock Alerts</h2>
-            <Link to="/admin/inventory">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700">Manage <ArrowRight className="h-4 w-4 ml-2" /></Button>
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {lowStockProducts.length > 0 ? lowStockProducts.map((product) => {
-              const threshold = 10;
-              const percent = threshold > 0 ? Math.max((Number(product.stock) / threshold) * 100, 0) : 0;
-              return (
-                <div key={product._id} className="flex items-start gap-3 p-4 border-l-4 border-yellow-600 bg-yellow-600/5 rounded-lg">
-                  <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-white">{product.name}</p>
-                    <p className="text-sm text-slate-400">Only {product.stock} left in stock</p>
-                    <div className="mt-2 w-full bg-slate-600 rounded-full h-2">
-                      <div className="bg-yellow-600 h-2 rounded-full" style={{ width: `${percent}%` }} />
-                    </div>
-                  </div>
-                </div>
-              );
-            }) : <p className="text-slate-400 text-sm">All products are well stocked</p>}
-          </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ export const PRODUCT_PLACEHOLDER_IMAGE = 'https://placehold.co/100x100/3b82f6/wh
 // These map directly to backend enum values for order.status
 export const ORDER_STATUSES = [
   'Pending',
+  'Confirmed',
   'Processing',
   'Shipped',
   'Delivered',
@@ -115,6 +116,18 @@ export const DEVICE_TYPES = [
   'Other'
 ];
 
+// Repair Status Options
+// Maps to backend repair status enum
+export const REPAIR_STATUSES = [
+  'New',
+  'Diagnosing',
+  'Awaiting Parts',
+  'In Progress',
+  'Ready',
+  'Completed',
+  'Cancelled'
+];
+
 // Service Categories
 // Maps to backend service catalog categories
 export const SERVICE_CATEGORIES = [
@@ -123,3 +136,47 @@ export const SERVICE_CATEGORIES = [
   'Tablet Repair',
   'Other'
 ];
+
+// User Management Constants
+export const USER_ROLES = [
+  { id: 'admin', label: 'Admin', description: 'Full system access' },
+  { id: 'manager', label: 'Manager', description: 'Manage products, orders, repairs' },
+  { id: 'staff', label: 'Staff', description: 'Limited access to operations' },
+  { id: 'customer', label: 'Customer', description: 'Customer account access' },
+];
+
+export const PERMISSIONS = {
+  dashboard: { label: 'Dashboard', description: 'View dashboard and analytics' },
+  products: { label: 'Products', description: 'Manage products catalog' },
+  categories: { label: 'Categories', description: 'Manage product categories' },
+  brands: { label: 'Brands', description: 'Manage brands' },
+  services: { label: 'Services', description: 'Manage services' },
+  repairs: { label: 'Repairs', description: 'Manage repair requests' },
+  orders: { label: 'Orders', description: 'View and manage orders' },
+  customers: { label: 'Customers', description: 'View and manage customers' },
+  inventory: { label: 'Inventory', description: 'Manage stock and inventory' },
+  marketing: { label: 'Marketing', description: 'Manage promotions and campaigns' },
+  reports: { label: 'Reports', description: 'View reports and analytics' },
+  users: { label: 'Users', description: 'Manage user accounts and permissions' },
+  settings: { label: 'Settings', description: 'Manage system settings' },
+};
+
+export const ACTIVITY_LOG_ACTIONS = [
+  'user.created',
+  'user.updated',
+  'user.deleted',
+  'user.password_reset',
+  'role.created',
+  'role.updated',
+  'role.deleted',
+  'login',
+  'logout',
+  'settings.updated',
+];
+
+export const DEFAULT_ROLE_PERMISSIONS = {
+  admin: Object.keys(PERMISSIONS),
+  manager: ['dashboard', 'products', 'categories', 'brands', 'services', 'repairs', 'orders', 'customers', 'inventory', 'marketing', 'reports'],
+  staff: ['dashboard', 'repairs', 'orders', 'inventory'],
+  customer: [],
+};

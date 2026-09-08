@@ -127,6 +127,7 @@ export function WishlistPage() {
                         alt={product.name}
                         className="w-full h-full object-cover opacity-90"
                         loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

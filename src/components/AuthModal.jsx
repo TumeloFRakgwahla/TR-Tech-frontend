@@ -257,48 +257,50 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
             {mode === 'login' && (
               <>
                 <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</Label>
-                    <div className="relative group">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="name@example.com"
-                        className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        data-testid="auth-email"
-                      />
-                    </div>
-                    {errors.email && <p className="text-xs text-red-500 font-medium pl-1">{errors.email}</p>}
-                  </div>
+                   <div className="space-y-1.5">
+                     <Label htmlFor="email" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</Label>
+                     <div className="relative group">
+                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Input
+                         id="email"
+                         name="email"
+                         type="email"
+                         autoComplete="email"
+                         placeholder="name@example.com"
+                         className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
+                         value={formData.email}
+                         onChange={handleChange}
+                         required
+                         data-testid="auth-email"
+                       />
+                     </div>
+                     {errors.email && <p className="text-xs text-red-500 font-medium pl-1">{errors.email}</p>}
+                   </div>
 
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Password</Label>
-                      <button
-                        type="button"
-                        className="text-xs text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                      >
-                        Forgot?
-                      </button>
-                    </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
-                      <Input
-                        id="password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
-                        className={`h-12 pl-11 pr-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.password ? 'border-red-300 bg-red-50/50' : ''}`}
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        data-testid="auth-password"
-                      />
+                   <div className="space-y-1.5">
+                     <div className="flex items-center justify-between">
+                       <Label htmlFor="password" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Password</Label>
+                       <button
+                         type="button"
+                         className="text-xs text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                       >
+                         Forgot?
+                       </button>
+                     </div>
+                     <div className="relative group">
+                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Input
+                         id="password"
+                         name="password"
+                         type={showPassword ? 'text' : 'password'}
+                         autoComplete="current-password"
+                         placeholder="Enter your password"
+                         className={`h-12 pl-11 pr-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.password ? 'border-red-300 bg-red-50/50' : ''}`}
+                         value={formData.password}
+                         onChange={handleChange}
+                         required
+                         data-testid="auth-password"
+                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -375,41 +377,43 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</Label>
-                    <div className="relative group">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="name@example.com"
-                        className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        data-testid="auth-email"
-                      />
-                    </div>
-                    {errors.email && <p className="text-xs text-red-500 font-medium pl-1">{errors.email}</p>}
-                  </div>
+                   <div className="space-y-1.5">
+                     <Label htmlFor="email" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</Label>
+                     <div className="relative group">
+                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Input
+                         id="email"
+                         name="email"
+                         type="email"
+                         autoComplete="email"
+                         placeholder="name@example.com"
+                         className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
+                         value={formData.email}
+                         onChange={handleChange}
+                         required
+                         data-testid="auth-email"
+                       />
+                     </div>
+                     {errors.email && <p className="text-xs text-red-500 font-medium pl-1">{errors.email}</p>}
+                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="phone" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</Label>
-                    <div className="relative group">
-                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="+27 82 123 4567"
-                        className="h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        data-testid="auth-phone"
-                      />
-                    </div>
-                  </div>
+                   <div className="space-y-1.5">
+                     <Label htmlFor="phone" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</Label>
+                     <div className="relative group">
+                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Input
+                         id="phone"
+                         name="phone"
+                         type="tel"
+                         autoComplete="tel"
+                         placeholder="+27 82 123 4567"
+                         className="h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
+                         value={formData.phone}
+                         onChange={handleChange}
+                         data-testid="auth-phone"
+                       />
+                     </div>
+                   </div>
                 </div>
 
                 <Button
@@ -472,17 +476,18 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                     <Label htmlFor="confirmPassword" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Confirm Password</Label>
                     <div className="relative group">
                       <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Re-enter password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                        className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.confirmPassword ? 'border-red-300 bg-red-50/50' : ''}`}
-                        data-testid="auth-confirmPassword"
-                      />
+                       <Input
+                         id="confirmPassword"
+                         name="confirmPassword"
+                         type={showPassword ? 'text' : 'password'}
+                         autoComplete="new-password"
+                         placeholder="Re-enter password"
+                         value={formData.confirmPassword}
+                         onChange={handleChange}
+                         required
+                         className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.confirmPassword ? 'border-red-300 bg-red-50/50' : ''}`}
+                         data-testid="auth-confirmPassword"
+                       />
                     </div>
                     {errors.confirmPassword && <p className="text-xs text-red-500 font-medium pl-1">{errors.confirmPassword}</p>}
                     {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (

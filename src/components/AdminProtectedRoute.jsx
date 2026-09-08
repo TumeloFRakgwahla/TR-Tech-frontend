@@ -17,7 +17,8 @@ export function AdminProtectedRoute({ children, redirectTo = '/admin/login' }) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  if (user?.role !== 'admin') {
+  const allowedRoles = ['admin', 'manager', 'staff'];
+  if (!allowedRoles.includes(user?.role)) {
     return <Navigate to={redirectTo} replace />;
   }
 

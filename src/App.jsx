@@ -21,6 +21,7 @@ import { Routes, Route } from 'react-router-dom';
 // Providers wrap the entire app with auth, cart, wishlist, and UI contexts
 import { Providers } from './components/Providers';
 import CookieConsent from './components/CookieConsent';
+import { SidebarProvider } from './components/Sidebar';
 
 // Route guards prevent unauthenticated access to protected areas
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -64,9 +65,12 @@ const CustomerManagement = React.lazy(() => import('./pages/Admin/CustomerManage
 const InventoryManagement = React.lazy(() => import('./pages/Admin/InventoryManagement'));
 const MarketingManagement = React.lazy(() => import('./pages/Admin/MarketingManagement'));
 const ReportsAnalytics = React.lazy(() => import('./pages/Admin/ReportsAnalytics'));
-const UserManagement = React.lazy(() => import('./pages/Admin/UserManagement'));
+const UserManagement = React.lazy(() => import('./pages/Admin/UserManagementSubPages'));
 const AdminCategories = React.lazy(() => import('./pages/Admin/AdminCategoriesPage'));
 const AdminBrands = React.lazy(() => import('./pages/Admin/AdminBrandsPage'));
+const AdminSettings = React.lazy(() => import('./pages/Admin/AdminSettingsPage'));
+const AdminHelpSupport = React.lazy(() => import('./pages/Admin/AdminHelpSupportPage'));
+const AdminProfile = React.lazy(() => import('./pages/Admin/AdminProfilePage'));
 
 /**
  * Lazy-loaded customer account modules.
@@ -130,13 +134,17 @@ function App() {
               path="/admin"
               element={
                 <AdminProtectedRoute>
-                  <AdminLayout />
+                  <SidebarProvider>
+                    <AdminLayout />
+                  </SidebarProvider>
                 </AdminProtectedRoute>
               }
             >
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<ProductManagement />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="brands" element={<AdminBrands />} />
               <Route path="services" element={<ServicesManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="customers" element={<CustomerManagement />} />
@@ -144,9 +152,14 @@ function App() {
               <Route path="marketing" element={<MarketingManagement />} />
               <Route path="reports" element={<ReportsAnalytics />} />
               <Route path="users" element={<UserManagement />} />
+              <Route path="users/add" element={<UserManagement />} />
+              <Route path="users/roles" element={<UserManagement />} />
+              <Route path="users/admins" element={<UserManagement />} />
+              <Route path="users/logs" element={<UserManagement />} />
               <Route path="repairs" element={<AdminRepairs />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="brands" element={<AdminBrands />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="help" element={<AdminHelpSupport />} />
+              <Route path="profile" element={<AdminProfile />} />
             </Route>
 
             {/* ── Customer Account Routes ─────────────────── */}

@@ -117,16 +117,14 @@ describe('ShopPage', () => {
   it('renders search input', async () => {
     render(wrapper({ children: <Shop /> }));
     await waitFor(() => {
-      // Search input has a placeholder with the text "search for products"
-      expect(screen.getByPlaceholderText(/search for products/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/search products, brands, categories/i)).toBeInTheDocument();
     });
   });
 
   it('renders sort dropdown', async () => {
     render(wrapper({ children: <Shop /> }));
     await waitFor(() => {
-      // Sort dropdown is labeled "sort by"
-      expect(screen.getByLabelText(/sort by/i)).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
   });
 
@@ -141,12 +139,10 @@ describe('ShopPage', () => {
 
   it('filters products by search query', async () => {
     render(wrapper({ children: <Shop /> }));
-    // Wait for initial product load
     await waitFor(() => {
       expect(screen.getByText('iPhone 15')).toBeInTheDocument();
     });
-    const searchInput = screen.getByPlaceholderText(/search for products/i);
-    // Type "iPhone" — should filter out Samsung Galaxy which doesn't match
+    const searchInput = screen.getByPlaceholderText(/search products, brands, categories/i);
     fireEvent.change(searchInput, { target: { value: 'iPhone' } });
     await waitFor(() => {
       expect(screen.getByText('iPhone 15')).toBeInTheDocument();
@@ -209,12 +205,10 @@ describe('ShopPage', () => {
     await waitFor(() => {
       expect(screen.getByText('iPhone 15')).toBeInTheDocument();
     });
-    // Search for a query that matches no products
-    const searchInput = screen.getByPlaceholderText(/search for products/i);
+    const searchInput = screen.getByPlaceholderText(/search products, brands, categories/i);
     fireEvent.change(searchInput, { target: { value: 'nonexistentproduct123' } });
     await waitFor(() => {
-      // Empty state message should be shown instead of any products
-      expect(screen.getByText(/no products match your filters/i)).toBeInTheDocument();
+      expect(screen.getByText('No products found')).toBeInTheDocument();
     });
   });
 });

@@ -34,6 +34,8 @@ export default defineConfig({
           ui: ['class-variance-authority', 'clsx', 'tailwind-merge'],
           vendor: ['react', 'react-dom', 'react-router-dom'],
           recharts: ['recharts'],
+          toast: ['sonner'],
+          seo: ['react-helmet-async'],
         },
       },
     },
