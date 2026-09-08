@@ -3,6 +3,7 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
+import { SectionCard } from '../../components/ui/dashboard-card';
 import {
   Table,
   TableBody,
@@ -24,6 +25,8 @@ import { servicesAPI, uploadAPI } from '../../services/api';
 import { getProductImageUrl } from '../../lib/imageUrl';
 import { PRODUCT_PLACEHOLDER_IMAGE, SERVICE_CATEGORIES } from '../../constants';
 import { toast } from 'sonner';
+import { getStatusConfig } from '../../lib/admin-utils';
+import { ConfirmationDialog } from '../../components/admin/ConfirmationDialog';
 
 const emptyService = {
   name: '',
@@ -47,6 +50,8 @@ export function ServicesManagement() {
   const [form, setForm] = useState(emptyService);
   const [submitError, setSubmitError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
   const fileInputRef = useRef(null);
 
   const loadServices = async () => {
@@ -94,16 +99,27 @@ export function ServicesManagement() {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) return;
-    try {
-      await servicesAPI.delete(id);
-      toast.success('Service deleted');
-      loadServices();
-    } catch (err) {
-      toast.error(err.message || 'Delete failed');
-    }
-  };
+   const handleDelete = async (id) => {
+     try {
+       await servicesAPI.delete(id);
+       toast.success('Service deleted');
+       loadServices();
+     } catch (err) {
+       toast.error(err.message || 'Delete failed');
+     }
+   };
+
+   const confirmDeleteService = (id) => {
+     setDeleteTargetId(id);
+     setDeleteDialogOpen(true);
+   };
+
+   const handleConfirmDelete = async () => {
+     if (!deleteTargetId) return;
+     await handleDelete(deleteTargetId);
+     setDeleteDialogOpen(false);
+     setDeleteTargetId(null);
+   };
 
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -129,10 +145,10 @@ export function ServicesManagement() {
     setUploading(true);
     try {
       const res = await uploadAPI.uploadImages(toUpload);
-      if (res.success && res.images) {
+      if (res.success && res.data) {
         setForm(prev => ({
           ...prev,
-          image: res.images[0].url,
+          image: res.data[0].url,
         }));
         toast.success('Image uploaded');
       }
@@ -173,10 +189,11 @@ export function ServicesManagement() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
-          <p className="text-slate-400">Manage your service catalog and pricing</p>
+          <h1 className="text-2xl font-bold text-white">Services</h1>
+          <p className="text-slate-300">Manage your service catalog and pricing</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -191,35 +208,35 @@ export function ServicesManagement() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Name</label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
+                <label htmlFor="service-name" className="block text-sm font-medium text-slate-300 mb-1">Name</label>
+                <Input id="service-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
-                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
+                <label htmlFor="service-description" className="block text-sm font-medium text-slate-300 mb-1">Description</label>
+                <Input id="service-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
-                  <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
+                  <label htmlFor="service-category" className="block text-sm font-medium text-slate-300 mb-1">Category</label>
+                  <select id="service-category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
                     {SERVICE_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Price (R)</label>
-                  <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required min="0" className="bg-slate-700 border-slate-600 text-white" />
+                  <label htmlFor="service-price" className="block text-sm font-medium text-slate-300 mb-1">Price (R)</label>
+                  <Input id="service-price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required min="0" className="bg-slate-700 border-slate-600 text-white" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Estimated Time</label>
-                  <Input value={form.estimatedTime} onChange={(e) => setForm({ ...form, estimatedTime: e.target.value })} className="bg-slate-700 border-slate-600 text-white" />
+                  <label htmlFor="service-estimatedTime" className="block text-sm font-medium text-slate-300 mb-1">Estimated Time</label>
+                  <Input id="service-estimatedTime" value={form.estimatedTime} onChange={(e) => setForm({ ...form, estimatedTime: e.target.value })} className="bg-slate-700 border-slate-600 text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Icon</label>
-                  <Input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} className="bg-slate-700 border-slate-600 text-white" />
+                  <label htmlFor="service-icon" className="block text-sm font-medium text-slate-300 mb-1">Icon</label>
+                  <Input id="service-icon" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} className="bg-slate-700 border-slate-600 text-white" />
                 </div>
               </div>
               <div>
@@ -257,8 +274,9 @@ export function ServicesManagement() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Features (one per line)</label>
+                <label htmlFor="service-features" className="block text-sm font-medium text-slate-300 mb-1">Features (one per line)</label>
                 <textarea
+                  id="service-features"
                   value={form.features.join('\n')}
                   onChange={(e) => setForm({ ...form, features: e.target.value.split('\n').filter(Boolean) })}
                   rows={4}
@@ -267,8 +285,8 @@ export function ServicesManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
-                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
+                <label htmlFor="service-status" className="block text-sm font-medium text-slate-300 mb-1">Status</label>
+                <select id="service-status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white">
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
@@ -283,85 +301,96 @@ export function ServicesManagement() {
         </Dialog>
       </div>
 
-      <Card className="p-6 mb-6 bg-slate-800 border-slate-700">
-        <div className="flex gap-4">
+      <SectionCard title="Service Catalog" description="Manage services and pricing">
+        <div className="mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input placeholder="Search services..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-slate-700 border-slate-600 text-white" />
           </div>
         </div>
-      </Card>
-
-      <Card className="bg-slate-800 border-slate-700 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-white">Service</TableHead>
-              <TableHead className="text-white">Category</TableHead>
-              <TableHead className="text-white">Price</TableHead>
-              <TableHead className="text-white">Est. Time</TableHead>
-              <TableHead className="text-white">Status</TableHead>
-              <TableHead className="text-right text-white">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+        <Card className="bg-slate-800/80 border-slate-700 overflow-hidden table-responsive">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-slate-400">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                </TableCell>
+                <TableHead className="text-white">Service</TableHead>
+                <TableHead className="text-white">Category</TableHead>
+                <TableHead className="text-white">Price</TableHead>
+                <TableHead className="text-white">Est. Time</TableHead>
+                <TableHead className="text-white">Status</TableHead>
+                <TableHead className="text-right text-white">Actions</TableHead>
               </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-red-400">
-                  {error}
-                </TableCell>
-              </TableRow>
-            ) : filteredServices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-slate-400">
-                  No services found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredServices.map((service) => (
-                <TableRow key={service._id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getProductImageUrl(service.image)}
-                        alt={service.name}
-                        onError={(e) => { e.target.src = PRODUCT_PLACEHOLDER_IMAGE; }}
-                        className="h-12 w-12 rounded-lg object-cover"
-                      />
-                      <div>
-                        <p className="font-semibold text-white">{service.name}</p>
-                        <p className="text-sm text-slate-400">ID: {String(service._id).slice(-6)}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-white">{service.category}</TableCell>
-                  <TableCell className="font-semibold text-green-400">R{Number(service.price).toLocaleString()}</TableCell>
-                  <TableCell className="text-white">{service.estimatedTime}</TableCell>
-                  <TableCell>
-                    <Badge className={service.status === 'Active' ? 'bg-green-600' : 'bg-slate-600'}>{service.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => openEdit(service)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-red-400 hover:bg-slate-700" onClick={() => handleDelete(service._id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-red-400">
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : filteredServices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                    No services found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredServices.map((service) => (
+                  <TableRow key={service._id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={getProductImageUrl(service.image)}
+                          alt={service.name}
+                          onError={(e) => { e.target.src = PRODUCT_PLACEHOLDER_IMAGE; }}
+                          className="h-12 w-12 rounded-lg object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div>
+                          <p className="font-semibold text-white">{service.name}</p>
+                          <p className="text-sm text-slate-400">ID: {String(service._id).slice(-6)}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-white">{service.category}</TableCell>
+                    <TableCell className="font-semibold text-green-400">R{Number(service.price).toLocaleString()}</TableCell>
+                    <TableCell className="text-white">{service.estimatedTime}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusConfig(service.status, 'product').color}>{service.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => openEdit(service)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-red-400 hover:bg-slate-700" onClick={() => confirmDeleteService(service._id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      </SectionCard>
+
+      <ConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Service"
+        description="Are you sure you want to delete this service? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={handleConfirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

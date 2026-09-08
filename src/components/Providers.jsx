@@ -1,6 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import { AdminAuthProvider } from './AdminAuthContext';
+import { AdminPermissionsProvider } from '../contexts/AdminPermissionsContext';
 import { AccountProvider } from './AccountContext';
 import { CartProvider } from './CartContext';
 import { WishlistProvider } from './WishlistContext';
@@ -12,24 +13,26 @@ export function Providers({ children }) {
     <Router>
       <AuthProvider>
         <AdminAuthProvider>
-          <AccountProvider>
-            <CartProvider>
-              <AuthModalProvider>
-                <WishlistProvider>
-                  <Toaster
-                    position="top-right"
-                    richColors
-                    closeButton
-                    toastOptions={{
-                      class: 'sonner-toast',
-                      duration: 4000,
-                    }}
-                  />
-                  {children}
-                </WishlistProvider>
-              </AuthModalProvider>
-            </CartProvider>
-          </AccountProvider>
+          <AdminPermissionsProvider>
+            <AccountProvider>
+              <CartProvider>
+                <AuthModalProvider>
+                  <WishlistProvider>
+                    <Toaster
+                      position="top-right"
+                      richColors
+                      closeButton
+                      toastOptions={{
+                        class: 'sonner-toast',
+                        duration: 4000,
+                      }}
+                    />
+                    {children}
+                  </WishlistProvider>
+                </AuthModalProvider>
+              </CartProvider>
+            </AccountProvider>
+          </AdminPermissionsProvider>
         </AdminAuthProvider>
       </AuthProvider>
     </Router>

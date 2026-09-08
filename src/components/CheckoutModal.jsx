@@ -8,13 +8,19 @@ import { useCart } from './CartContext';
 import { AuthModal } from './AuthModal';
 import { toast } from 'sonner';
 import { ShoppingBag, User, MapPin, CreditCard, Check, ShieldCheck, Truck, Loader2 } from 'lucide-react';
-import { ordersAPI, paymentsAPI } from '../services/api';
+import { ordersAPI, paymentsAPI, marketingAPI } from '../services/api';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
   const { cart, totalPrice } = useCart();
   const shippingCost = totalPrice >= 500 || totalPrice === 0 ? 0 : 50;
   const orderTotal = totalPrice + shippingCost;
+  const discount = appliedCoupon
+    ? appliedCoupon.type === 'Percentage'
+      ? (totalPrice * appliedCoupon.discount) / 100
+      : appliedCoupon.discount
+    : 0;
+  const finalTotal = Math.max(0, orderTotal - discount);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [step, setStep] = useState(isAuthenticated ? 'details' : 'auth');
   const [loading, setLoading] = useState(false);
@@ -30,6 +36,9 @@ export function CheckoutModal({ open, onOpenChange }) {
     province: user?.address?.province || '',
     notes: '',
   });
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -116,11 +125,12 @@ export function CheckoutModal({ open, onOpenChange }) {
         province: deliveryDetails.province,
       },
     },
-    totalAmount: orderTotal,
+    totalAmount: finalTotal,
     paymentMethod: method,
     status: 'Pending',
     paymentStatus: 'Pending',
     notes: deliveryDetails.notes,
+    coupon: appliedCoupon,
   });
 
   const validateCheckout = () => {
@@ -300,6 +310,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   value={deliveryDetails.email}
                   onChange={handleDeliveryChange}
                   placeholder="john@example.com"
@@ -315,6 +326,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                   id="phone"
                   name="phone"
                   type="tel"
+                  autoComplete="tel"
                   value={deliveryDetails.phone}
                   onChange={handleDeliveryChange}
                   placeholder="+27 82 123 4567"
@@ -329,6 +341,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <Input
                   id="street"
                   name="street"
+                  autoComplete="street-address"
                   value={deliveryDetails.street}
                   onChange={handleDeliveryChange}
                   placeholder="123 Main Street"
@@ -343,6 +356,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <Input
                   id="city"
                   name="city"
+                  autoComplete="address-level2"
                   value={deliveryDetails.city}
                   onChange={handleDeliveryChange}
                   placeholder="Johannesburg"
@@ -357,6 +371,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <Input
                   id="postalCode"
                   name="postalCode"
+                  autoComplete="postal-code"
                   value={deliveryDetails.postalCode}
                   onChange={handleDeliveryChange}
                   placeholder="2000"
@@ -369,6 +384,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 <Input
                   id="province"
                   name="province"
+                  autoComplete="address-level1"
                   value={deliveryDetails.province}
                   onChange={handleDeliveryChange}
                   placeholder="Gauteng"
@@ -421,6 +437,58 @@ export function CheckoutModal({ open, onOpenChange }) {
             <div className="flex items-center gap-2 mb-4">
               <CreditCard className="h-5 w-5 text-primary" />
               <h3 className="text-lg font-semibold text-gray-900">Payment Method</h3>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Coupon code"
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setCouponError('');
+                    if (!couponCode) return;
+                    try {
+                      const productIds = cart.map(item => item._id || item.id);
+                      const categories = cart.map(item => item.category).filter(Boolean);
+                      const res = await marketingAPI.validateCoupon(couponCode, finalTotal, productIds, categories);
+                      if (res.success) {
+                        setAppliedCoupon(res.data);
+                        toast.success('Coupon applied!');
+                      } else {
+                        setCouponError(res.message || 'Invalid coupon');
+                        setAppliedCoupon(null);
+                      }
+                    } catch (err) {
+                      setCouponError(err.message || 'Failed to validate coupon');
+                      setAppliedCoupon(null);
+                    }
+                  }}
+                >
+                  Apply
+                </Button>
+              </div>
+              {couponError && <p className="text-xs text-red-600">{couponError}</p>}
+              {appliedCoupon && (
+                <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-green-800">Coupon {appliedCoupon.code} applied</p>
+                    <p className="text-xs text-green-600">
+                      {appliedCoupon.type === 'Percentage' ? `${appliedCoupon.discount}% off` : `R${appliedCoupon.discount} off`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { setAppliedCoupon(null); setCouponCode(''); }}
+                    className="text-xs text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
 
             <p className="text-sm text-gray-500">
@@ -524,8 +592,15 @@ export function CheckoutModal({ open, onOpenChange }) {
             {/* Total */}
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200">
               <span className="font-semibold text-gray-900">Total</span>
-              <span className="text-2xl font-bold text-gray-900">R{orderTotal.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-gray-900">R{finalTotal.toFixed(2)}</span>
             </div>
+
+            {appliedCoupon && (
+              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                <span className="text-sm font-medium text-green-800">Discount</span>
+                <span className="text-sm font-bold text-green-600">-R{discount.toFixed(2)}</span>
+              </div>
+            )}
 
             {/* Trust Signals */}
             <div className="flex items-center justify-center gap-4 text-xs text-gray-500">

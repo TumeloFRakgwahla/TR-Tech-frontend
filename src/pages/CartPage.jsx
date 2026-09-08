@@ -118,6 +118,8 @@ function CartPage() {
                         src={getProductImageUrl(item.image)}
                         alt={item.name}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           e.target.onerror = null;
                           e.target.src = '/TR_Tech_logo.png';

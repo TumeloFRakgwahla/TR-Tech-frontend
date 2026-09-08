@@ -1,28 +1,9 @@
-/**
- * AdminCategoriesPage
- *
- * Purpose:
- *   CRUD interface for managing product categories. Similar in structure to
- *   AdminBrandsPage but without a logo field. Categories are searchable by
- *   name or slug and displayed in a table with create/edit/delete actions.
- *
- * Key Variables:
- *   - categories: list of all categories fetched from the API
- *   - editingCategory: tracks which category is being edited (null = create mode)
- *   - form: current form state bound to the dialog inputs
- *   - filteredCategories: derived list filtered by searchQuery
- *
- * Admin-specific Features:
- *   - Create/Edit dialog with name, slug, and status fields
- *   - Client-side search filtering
- *   - Delete confirmation via window.confirm
- *   - Global admin-data-changed event to refresh related components
- */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
+import { SectionCard } from '../../components/ui/dashboard-card';
 import {
   Table,
   TableBody,
@@ -31,69 +12,52 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table';
+import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { categoriesAPI } from '../../services/api';
+import { toast } from 'sonner';
+import { ConfirmationDialog } from '../../components/admin/ConfirmationDialog';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogFooter,
 } from '../../components/ui/dialog';
-import { Plus, Search, Edit, Trash2, Loader2, X, GripVertical } from 'lucide-react';
-import { categoriesAPI } from '../../services/api';
-import { toast } from 'sonner';
 
-const ICON_OPTIONS = [
-  { value: 'Smartphone', label: 'Smartphone' },
-  { value: 'Laptop', label: 'Laptop' },
-  { value: 'Headphones', label: 'Headphones' },
-  { value: 'Gamepad2', label: 'Gaming' },
-  { value: 'Wifi', label: 'Networking' },
-  { value: 'Printer', label: 'Printer' },
-  { value: 'HardDrive', label: 'Storage' },
-  { value: 'Monitor', label: 'Monitor' },
-  { value: 'Tablet', label: 'Tablet' },
-  { value: 'Camera', label: 'Camera' },
-  { value: 'Speaker', label: 'Speaker' },
-  { value: 'Cable', label: 'Cable' },
-  { value: 'Battery', label: 'Battery' },
-  { value: 'Mouse', label: 'Mouse' },
-  { value: 'Keyboard', label: 'Keyboard' },
-  { value: 'MoreHorizontal', label: 'More' },
-];
-
-const emptyCategory = { name: '', slug: '', icon: 'MoreHorizontal', displayOrder: 0, status: 'Active' };
+const emptyCategory = {
+  name: '',
+  slug: '',
+  icon: 'MoreHorizontal',
+  displayOrder: 0,
+};
 
 export function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [form, setForm] = useState(emptyCategory);
   const [submitError, setSubmitError] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-  const loadCategories = useCallback(async () => {
+  const loadCategories = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await categoriesAPI.getAll({ limit: 100 });
+      const res = await categoriesAPI.getAll();
       setCategories(res.data || []);
     } catch (err) {
       setError(err.message || 'Failed to load categories');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     loadCategories();
-  }, [loadCategories]);
-
-  const filteredCategories = categories.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (c.slug || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  }, []);
 
   const openCreate = () => {
     setEditingCategory(null);
@@ -109,245 +73,171 @@ export function AdminCategoriesPage() {
       slug: category.slug || '',
       icon: category.icon || 'MoreHorizontal',
       displayOrder: category.displayOrder ?? 0,
-      status: category.status || 'Active',
     });
     setSubmitError('');
     setDialogOpen(true);
   };
 
-   const deleteCategory = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
+  const handleDelete = async (id) => {
     try {
       await categoriesAPI.delete(id);
       toast.success('Category deleted');
       loadCategories();
-      window.dispatchEvent(new CustomEvent('admin-data-changed', { detail: { type: 'categories' } }));
     } catch (err) {
       toast.error(err.message || 'Delete failed');
     }
   };
 
+  const confirmDelete = (id) => {
+    setDeleteTargetId(id);
+    setDeleteDialogOpen(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
+    const payload = {
+      ...form,
+      displayOrder: Number(form.displayOrder),
+    };
+
     try {
       if (editingCategory) {
-        await categoriesAPI.update(editingCategory._id, form);
+        await categoriesAPI.update(editingCategory._id, payload);
         toast.success('Category updated');
       } else {
-        await categoriesAPI.create(form);
+        await categoriesAPI.create(payload);
         toast.success('Category created');
       }
       setDialogOpen(false);
       loadCategories();
-      window.dispatchEvent(new CustomEvent('admin-data-changed', { detail: { type: 'categories' } }));
     } catch (err) {
-      let errorMessage = err.message || 'Save failed';
-      if (err.info) {
-        try {
-          const detail = typeof err.info === 'string' ? JSON.parse(err.info) : err.info;
-          if (detail?.errors) {
-            errorMessage = detail.errors.map((e) => e.msg || e.message).join(', ');
-          } else if (detail?.message) {
-            errorMessage = detail.message;
-          } else if (typeof detail === 'string') {
-            errorMessage = detail;
-          }
-        } catch {
-          errorMessage = err.info;
-        }
-      }
-      setSubmitError(errorMessage);
+      setSubmitError(err.message || 'Save failed');
     }
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Categories</h1>
-          <p className="text-slate-400">Manage product categories</p>
+          <h1 className="text-2xl font-bold text-white">Categories</h1>
+          <p className="text-slate-300">Manage product categories</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700" onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-slate-800 border-slate-700 text-white sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Name</label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  maxLength={100}
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Slug</label>
-                <Input
-                  value={form.slug}
-                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                  maxLength={100}
-                  className="bg-slate-700 border-slate-600 text-white"
-                  placeholder="Auto-generated from name if left blank"
-                />
-              </div>
+        <Button className="bg-blue-600 hover:bg-blue-700" onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Category
+        </Button>
+      </div>
+
+      <Card className="bg-slate-800 border-slate-700 overflow-hidden table-responsive">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-white">Name</TableHead>
+              <TableHead className="text-white">Slug</TableHead>
+              <TableHead className="text-white">Icon</TableHead>
+              <TableHead className="text-white">Display Order</TableHead>
+              <TableHead className="text-right text-white">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-slate-400">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                </TableCell>
+              </TableRow>
+            ) : categories.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-slate-400">
+                  No categories found
+                </TableCell>
+              </TableRow>
+            ) : (
+              categories.map((category) => (
+                <TableRow key={category._id || category.id}>
+                  <TableCell className="text-white font-medium">{category.name}</TableCell>
+                  <TableCell className="text-slate-400">{category.slug}</TableCell>
+                  <TableCell className="text-slate-400">{category.icon || 'N/A'}</TableCell>
+                  <TableCell className="text-slate-400">{category.displayOrder ?? 0}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => openEdit(category)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-red-400 hover:bg-slate-700" onClick={() => confirmDelete(category._id || category.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-slate-800 border-slate-700 text-white sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Name</label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Slug</label>
+              <Input
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                className="bg-slate-700 border-slate-600 text-white"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Icon</label>
-                <select
+                <Input
                   value={form.icon}
                   onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                  className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white"
-                >
-                  {ICON_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Display Order</label>
                 <Input
                   type="number"
-                  min={0}
-                  max={999}
                   value={form.displayOrder}
-                  onChange={(e) => setForm({ ...form, displayOrder: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setForm({ ...form, displayOrder: e.target.value })}
                   className="bg-slate-700 border-slate-600 text-white"
-                  placeholder="0"
                 />
-                <p className="text-xs text-slate-400 mt-1">Lower numbers appear first</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-              {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                  className="border-slate-600 text-white hover:bg-slate-700"
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  {editingCategory ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </div>
+            {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="border-slate-600 text-white hover:bg-slate-700">Cancel</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      <Card className="p-6 mb-6 bg-slate-800 border-slate-700">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search categories..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-slate-700 border-slate-600 text-white"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </Card>
-
-      <Card className="bg-slate-800 border-slate-700 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-white">Category</TableHead>
-              <TableHead className="text-white">Slug</TableHead>
-              <TableHead className="text-white">Icon</TableHead>
-              <TableHead className="text-white w-20">Order</TableHead>
-              <TableHead className="text-white">Status</TableHead>
-              <TableHead className="text-white">Created</TableHead>
-              <TableHead className="text-right text-white">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-slate-400">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-red-400">{error}</TableCell>
-                </TableRow>
-              ) : filteredCategories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-slate-400">
-                    No categories found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredCategories.map((category) => (
-                  <TableRow key={category._id}>
-                    <TableCell className="text-white font-medium">{category.name}</TableCell>
-                    <TableCell className="text-slate-300">{category.slug || '-'}</TableCell>
-                    <TableCell className="text-slate-300">
-                      <span className="text-xs bg-slate-700 px-2 py-1 rounded">{category.icon || 'MoreHorizontal'}</span>
-                    </TableCell>
-                    <TableCell className="text-slate-300">{category.displayOrder ?? 0}</TableCell>
-                    <TableCell>
-                      <Badge className={category.status === 'Active' ? 'bg-green-600' : 'bg-slate-600'}>
-                        {category.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-300">
-                      {category.createdAt ? new Date(category.createdAt).toLocaleDateString() : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-white hover:bg-slate-700"
-                          onClick={() => openEdit(category)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-400 hover:bg-slate-700"
-                          onClick={() => deleteCategory(category._id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-          </TableBody>
-        </Table>
-      </Card>
+      <ConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Category"
+        description="Are you sure you want to delete this category? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => handleDelete(deleteTargetId)}
+        variant="destructive"
+      />
     </div>
   );
 }
