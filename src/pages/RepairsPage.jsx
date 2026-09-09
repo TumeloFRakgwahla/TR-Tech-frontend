@@ -156,7 +156,7 @@ export function RepairsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="name" className="block text-foreground font-medium mb-2">
-                      Full Name <span className="text-red-500">*</span>
+                      Full Name <span className="text-destructive">*</span>
                     </label>
                     <input
                       id="name"
@@ -170,7 +170,7 @@ export function RepairsPage() {
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-foreground font-medium mb-2">
-                      Phone Number <span className="text-red-500">*</span>
+                      Phone Number <span className="text-destructive">*</span>
                     </label>
                     <input
                       id="phone"
@@ -203,7 +203,7 @@ export function RepairsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <label htmlFor="deviceType" className="block text-foreground font-medium mb-2">
-                        Device Type <span className="text-red-500">*</span>
+                        Device Type <span className="text-destructive">*</span>
                       </label>
                       <select
                         id="deviceType"
@@ -248,7 +248,7 @@ export function RepairsPage() {
                 {/* Problem Description */}
                 <div>
                   <label htmlFor="issue" className="block text-foreground font-medium mb-2">
-                    Problem Description <span className="text-red-500">*</span>
+                     Problem Description <span className="text-destructive">*</span>
                   </label>
                   <textarea
                     id="issue"
@@ -279,7 +279,7 @@ export function RepairsPage() {
                   type="submit"
                   size="lg"
                   disabled={isLoading}
-                  className="w-full whitespace-normal px-4 py-3 text-sm leading-tight md:text-base md:whitespace-nowrap md:px-8 md:leading-normal bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold shadow-lg hover:shadow-2xl transition-all duration-300"
+                   className="w-full whitespace-normal px-4 py-3 text-sm leading-tight md:text-base md:whitespace-nowrap md:px-8 md:leading-normal bg-white text-primary border-2 border-black hover:bg-primary hover:text-white hover:border-primary font-bold shadow-lg hover:shadow-2xl transition-all duration-300"
                 >
                   {isLoading ? 'Submitting...' : 'Submit Repair Request via WhatsApp'}
                 </Button>

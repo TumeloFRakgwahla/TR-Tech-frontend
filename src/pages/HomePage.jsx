@@ -81,10 +81,10 @@ const Home = () => {
                     Fast, reliable shipping across South Africa
                   </p>
                 </div>
-                <Link
-                  to="/shop"
-                  className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors min-h-[48px] flex items-center"
-                >
+                 <Link
+                   to="/shop"
+                   className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors min-h-[48px] flex items-center"
+                 >
                   Shop Now
                 </Link>
               </div>

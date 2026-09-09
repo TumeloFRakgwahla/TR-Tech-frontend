@@ -95,16 +95,9 @@ export function AdminLayout() {
     <SidebarProvider>
       <div className="admin-layout flex min-h-screen">
         <Sidebar className="admin-sidebar-container">
-          <SidebarHeader>
+          <SidebarHeader style={{ marginBottom: 0 }}>
             <div className="admin-sidebar-header">
-              <div className="admin-sidebar-logo">
-                <img src="./TR_Tech_logo.png" alt="TR-Tech" className="w-full h-full object-contain p-0.5" />
-              </div>
-              <div className="admin-sidebar-brand">
-                <h2 className="admin-sidebar-title">TR-Tech</h2>
-                <p className="admin-sidebar-subtitle">Repairs &amp; Designs</p>
-                <p className="admin-sidebar-subtitle" style={{ fontSize: '0.5625rem', letterSpacing: '0.1em', marginTop: '0.125rem' }}>Innovate. Restore. Perfect.</p>
-              </div>
+              <img src="/TR_Tech_logo.png" alt="TR-Tech" className="h-14 md:h-20 w-auto object-contain" />
             </div>
           </SidebarHeader>
           <div className="admin-sidebar-divider"></div>

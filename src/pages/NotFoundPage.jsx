@@ -61,7 +61,7 @@ export default function NotFoundPage() {
             </Link>
             <Link
               to="/shop"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors min-h-[44px]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-foreground text-primary border border-border rounded-lg font-semibold hover:bg-muted transition-colors min-h-[44px]"
             >
               <ShoppingBag className="h-4 w-4" />
               Browse Shop

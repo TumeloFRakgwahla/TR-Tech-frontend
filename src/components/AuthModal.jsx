@@ -187,7 +187,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
-      <DialogContent className="sm:max-w-[420px] bg-white text-gray-900 border-0 shadow-2xl p-0 overflow-hidden auth-modal-custom rounded-2xl" data-testid="auth-modal">
+       <DialogContent className="sm:max-w-[420px] bg-background text-foreground border-0 shadow-2xl p-0 overflow-hidden auth-modal-custom rounded-2xl" data-testid="auth-modal">
         
         {/* Modern Header Section */}
         <div className="relative overflow-hidden">
@@ -253,49 +253,49 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
         <div className="px-5 py-4 sm:px-6">
           <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
             
-            {/* Login Form */}
+             {/* Login Form */}
             {mode === 'login' && (
               <>
                 <div className="space-y-3">
                    <div className="space-y-1.5">
-                     <Label htmlFor="email" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</Label>
+                     <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</Label>
                      <div className="relative group">
-                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                        <Input
                          id="email"
                          name="email"
                          type="email"
                          autoComplete="email"
                          placeholder="name@example.com"
-                         className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
+                         className={`h-12 pl-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.email ? 'border-destructive bg-destructive/10' : ''}`}
                          value={formData.email}
                          onChange={handleChange}
                          required
                          data-testid="auth-email"
                        />
                      </div>
-                     {errors.email && <p className="text-xs text-red-500 font-medium pl-1">{errors.email}</p>}
+                     {errors.email && <p className="text-xs text-destructive font-medium pl-1">{errors.email}</p>}
                    </div>
 
                    <div className="space-y-1.5">
                      <div className="flex items-center justify-between">
-                       <Label htmlFor="password" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Password</Label>
+                       <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Password</Label>
                        <button
                          type="button"
-                         className="text-xs text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                         className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
                        >
                          Forgot?
                        </button>
                      </div>
                      <div className="relative group">
-                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                        <Input
                          id="password"
                          name="password"
                          type={showPassword ? 'text' : 'password'}
                          autoComplete="current-password"
                          placeholder="Enter your password"
-                         className={`h-12 pl-11 pr-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.password ? 'border-red-300 bg-red-50/50' : ''}`}
+                         className={`h-12 pl-11 pr-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.password ? 'border-destructive bg-destructive/10' : ''}`}
                          value={formData.password}
                          onChange={handleChange}
                          required
@@ -305,12 +305,12 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && <p className="text-xs text-red-500 font-medium pl-1">{errors.password}</p>}
+                    {errors.password && <p className="text-xs text-destructive font-medium pl-1">{errors.password}</p>}
                   </div>
                 </div>
 
@@ -318,22 +318,22 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                   <input
                     type="checkbox"
                     id="remember"
-                    className="h-4 w-4 rounded border-gray-300 text-slate-800 focus:ring-slate-500 focus:ring-offset-0"
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
                   />
-                  <label htmlFor="remember" className="ml-2.5 text-xs text-gray-600">Keep me signed in</label>
+                  <label htmlFor="remember" className="ml-2.5 text-xs text-muted-foreground">Keep me signed in</label>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-slate-900 text-white hover:bg-slate-800 font-semibold rounded-xl shadow-sm transition-all text-sm"
+                  className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl shadow-sm transition-all text-sm"
                   disabled={loading}
                   data-testid="auth-submit"
                 >
                   {loading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Signing in...
                     </>
@@ -348,7 +348,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="firstName" className="text-xs font-medium text-gray-500 uppercase tracking-wider">First Name</Label>
+                      <Label htmlFor="firstName" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">First Name</Label>
                       <Input
                         id="firstName"
                         name="firstName"
@@ -356,13 +356,13 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         value={formData.firstName}
                         onChange={handleChange}
                         required
-                        className={`h-12 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.firstName ? 'border-red-300 bg-red-50/50' : ''}`}
+                        className={`h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.firstName ? 'border-destructive bg-destructive/10' : ''}`}
                         data-testid="auth-firstName"
                       />
-                      {errors.firstName && <p className="text-xs text-red-500 font-medium pl-1">{errors.firstName}</p>}
+                      {errors.firstName && <p className="text-xs text-destructive font-medium pl-1">{errors.firstName}</p>}
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="lastName" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Name</Label>
+                      <Label htmlFor="lastName" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Name</Label>
                       <Input
                         id="lastName"
                         name="lastName"
@@ -370,44 +370,44 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         value={formData.lastName}
                         onChange={handleChange}
                         required
-                        className={`h-12 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.lastName ? 'border-red-300 bg-red-50/50' : ''}`}
+                        className={`h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.lastName ? 'border-destructive bg-destructive/10' : ''}`}
                         data-testid="auth-lastName"
                       />
-                      {errors.lastName && <p className="text-xs text-red-500 font-medium pl-1">{errors.lastName}</p>}
+                      {errors.lastName && <p className="text-xs text-destructive font-medium pl-1">{errors.lastName}</p>}
                     </div>
                   </div>
 
                    <div className="space-y-1.5">
-                     <Label htmlFor="email" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</Label>
+                     <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</Label>
                      <div className="relative group">
-                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                        <Input
                          id="email"
                          name="email"
                          type="email"
                          autoComplete="email"
                          placeholder="name@example.com"
-                         className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.email ? 'border-red-300 bg-red-50/50' : ''}`}
+                         className={`h-12 pl-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.email ? 'border-destructive bg-destructive/10' : ''}`}
                          value={formData.email}
                          onChange={handleChange}
                          required
                          data-testid="auth-email"
                        />
                      </div>
-                     {errors.email && <p className="text-xs text-red-500 font-medium pl-1">{errors.email}</p>}
+                     {errors.email && <p className="text-xs text-destructive font-medium pl-1">{errors.email}</p>}
                    </div>
 
                    <div className="space-y-1.5">
-                     <Label htmlFor="phone" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</Label>
+                     <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</Label>
                      <div className="relative group">
-                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                        <Input
                          id="phone"
                          name="phone"
                          type="tel"
                          autoComplete="tel"
                          placeholder="+27 82 123 4567"
-                         className="h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
+                         className="h-12 pl-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm"
                          value={formData.phone}
                          onChange={handleChange}
                          data-testid="auth-phone"
@@ -418,7 +418,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-slate-900 text-white hover:bg-slate-800 font-semibold rounded-xl shadow-sm transition-all text-sm"
+                  className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl shadow-sm transition-all text-sm"
                   disabled={loading}
                   data-testid="auth-continue"
                 >
@@ -432,15 +432,15 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
               <>
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Create Password</Label>
+                    <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Create Password</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                       <Input
                         id="password"
                         name="password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Min. 8 characters"
-                        className={`h-12 pl-11 pr-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.password ? 'border-red-300 bg-red-50/50' : ''}`}
+                        className={`h-12 pl-11 pr-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.password ? 'border-destructive bg-destructive/10' : ''}`}
                         value={formData.password}
                         onChange={handleChange}
                         required
@@ -452,20 +452,20 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && <p className="text-xs text-red-500 font-medium pl-1">{errors.password}</p>}
+                    {errors.password && <p className="text-xs text-destructive font-medium pl-1">{errors.password}</p>}
                     {formData.password && (
                       <div className="pt-1.5 pl-1">
                         <div className="flex gap-1 mb-1">
                           {[1, 2, 3, 4].map(i => (
-                            <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= passwordStrength.level ? passwordStrength.color : 'bg-gray-200'}`} />
+                            <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= passwordStrength.level ? passwordStrength.color : 'bg-muted'}`} />
                           ))}
                         </div>
-                        <p className={`text-xs font-medium ${passwordStrength.level >= 3 ? 'text-emerald-600' : 'text-gray-500'}`}>
+                        <p className={`text-xs font-medium ${passwordStrength.level >= 3 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
                           {passwordStrength.label}
                         </p>
                       </div>
@@ -473,9 +473,9 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="confirmPassword" className="text-xs font-medium text-gray-500 uppercase tracking-wider">Confirm Password</Label>
+                    <Label htmlFor="confirmPassword" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Confirm Password</Label>
                     <div className="relative group">
-                      <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                      <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                        <Input
                          id="confirmPassword"
                          name="confirmPassword"
@@ -485,103 +485,103 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                          value={formData.confirmPassword}
                          onChange={handleChange}
                          required
-                         className={`h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm ${errors.confirmPassword ? 'border-red-300 bg-red-50/50' : ''}`}
+                         className={`h-12 pl-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm ${errors.confirmPassword ? 'border-destructive bg-destructive/10' : ''}`}
                          data-testid="auth-confirmPassword"
                        />
-                    </div>
-                    {errors.confirmPassword && <p className="text-xs text-red-500 font-medium pl-1">{errors.confirmPassword}</p>}
-                    {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
-                      <p className="text-xs text-emerald-600 font-medium flex items-center gap-1 pl-1">
-                        <Check className="h-3.5 w-3.5" /> Passwords match
-                      </p>
-                    )}
+                     </div>
+                     {errors.confirmPassword && <p className="text-xs text-destructive font-medium pl-1">{errors.confirmPassword}</p>}
+                     {formData.confirmPassword && formData.password === formData.confirmPassword && !errors.confirmPassword && (
+                       <p className="text-xs text-emerald-600 font-medium flex items-center gap-1 pl-1">
+                         <Check className="h-3.5 w-3.5" /> Passwords match
+                       </p>
+                     )}
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Address (Optional)</Label>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Address (Optional)</Label>
                     <div className="relative group">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-slate-700 transition-colors" />
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                       <Input
                         name="street"
                         placeholder="Street address"
-                        className="h-12 pl-11 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
+                        className="h-12 pl-11 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm"
                         value={formData.street}
                         onChange={handleChange}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        name="city"
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="h-12 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
-                      />
-                      <Input
-                        name="postalCode"
-                        placeholder="Postal code"
-                        value={formData.postalCode}
-                        onChange={handleChange}
-                        className="h-12 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
-                      />
-                    </div>
-                    <Input
-                      name="province"
-                      placeholder="Province"
-                      value={formData.province}
-                      onChange={handleChange}
-                      className="h-12 bg-gray-50 border-gray-200 text-gray-900 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-100 focus:bg-white transition-all text-sm"
-                    />
-                  </div>
-                </div>
+                     <div className="grid grid-cols-2 gap-2">
+                       <Input
+                         name="city"
+                         placeholder="City"
+                         value={formData.city}
+                         onChange={handleChange}
+                         className="h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm"
+                       />
+                       <Input
+                         name="postalCode"
+                         placeholder="Postal code"
+                         value={formData.postalCode}
+                         onChange={handleChange}
+                         className="h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm"
+                       />
+                     </div>
+                     <Input
+                       name="province"
+                       placeholder="Province"
+                       value={formData.province}
+                       onChange={handleChange}
+                       className="h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm"
+                     />
+                   </div>
+                 </div>
 
-                <div className="bg-slate-50 rounded-xl p-3 flex items-start gap-2.5 border border-slate-100">
-                  <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-slate-600" />
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">By creating an account, you agree to our Terms of Service and Privacy Policy.</p>
-                </div>
+                 <div className="bg-muted rounded-xl p-3 flex items-start gap-2.5 border border-border">
+                   <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                     <Check className="w-3 h-3 text-muted-foreground" />
+                   </div>
+                   <p className="text-xs text-muted-foreground leading-relaxed">By creating an account, you agree to our Terms of Service and Privacy Policy.</p>
+                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-slate-900 text-white hover:bg-slate-800 font-semibold rounded-xl shadow-sm transition-all text-sm"
-                  disabled={loading}
-                  data-testid="auth-submit"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Creating account...
-                    </>
-                  ) : 'Create Account'}
-                </Button>
-              </>
-            )}
+                 <Button
+                   type="submit"
+                   className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl shadow-sm transition-all text-sm"
+                   disabled={loading}
+                   data-testid="auth-submit"
+                 >
+                   {loading ? (
+                     <>
+                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                         <path className="opacity-75" fill="currentColor" d="M4 12a8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                       </svg>
+                       Creating account...
+                     </>
+                   ) : 'Create Account'}
+                 </Button>
+               </>
+             )}
 
-            {/* Divider */}
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-100" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-4 text-gray-400">
-                  {mode === 'register' ? 'Already a member?' : "New to TR-Tech?"}
-                </span>
-              </div>
-            </div>
+             {/* Divider */}
+             <div className="relative py-2">
+               <div className="absolute inset-0 flex items-center">
+                 <span className="w-full border-t border-border" />
+               </div>
+                <div className="relative flex justify-center text-xs">
+                 <span className="bg-background px-4 text-muted-foreground">
+                   {mode === 'register' ? 'Already a member?' : "New to TR-Tech?"}
+                 </span>
+               </div>
+             </div>
 
-            {/* Switch Mode Button */}
-            <button
-              type="button"
-              onClick={switchMode}
-              className="w-full h-12 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-slate-400 hover:text-slate-900 hover:bg-gray-50 transition-all"
-              data-testid="auth-switch-mode"
-            >
-              {mode === 'register' ? 'Sign in to existing account' : 'Create new account'}
-            </button>
+             {/* Switch Mode Button */}
+             <button
+               type="button"
+               onClick={switchMode}
+               className="w-full h-12 border border-border rounded-xl text-sm font-semibold text-foreground hover:border-primary hover:text-primary hover:bg-muted transition-all"
+               data-testid="auth-switch-mode"
+             >
+               {mode === 'register' ? 'Sign in to existing account' : 'Create new account'}
+             </button>
           </form>
         </div>
       </DialogContent>

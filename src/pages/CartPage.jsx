@@ -36,7 +36,7 @@ import { formatPrice } from '../lib/format';
 
 // Color-coded badge styles for product condition (new/refurbished/used)
 const conditionStyles = {
-  new: 'bg-green-100 text-green-700',
+  new: 'bg-emerald-100 text-emerald-700',
   refurbished: 'bg-blue-100 text-blue-700',
   used: 'bg-amber-100 text-amber-700',
 };
@@ -67,14 +67,14 @@ function CartPage() {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <Seo title="Cart" description="Your shopping cart. Review items, update quantities, and proceed to a secure checkout." noindex />
-        <div className="flex-1 flex items-center justify-center pt-16 md:pt-20 bg-gray-50 pb-20 md:pb-0">
+        <div className="flex-1 flex items-center justify-center pt-16 md:pt-20 bg-muted/30 pb-20 md:pb-0">
           <div className="text-center p-8">
-            <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4 mx-auto">
-              <ShoppingBag className="h-12 w-12 text-gray-400" />
+            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4 mx-auto">
+              <ShoppingBag className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
-            <p className="text-gray-500 mb-6">Looks like you haven't added any products yet.</p>
-            <Button asChild className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-black hover:text-white hover:border-black hover:shadow-md transition-all min-h-[48px]">
+            <h1 className="text-2xl font-bold text-foreground mb-2">Your cart is empty</h1>
+            <p className="text-muted-foreground mb-6">Looks like you haven't added any products yet.</p>
+            <Button asChild className="bg-primary-foreground text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground hover:border-primary-foreground font-semibold transition-all min-h-[48px]">
               <Link to="/shop">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Continue Shopping
@@ -89,14 +89,14 @@ function CartPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-muted/30">
       <Navbar />
       <Seo title="Cart" description="Your shopping cart. Review items, update quantities, and proceed to a secure checkout." noindex />
       <div className="flex-1 pt-16 md:pt-20 py-4 md:py-8 pb-32 md:pb-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Shopping Cart</h1>
-            <span className="text-gray-500">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Shopping Cart</h1>
+            <span className="text-muted-foreground">
               {totalItems} item{totalItems !== 1 ? 's' : ''}
             </span>
           </div>
@@ -107,11 +107,11 @@ function CartPage() {
               {cart.map((item) => (
                 <div
                   key={item._id || item.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 flex gap-3"
+                  className="bg-background rounded-lg shadow-sm border border-border p-3 md:p-4 flex gap-3"
                 >
                   <Link
                     to={`/products/${item._id || item.id}`}
-                    className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden"
+                    className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden"
                   >
                     {item.image ? (
                       <img
@@ -126,7 +126,7 @@ function CartPage() {
                         }}
                       />
                     ) : (
-                      <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
+                      <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
                     )}
                   </Link>
 
@@ -135,7 +135,7 @@ function CartPage() {
                       <div className="min-w-0">
                         <Link
                           to={`/products/${item._id || item.id}`}
-                          className="font-semibold text-gray-900 line-clamp-2 text-sm md:text-base hover:text-primary transition-colors"
+                          className="font-semibold text-foreground line-clamp-2 text-sm md:text-base hover:text-primary transition-colors"
                         >
                           {item.name}
                         </Link>
@@ -147,7 +147,7 @@ function CartPage() {
                       </div>
                       <button
                         onClick={() => removeFromCart(item.id)}
-                        className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all flex-shrink-0 -mr-2 -mt-2"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-all flex-shrink-0 -mr-2 -mt-2"
                         aria-label="Remove item"
                       >
                         <Trash2 className="h-5 w-5" />
@@ -156,35 +156,35 @@ function CartPage() {
 
                       {/* Quantity controls + line total price */}
                       <div className="flex items-center justify-between mt-3 md:mt-4">
-                        <div className="flex items-center border border-gray-200 rounded-md">
+                        <div className="flex items-center border border-border rounded-md">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-100 rounded-l-md transition-all"
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-muted rounded-l-md transition-all"
                             disabled={item.quantity <= 1}
                             aria-label="Decrease quantity"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
                           <span className="px-4 py-2 text-sm font-medium min-w-[40px] text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-gray-100 rounded-r-md transition-all"
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-muted rounded-r-md transition-all"
                             aria-label="Increase quantity"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
                         </div>
 
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">
-                          {formatPrice(item.price * item.quantity)}
-                        </p>
-                        {item.quantity > 1 && (
-                          <p className="text-xs text-gray-500">
-                            {formatPrice(item.price)} each
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-foreground">
+                            {formatPrice(item.price * item.quantity)}
                           </p>
-                        )}
-                      </div>
+                          {item.quantity > 1 && (
+                            <p className="text-xs text-muted-foreground">
+                              {formatPrice(item.price)} each
+                            </p>
+                          )}
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -193,7 +193,7 @@ function CartPage() {
               <div className="pt-2">
                 <button
                   onClick={handleClearCart}
-                  className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-2 min-h-[44px] px-2"
+                  className="text-destructive hover:text-destructive/80 text-sm font-medium flex items-center gap-2 min-h-[44px] px-2"
                 >
                   <Trash2 className="h-4 w-4" />
                   Clear Cart
@@ -203,28 +203,28 @@ function CartPage() {
 
             {/* Desktop-only order summary sidebar, sticky on scroll */}
             <div className="hidden lg:block lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
+              <div className="bg-background rounded-lg shadow-sm border border-border p-6 sticky top-24">
+                <h2 className="text-xl font-bold text-foreground mb-4">Order Summary</h2>
                 
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className={`font-medium ${shippingCost === 0 ? 'text-emerald-600' : 'text-foreground'}`}>
                       {shippingCost === 0 ? (totalPrice > 0 ? 'Free' : '—') : formatPrice(shippingCost)}
                     </span>
                   </div>
                   {shippingCost > 0 && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Free shipping on orders over R500
                     </p>
                   )}
-                  <div className="border-t pt-3 flex justify-between">
-                    <span className="text-lg font-bold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-gray-900">
+                  <div className="border-t border-border pt-3 flex justify-between">
+                    <span className="text-lg font-bold text-foreground">Total</span>
+                    <span className="text-lg font-bold text-foreground">
                       {formatPrice(orderTotal)}
                     </span>
                   </div>
@@ -232,20 +232,20 @@ function CartPage() {
 
                 <Link
                   to="/checkout"
-                  className="block w-full bg-primary text-white text-center py-3 rounded-md font-semibold hover:bg-primary/90 transition-colors min-h-[48px] flex items-center justify-center"
+                  className="block w-full bg-primary text-primary-foreground text-center py-3 rounded-md font-semibold hover:bg-primary/90 transition-colors min-h-[48px] flex items-center justify-center"
                 >
                   Proceed to Checkout
                 </Link>
 
                 <Link
                   to="/shop"
-                  className="block w-full mt-3 bg-white border border-gray-300 text-gray-700 text-center py-3 rounded-md font-medium hover:bg-gray-50 transition-colors min-h-[48px] flex items-center justify-center"
+                  className="block w-full mt-3 bg-primary-foreground text-primary border border-border text-center py-3 rounded-md font-medium hover:bg-muted transition-colors min-h-[48px] flex items-center justify-center"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Continue Shopping
                 </Link>
 
-                <p className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-muted-foreground text-center mt-4">
                   Taxes calculated at checkout
                 </p>
               </div>
@@ -255,18 +255,18 @@ function CartPage() {
       </div>
 
       {/* Mobile: Sticky bottom summary - positioned above bottom nav */}
-      <div className="lg:hidden fixed bottom-16 inset-x-0 bg-white border-t border-gray-200 p-3 z-30 shadow-lg">
+      <div className="lg:hidden fixed bottom-16 inset-x-0 bg-background border-t border-border p-3 z-30 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs text-gray-500">Total</p>
-            <p className="text-xl font-bold text-gray-900">{formatPrice(orderTotal)}</p>
+            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-xl font-bold text-foreground">{formatPrice(orderTotal)}</p>
             {shippingCost > 0 && (
-              <p className="text-xs text-gray-500">incl. shipping</p>
+              <p className="text-xs text-muted-foreground">incl. shipping</p>
             )}
           </div>
           <Link
             to="/checkout"
-            className="flex-1 max-w-[200px] bg-primary text-white text-center py-3 rounded-md font-semibold min-h-[48px] flex items-center justify-center"
+            className="flex-1 max-w-[200px] bg-primary text-primary-foreground text-center py-3 rounded-md font-semibold min-h-[48px] flex items-center justify-center"
           >
             Checkout
           </Link>
