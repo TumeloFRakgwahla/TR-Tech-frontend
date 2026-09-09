@@ -168,6 +168,20 @@ export const productsAPI = {
     });
     return handleResponse(response);
   },
+
+  getUniqueCategories: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products/categories/unique`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
+  getUniqueBrands: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/products/brands/unique`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
 };
 
 /**

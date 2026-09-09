@@ -16,6 +16,8 @@ const NAV_GROUPS = [
     label: 'Storefront',
     items: [
       { path: '/admin/products', icon: 'package', label: 'Products' },
+      { path: '/admin/categories', icon: 'tags', label: 'Categories' },
+      { path: '/admin/brands', icon: 'building-2', label: 'Brands' },
       { path: '/admin/services', icon: 'wrench', label: 'Services' },
     ],
   },
