@@ -74,7 +74,7 @@ function ProgressBar({ currentStep }) {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                       isActive
-                        ? 'bg-primary text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground'
                     }`}
                   >
@@ -286,7 +286,7 @@ function CheckoutPage() {
                     </button>
                     <button
                       onClick={handleProceed}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
                     >
                       <span className="sm:hidden">Continue</span>
                       <span className="hidden sm:inline">Proceed to Checkout</span>

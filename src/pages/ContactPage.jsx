@@ -258,7 +258,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium mb-2">
-                        Name <span className="text-red-500">*</span>
+                        Name <span className="text-destructive">*</span>
                       </label>
                       <input
                         id="name"
@@ -266,7 +266,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                         onChange={(e) => handleChange('name', e.target.value)}
                         onBlur={() => handleBlur('name')}
                         placeholder="Your name"
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${touched.name && errors.name ? 'border-red-500' : 'border-input'}`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${touched.name && errors.name ? 'border-destructive' : 'border-input'}`}
                         data-testid="contact-name"
                       />
                       {touched.name && errors.name && (
@@ -282,7 +282,7 @@ ${sanitizeWhatsAppInput(formData.message)}
                         onChange={(e) => handleChange('email', e.target.value)}
                         onBlur={() => handleBlur('email')}
                         placeholder="your@email.com"
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${touched.email && errors.email ? 'border-red-500' : 'border-input'}`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${touched.email && errors.email ? 'border-destructive' : 'border-input'}`}
                         data-testid="contact-email"
                       />
                       {touched.email && errors.email && (
@@ -319,7 +319,7 @@ ${sanitizeWhatsAppInput(formData.message)}
 
                    <div>
                      <label htmlFor="message" className="block text-sm font-medium mb-2">
-                       Message <span className="text-red-500">*</span>
+                        Message <span className="text-destructive">*</span>
                      </label>
                      <textarea
                        id="message"
@@ -328,11 +328,11 @@ ${sanitizeWhatsAppInput(formData.message)}
                        onBlur={() => handleBlur('message')}
                        placeholder="Your message..."
                        rows={6}
-                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${touched.message && errors.message ? 'border-red-500' : 'border-input'}`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${touched.message && errors.message ? 'border-destructive' : 'border-input'}`}
                        data-testid="contact-message"
                      />
                      {touched.message && errors.message && (
-                       <p className="mt-1 text-sm text-red-500" role="alert">{errors.message}</p>
+                        <p className="mt-1 text-sm text-destructive" role="alert">{errors.message}</p>
                      )}
                    </div>
 
@@ -455,7 +455,7 @@ ${sanitizeWhatsAppInput(formData.message)}
             <Button
               onClick={() => window.open('https://wa.me/27791002552')}
               size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
+               className="bg-primary-foreground text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground hover:border-primary-foreground font-bold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
             >
               <MessageCircle className="mr-2 h-5 w-5" />
               Chat on WhatsApp

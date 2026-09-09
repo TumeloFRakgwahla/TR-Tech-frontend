@@ -139,7 +139,7 @@ export default function AdminLogin() {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-4">
-          <img src="./TR_Tech_logo.png" alt="TR-Tech" className="w-12 h-12 object-contain" />
+          <img src="/TR_Tech_logo.png" alt="TR-Tech" className="h-10 w-auto object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
           <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
           <p className="text-sm text-slate-400">Verifying session...</p>
         </div>
@@ -158,7 +158,7 @@ export default function AdminLogin() {
 
         <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-700/60 shadow-2xl backdrop-blur relative">
           <div className="text-center mb-8">
-            <img src="./TR_Tech_logo.png" alt="TR-Tech" className="w-14 h-14 object-contain mx-auto mb-4" />
+            <img src="/TR_Tech_logo.png" alt="TR-Tech" className="h-14 md:h-20 w-auto mx-auto mb-4" onError={(e) => { e.target.style.display = 'none'; }} />
             <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Admin Portal</h1>
             <p className="text-slate-400 text-sm">Sign in with your admin credentials</p>
           </div>

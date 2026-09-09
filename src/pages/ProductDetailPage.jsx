@@ -264,7 +264,7 @@ export function ProductDetailPage() {
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="flex-1 bg-white border-2 border-primary text-primary font-semibold px-4 py-3 rounded-md min-h-[48px] disabled:opacity-50 transition-all"
+              className="flex-1 bg-primary-foreground text-primary border-2 border-primary font-semibold px-4 py-3 rounded-md min-h-[48px] disabled:opacity-50 transition-all"
             >
               Add to Cart
             </button>

@@ -105,7 +105,7 @@ export function WishlistPage() {
               </p>
               <Link
                 to="/shop"
-                className="inline-flex items-center gap-2 bg-white text-primary border-2 border-black font-bold text-lg shadow-lg hover:bg-primary hover:text-white hover:border-primary hover:shadow-2xl transition-all duration-300 px-6 py-3 rounded-md"
+                className="inline-flex items-center gap-2 bg-primary-foreground text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground hover:border-primary-foreground font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300 px-6 py-3 rounded-md"
               >
                 Browse Products
               </Link>
@@ -171,7 +171,7 @@ export function WishlistPage() {
                       type="button"
                       onClick={() => handleRemove(product)}
                       disabled={removingIds.has(product._id || product.id)}
-                      className="min-h-[48px] bg-white text-red-600 border-2 border-red-300 font-semibold text-sm rounded-md hover:bg-red-50 hover:border-red-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center"
+                      className="min-h-[48px] bg-primary-foreground text-destructive border-2 border-destructive/30 font-semibold text-sm rounded-md hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-all duration-200 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center"
                     >
                       {removingIds.has(product._id || product.id) ? (
                         <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-current" />

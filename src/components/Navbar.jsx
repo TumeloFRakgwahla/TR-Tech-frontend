@@ -38,7 +38,7 @@ const NavLink = ({ to, children, className = '', onClick, isMobile = false }) =>
     <Link
       to={to}
       aria-current={isActive ? 'page' : undefined}
-      className={`relative group transition-colors ${isActive ? (isMobile ? 'text-primary font-semibold' : 'text-white font-semibold') : (isMobile ? 'text-foreground' : 'hover:text-accent')} ${className}`}
+      className={`relative transition-colors ${isActive ? (isMobile ? 'text-primary font-semibold' : 'text-white font-semibold') : (isMobile ? 'text-foreground' : 'text-white hover:text-gray-300')} ${className}`}
       onClick={onClick}
     >
       {children}
@@ -269,7 +269,7 @@ const Navbar = () => {
                 {accountDropdownOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setAccountDropdownOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                       <Link
                         to="/account"
                         onClick={() => setAccountDropdownOpen(false)}
@@ -307,12 +307,12 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <button
-                onClick={handleAccountClick}
-                className="bg-white text-primary px-4 py-2 rounded-md font-medium hover:bg-gray-200 hover:shadow-md transition-all min-h-[44px]"
-              >
-                My Account
-              </button>
+                <button
+                  onClick={handleAccountClick}
+                  className="bg-white text-primary px-4 py-2 rounded-md font-medium hover:bg-gray-200 hover:shadow-md transition-all min-h-[44px]"
+                >
+                  My Account
+                </button>
             )}
           </div>
 
@@ -471,7 +471,7 @@ const Navbar = () => {
                 <p className="px-5 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</p>
                 <Link
                   to="/book-repair"
-                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
                   onClick={() => setIsOpen(false)}
                 >
                   <span className="flex items-center gap-4">
@@ -488,7 +488,7 @@ const Navbar = () => {
                     }
                     setIsOpen(false);
                   }}
-                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
                 >
                   <span className="flex items-center gap-4">
                     <Package className="h-5 w-5 text-muted-foreground" />Track Repair
@@ -497,7 +497,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/wishlist"
-                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-gray-50 transition-colors min-h-[48px]"
+                  className="flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
                   onClick={() => setIsOpen(false)}
                 >
                   <span className="flex items-center gap-4">
@@ -537,7 +537,7 @@ const Navbar = () => {
                     </NavLink>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-red-50 transition-colors min-h-[48px]"
+                       className="w-full flex items-center justify-between px-5 py-3.5 text-[15px] font-medium text-red-400 hover:text-red-300 transition-colors min-h-[48px]"
                     >
                       <span className="flex items-center gap-4">
                         <LogOut className="h-5 w-5" />Sign Out

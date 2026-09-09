@@ -1001,7 +1001,7 @@ function ShopContent() {
         description="Browse TR-Tech's full range of tech products — smartphones, laptops, gaming gear, printers, storage, and accessories. Filter by brand, price, and category."
         noindex={FILTER_PARAMS.some((p) => searchParams.has(p))}
       />
-      <div className="min-h-screen bg-slate-50 pt-16 md:pt-20">
+      <div className="min-h-screen bg-muted/30 pt-16 md:pt-20">
         <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-12 md:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-3xl md:text-6xl font-bold mb-4 md:mb-6">Tech Shop</h1>
@@ -1012,27 +1012,27 @@ function ShopContent() {
         </section>
 
         {/* Sticky Toolbar */}
-        <div className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-16 md:top-20 z-20 shadow-sm shadow-slate-900/[0.02]">
+        <div className="bg-background/90 backdrop-blur-md border-b border-border sticky top-16 md:top-20 z-20 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Row 1 — Search (mobile-first, full-width) */}
             <div className="flex items-center gap-2 pt-3.5 pb-2.5">
               <div className="relative flex-1 min-w-0">
                 <label htmlFor="product-search" className="sr-only">Search for products</label>
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" aria-hidden="true" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
                 <input
                   id="product-search"
                   type="search"
                   value={filters.searchQuery}
                   onChange={e => filters.setSearchQuery(e.target.value)}
                   placeholder="Search products, brands, categories..."
-                  className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-100/70 border border-transparent rounded-full text-slate-900 placeholder:text-slate-400 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-white transition-all min-h-[44px]"
+                  className="w-full pl-10 pr-10 py-2.5 text-sm bg-muted border border-transparent rounded-full text-foreground placeholder:text-muted-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-background transition-all min-h-[44px]"
                 />
                 {filters.searchQuery && (
                   <button
                     type="button"
                     onClick={() => filters.setSearchQuery('')}
                     aria-label="Clear search"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+                     className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -1044,7 +1044,7 @@ function ShopContent() {
             <div className="flex items-center gap-2 pb-3">
                {/* Tablet + mobile filter trigger (hidden at lg where sidebar is visible) */}
                <button
-                 className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 min-h-[36px] px-3 rounded-full border border-slate-200 bg-white hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
+                  className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-foreground min-h-[36px] px-3 rounded-full border border-border bg-background hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
                 aria-expanded={mobileFiltersOpen}
                 aria-controls="mobile-filters"
@@ -1059,9 +1059,9 @@ function ShopContent() {
               </button>
 
               {/* Result count */}
-              <p className="text-xs text-slate-500 flex items-center gap-1 ml-1">
-                <span className="font-semibold text-slate-700 tabular-nums">{sortedProducts.length}</span>
-                <span className="text-slate-400">/</span>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 ml-1">
+                <span className="font-semibold text-foreground tabular-nums">{sortedProducts.length}</span>
+                <span className="text-muted-foreground">/</span>
                 <span className="tabular-nums">{products.length}</span>
                 <span className="hidden sm:inline">products</span>
                 {filters.activeFilterCount > 0 && (
@@ -1079,13 +1079,13 @@ function ShopContent() {
                   id="sort-select"
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
-                  className="appearance-none text-xs sm:text-sm border border-slate-200 rounded-full pl-3 sm:pl-4 pr-8 py-2 sm:py-2.5 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[36px] sm:min-h-[40px] cursor-pointer hover:border-slate-300 active:scale-[0.98] transition-all"
+                  className="appearance-none text-xs sm:text-sm border border-border rounded-full pl-3 sm:pl-4 pr-8 py-2 sm:py-2.5 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[36px] sm:min-h-[40px] cursor-pointer hover:border-primary active:scale-[0.98] transition-all"
                 >
                   {SORT_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" aria-hidden="true" />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" aria-hidden="true" />
               </div>
             </div>
 
@@ -1109,25 +1109,25 @@ function ShopContent() {
 
             {mobileFiltersOpen && (
               <div
-                className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm md:hidden animate-fade-in"
+                className="fixed inset-0 z-50 bg-foreground/50 backdrop-blur-sm md:hidden animate-fade-in"
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-hidden="true"
               >
                 <div
                   id="mobile-filters"
-                  className="absolute bottom-0 inset-x-0 max-h-[88dvh] bg-white rounded-t-3xl overflow-y-auto animate-slide-up pb-safe shadow-2xl"
+                  className="absolute bottom-0 inset-x-0 max-h-[88dvh] bg-background rounded-t-3xl overflow-y-auto animate-slide-up pb-safe shadow-2xl"
                   onClick={e => e.stopPropagation()}
                   role="dialog"
                   aria-modal="true"
                   aria-label="Mobile filters"
                 >
-                  <div className="sticky top-0 bg-white/95 backdrop-blur-md pt-3 pb-3 px-5 border-b border-slate-200 z-10">
-                    <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-3" />
+                  <div className="sticky top-0 bg-background/95 backdrop-blur-md pt-3 pb-3 px-5 border-b border-border z-10">
+                    <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-3" />
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-bold text-slate-900">Filters</h3>
+                      <h3 className="text-base font-bold text-foreground">Filters</h3>
                       <button
                         onClick={() => setMobileFiltersOpen(false)}
-                        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+                        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted"
                         aria-label="Close filters"
                       >
                         <X className="h-5 w-5" />
@@ -1137,10 +1137,10 @@ function ShopContent() {
                   <div className="p-4">
                     <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
                   </div>
-                  <div className="sticky bottom-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 pb-safe z-10">
+                  <div className="sticky bottom-0 bg-background/95 backdrop-blur-md border-t border-border p-4 pb-safe z-10">
                     <button
                       onClick={() => setMobileFiltersOpen(false)}
-                      className="w-full bg-primary text-white py-3.5 rounded-xl font-semibold min-h-[48px] shadow-sm shadow-primary/20 hover:bg-primary/90 active:scale-[0.99] transition-all"
+                      className="w-full bg-primary text-primary-foreground py-3.5 rounded-xl font-semibold min-h-[48px] shadow-sm shadow-primary/20 hover:bg-primary/90 active:scale-[0.99] transition-all"
                     >
                       Show {sortedProducts.length} {sortedProducts.length === 1 ? 'Product' : 'Products'}
                     </button>
@@ -1218,7 +1218,7 @@ function ShopContent() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] transition-all"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-foreground text-primary border border-border rounded-lg text-sm font-medium hover:bg-muted hover:border-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] transition-all"
                 >
                   Next
                 </button>
@@ -1228,22 +1228,22 @@ function ShopContent() {
         </div>
       </div>
 
-      <section className="py-12 md:py-16 bg-white border-t border-slate-200/80">
+      <section className="py-12 md:py-16 bg-background border-t border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center">
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h2 className="font-semibold mb-1.5 text-slate-900">Quality Assured</h2>
-              <p className="text-sm text-slate-500">All products tested and verified</p>
+              <h2 className="font-semibold mb-1.5 text-foreground">Quality Assured</h2>
+              <p className="text-sm text-muted-foreground">All products tested and verified</p>
             </div>
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg" aria-hidden="true">✓</span>
               </div>
-              <h2 className="font-semibold mb-1.5 text-slate-900">Warranty Included</h2>
-              <p className="text-sm text-slate-500">Every purchase comes with warranty</p>
+              <h2 className="font-semibold mb-1.5 text-foreground">Warranty Included</h2>
+              <p className="text-sm text-muted-foreground">Every purchase comes with warranty</p>
             </div>
             <div>
               <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
