@@ -28,7 +28,7 @@ import {
 import { Plus, Edit, Trash2, Loader2, Upload, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { productsAPI, uploadAPI, categoriesAPI, brandsAPI } from '../../services/api';
 import { getProductImageUrl } from '../../lib/imageUrl';
-import { PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_CONDITIONS, FALLBACK_CATEGORIES, FALLBACK_BRANDS } from '../../constants';
+import { PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_CONDITIONS } from '../../constants';
 import { toast } from 'sonner';
 import { getStatusConfig } from '../../lib/admin-utils';
 import { formatPriceWithDecimals } from '../../lib/format';
@@ -95,16 +95,16 @@ export function ProductManagement() {
   const loadCategoriesAndBrands = async () => {
     try {
       const [catRes, brandRes] = await Promise.all([
-        categoriesAPI.getActive().catch(() => ({ data: FALLBACK_CATEGORIES })),
-        brandsAPI.getActive().catch(() => ({ data: FALLBACK_BRANDS })),
+        categoriesAPI.getActive().catch(() => ({ data: [] })),
+        brandsAPI.getActive().catch(() => ({ data: [] })),
       ]);
       const catNames = (catRes.data || []).map(c => c.name);
       const brandNames = (brandRes.data || []).map(b => b.name);
-      setCategories(catNames.length ? [...new Set(catNames)] : FALLBACK_CATEGORIES.map(c => c.name));
-      setBrands(brandNames.length ? [...new Set(brandNames)] : FALLBACK_BRANDS);
+      setCategories(catNames.length ? catNames : []);
+      setBrands(brandNames.length ? brandNames : []);
     } catch {
-      setCategories(FALLBACK_CATEGORIES.map(c => c.name));
-      setBrands(FALLBACK_BRANDS);
+      setCategories([]);
+      setBrands([]);
     }
   };
 
