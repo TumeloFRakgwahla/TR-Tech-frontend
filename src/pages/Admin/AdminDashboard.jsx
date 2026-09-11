@@ -11,6 +11,7 @@ import {
   Plus,
   TrendingUp,
   TrendingDown,
+  LayoutDashboard,
 } from 'lucide-react';
 import {
   ComposedChart,

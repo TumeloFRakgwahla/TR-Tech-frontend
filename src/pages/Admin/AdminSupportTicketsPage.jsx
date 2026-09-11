@@ -30,6 +30,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { cn } from '../../lib/admin-utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const STATUS_OPTIONS = ['Open', 'In Progress', 'Resolved', 'Closed'];
 const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent'];
@@ -141,6 +142,7 @@ export function AdminSupportTicketsPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Support Tickets</h1>

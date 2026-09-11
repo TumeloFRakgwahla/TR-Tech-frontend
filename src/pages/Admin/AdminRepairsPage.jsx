@@ -34,6 +34,7 @@ import { Search, Phone, Mail, Plus, Loader2, Upload, X, Wrench, Clock, BarChart3
 import { repairsAPI, uploadAPI } from '../../services/api';
 import { getProductImageUrl } from '../../lib/imageUrl';
 import { getStatusConfig } from '../../lib/admin-utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 // Image URLs are resolved with the shared getProductImageUrl helper from lib/imageUrl.
 
@@ -171,6 +172,7 @@ export function AdminRepairsPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Repairs</h1>

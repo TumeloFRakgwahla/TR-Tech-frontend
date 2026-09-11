@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../../components/ui/dialog';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const emptyCategory = {
   name: '',
@@ -118,6 +119,7 @@ export function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Categories</h1>

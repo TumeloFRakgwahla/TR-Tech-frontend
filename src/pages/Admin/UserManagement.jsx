@@ -25,6 +25,7 @@ import {
 import { ConfirmationDialog } from '../../components/admin/ConfirmationDialog';
 import { toast } from 'sonner';
 import { getRoleConfig, getStatusConfig } from '../../lib/admin-utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 export function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -134,6 +135,7 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">User Management</h1>

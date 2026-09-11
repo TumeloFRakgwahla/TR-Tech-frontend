@@ -19,6 +19,7 @@ import { supportAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Send, Loader2, MessageSquare, LifeBuoy, BookOpen } from 'lucide-react';
 import { cn } from '../../lib/admin-utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const EMPTY_TICKET = {
   subject: '',
@@ -95,6 +96,7 @@ export function AdminHelpSupportPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Help & Support</h1>

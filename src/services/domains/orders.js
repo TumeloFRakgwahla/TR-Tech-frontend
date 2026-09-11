@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../constants';
+import { API_BASE_URL } from '../../constants';
 import { createCrudAPI, apiRequest, fetchWithTimeout, handleResponse } from '../shared';
 
 export const ordersAPI = {

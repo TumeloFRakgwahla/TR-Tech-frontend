@@ -76,16 +76,6 @@ export default function AdminLogin() {
     }
   }, [isLocked, lockoutUntil]);
 
-  const refreshCaptcha = useCallback(async () => {
-    try {
-      const res = await adminAuthAPI.login({ email: '', password: '', captchaId: '', captchaCode: '' });
-      // The above call won't succeed, but we need a better approach.
-      // Let's use a direct fetch to the captcha endpoint.
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const fetchCaptcha = useCallback(async () => {
     try {
       const data = await adminAuthAPI.getCaptcha();

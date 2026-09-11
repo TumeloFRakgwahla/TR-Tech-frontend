@@ -16,6 +16,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { usersAPI } from '../../services/api';
 import { toast } from 'sonner';
 import { getStatusConfig } from '../../lib/admin-utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 export function CustomerManagement() {
   const [customers, setCustomers] = useState([]);
@@ -79,6 +80,7 @@ export function CustomerManagement() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="mb-4 py-4">
         <h1 className="text-2xl font-bold text-white">Customers</h1>
         <p className="text-slate-300">View and manage customer information</p>

@@ -27,6 +27,7 @@ import { PRODUCT_PLACEHOLDER_IMAGE, SERVICE_CATEGORIES } from '../../constants';
 import { toast } from 'sonner';
 import { getStatusConfig } from '../../lib/admin-utils';
 import { ConfirmationDialog } from '../../components/admin/ConfirmationDialog';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const emptyService = {
   name: '',
@@ -190,6 +191,7 @@ export function ServicesManagement() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Services</h1>

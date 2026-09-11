@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -18,7 +19,7 @@ import {
 import { toast } from 'sonner';
 import { settingsAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
-import { Save, RefreshCw, Globe, Mail, Shield, Bell, Palette, Monitor, Building2, Server } from 'lucide-react';
+import { Save, RefreshCw, Globe, Mail, Shield, Bell, Palette, Monitor, Building2, Server, LayoutDashboard } from 'lucide-react';
 import { getStatusConfig } from '../../lib/admin-utils';
 
 const EMPTY_SETTINGS = {
@@ -210,6 +211,18 @@ export function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm mb-4">
+        <span className="flex items-center gap-2">
+          <Link className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5" to="/admin" data-discover="true">
+            <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
+            Dashboard
+          </Link>
+        </span>
+        <span className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right h-4 w-4 text-slate-500" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          <span className="text-slate-400 font-medium">Settings</span>
+        </span>
+      </nav>
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Settings</h1>

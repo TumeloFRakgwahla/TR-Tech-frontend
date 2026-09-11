@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../constants';
+import { API_BASE_URL } from '../../constants';
 import { apiRequest } from '../shared';
 
 export const authAPI = {

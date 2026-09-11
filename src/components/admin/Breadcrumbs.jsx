@@ -1,4 +1,4 @@
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { PAGE_TITLES } from '../../lib/admin-utils';
 
@@ -6,7 +6,7 @@ export function Breadcrumbs() {
   const location = useLocation();
   const segments = location.pathname.split('/').filter(Boolean);
 
-  const crumbs = [{ label: 'Home', path: '/admin', icon: Home }];
+  const crumbs = [{ label: 'Dashboard', path: '/admin', icon: LayoutDashboard }];
 
   if (segments.length > 0) {
     let current = '';
