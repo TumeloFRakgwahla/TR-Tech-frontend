@@ -3,235 +3,45 @@
  *
  * This service handles all API calls to the TR-Tech backend.
  * Update the API_BASE_URL to point to your backend server.
+ *
+ * Domain-specific APIs are split into src/services/domains/.
+ * Shared utilities are in src/services/shared.js.
  */
 
 import { API_BASE_URL } from '../constants';
 
-let cachedCsrfToken = null;
-let csrfTokenExpiry = null;
-const CSRF_CACHE_DURATION = 55 * 60 * 1000;
-const DEFAULT_TIMEOUT = 15000;
+import { productsAPI } from './domains/products';
+import { ordersAPI } from './domains/orders';
+import { authAPI } from './domains/auth';
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+import {
+  fetchWithTimeout,
+  getCsrfToken,
+  clearCsrfCache,
+  apiRequest,
+  handleResponse,
+  createCrudAPI,
+} from './shared';
 
-  const originalSignal = options?.signal;
-  if (originalSignal) {
-    originalSignal.addEventListener('abort', () => controller.abort(), { once: true });
-  }
+// Re-export domain APIs for backward compatibility
+export { productsAPI } from './domains/products';
+export { ordersAPI } from './domains/orders';
+export { authAPI } from './domains/auth';
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    return response;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-async function getCsrfToken() {
-  const now = Date.now();
-  if (cachedCsrfToken && csrfTokenExpiry && now < csrfTokenExpiry) {
-    return cachedCsrfToken;
-  }
-  try {
-    const res = await fetchWithTimeout(`${API_BASE_URL.replace(/\/v1\/?$/, '')}/csrf-token`, { credentials: 'include' });
-    const data = await res.json();
-    if (data.csrfToken) {
-      cachedCsrfToken = data.csrfToken;
-      csrfTokenExpiry = now + CSRF_CACHE_DURATION;
-      return cachedCsrfToken;
-    }
-  } catch (err) {
-    void err;
-  }
-  return null;
-}
-
-export function clearCsrfCache() {
-  cachedCsrfToken = null;
-  csrfTokenExpiry = null;
-}
-
-async function apiRequest(url, options = {}, isFormData = false, bodyFactory = null) {
-  const doFetch = async (csrfToken) => {
-    const headers = { ...(options.headers || {}) };
-    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
-    if (!isFormData) headers['Content-Type'] = 'application/json';
-
-    let body;
-    if (isFormData && bodyFactory) {
-      body = bodyFactory();
-    } else if (!isFormData && options.body !== undefined) {
-      body = JSON.stringify(options.body);
-    }
-
-    return fetchWithTimeout(url, {
-      method: options.method || 'GET',
-      headers,
-      body,
-      credentials: 'include',
-    });
-  };
-
-  const initialToken = await getCsrfToken();
-  let response = await doFetch(initialToken);
-
-  if (response.status === 419) {
-    clearCsrfCache();
-    const freshToken = await getCsrfToken();
-    if (freshToken) {
-      response = await doFetch(freshToken);
-    }
-  }
-
-  return handleResponse(response);
-}
-
-async function handleResponse(response) {
-  if (response.status === 401) {
-    clearCsrfCache();
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('trtech:unauthorized'));
-    }
-  }
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const error = new Error(data.message || 'An error occurred');
-    error.status = response.status;
-    if (data.errors) {
-      error.info = JSON.stringify(data.errors);
-    }
-    if (data.details) {
-      error.info = JSON.stringify(data.details);
-    }
-    throw error;
-  }
-  return data;
-}
-
-function createCrudAPI(resourcePath, options = {}) {
-  const { withSignal = false } = options;
-
-  return {
-    getAll: async (params = {}, options2 = {}) => {
-      const queryString = new URLSearchParams(params).toString();
-      const response = await fetchWithTimeout(`${API_BASE_URL}/${resourcePath}${queryString ? `?${queryString}` : ''}`, {
-        credentials: 'include',
-        signal: withSignal ? options2.signal : undefined,
-      });
-      return handleResponse(response);
-    },
-
-    getById: async (id) => {
-      const response = await fetchWithTimeout(`${API_BASE_URL}/${resourcePath}/${id}`, {
-        credentials: 'include',
-      });
-      return handleResponse(response);
-    },
-
-    create: async (data) => {
-      return apiRequest(`${API_BASE_URL}/${resourcePath}`, {
-        method: 'POST',
-        body: data,
-      });
-    },
-
-    update: async (id, data) => {
-      return apiRequest(`${API_BASE_URL}/${resourcePath}/${id}`, {
-        method: 'PUT',
-        body: data,
-      });
-    },
-
-    delete: async (id) => {
-      return apiRequest(`${API_BASE_URL}/${resourcePath}/${id}`, {
-        method: 'DELETE',
-      });
-    },
-  };
-}
-
-/**
- * Products API
- */
-export const productsAPI = {
-  ...createCrudAPI('products', { withSignal: true }),
-
-  getLowStock: async (threshold = 10) => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/products/low-stock?threshold=${threshold}`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-
-  getUniqueCategories: async () => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/products/categories/unique`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-
-  getUniqueBrands: async () => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/products/brands/unique`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
+// Re-export shared utilities for backward compatibility
+export {
+  fetchWithTimeout,
+  getCsrfToken,
+  clearCsrfCache,
+  apiRequest,
+  handleResponse,
+  createCrudAPI,
 };
 
 /**
  * Services API
  */
 export const servicesAPI = createCrudAPI('services', { withSignal: true });
-
-/**
- * Orders API
- */
-export const ordersAPI = {
-  ...createCrudAPI('orders', { withSignal: true }),
-
-  getStats: async () => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/stats`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-
-  updateStatus: async (id, status) => {
-    return apiRequest(`${API_BASE_URL}/orders/${id}`, {
-      method: 'PUT',
-      body: { status },
-    });
-  },
-
-  myOrders: async (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/my-orders${queryString ? `?${queryString}` : ''}`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-
-  myOrder: async (id) => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/my-orders/${id}`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-
-  track: async (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/orders/track${queryString ? `?${queryString}` : ''}`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-};
 
 /**
  * Contact API
@@ -320,52 +130,6 @@ export const healthCheck = async () => {
   const baseUrl = API_BASE_URL.replace(/\/v1\/?$/, '');
   const response = await fetchWithTimeout(`${baseUrl}/health`);
   return handleResponse(response);
-};
-
-/**
- * Auth API
- */
-export const authAPI = {
-  register: async (userData) => {
-    return apiRequest(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      body: userData,
-    });
-  },
-
-  login: async (credentials) => {
-    return apiRequest(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      body: credentials,
-    });
-  },
-
-  getMe: async () => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/me`, {
-      credentials: 'include',
-    });
-    return handleResponse(response);
-  },
-
-  updateProfile: async (profileData) => {
-    return apiRequest(`${API_BASE_URL}/auth/updateprofile`, {
-      method: 'PUT',
-      body: profileData,
-    });
-  },
-
-  logout: async () => {
-    return apiRequest(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-    });
-  },
-
-  resendVerification: async (email) => {
-    return apiRequest(`${API_BASE_URL}/auth/resend-verification`, {
-      method: 'POST',
-      body: { email },
-    });
-  },
 };
 
 /**
@@ -783,6 +547,13 @@ export const paymentsAPI = {
  * Admin Auth API
  */
 export const adminAuthAPI = {
+  getCaptcha: async () => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/admin/captcha`, {
+      credentials: 'include',
+    });
+    return handleResponse(response);
+  },
+
   login: async (credentials) => {
     return apiRequest(`${API_BASE_URL}/auth/admin/login`, {
       method: 'POST',

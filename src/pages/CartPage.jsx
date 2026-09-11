@@ -21,11 +21,19 @@
  * - Sticky mobile checkout bar positioned above BottomNav
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { useCart } from '../components/CartContext';
 import { Button } from '../components/button.jsx';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -42,8 +50,8 @@ const conditionStyles = {
 };
 
 function CartPage() {
-  // Destructure all cart state and mutation functions from context
   const { cart, totalItems, totalPrice, removeFromCart, updateQuantity, clearCart } = useCart();
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const getShippingCost = () => {
     if (totalPrice >= 500) return 0;
@@ -53,12 +61,14 @@ function CartPage() {
   const shippingCost = getShippingCost();
   const orderTotal = totalPrice + shippingCost;
 
-  // Clear entire cart after user confirms in browser dialog
   const handleClearCart = () => {
-    if (window.confirm('Are you sure you want to clear your cart?')) {
-      clearCart();
-      toast.success('Cart cleared');
-    }
+    setClearDialogOpen(true);
+  };
+
+  const confirmClearCart = () => {
+    clearCart();
+    toast.success('Cart cleared');
+    setClearDialogOpen(false);
   };
 
   // Empty state: show message and CTA to browse products
@@ -115,7 +125,7 @@ function CartPage() {
                   >
                     {item.image ? (
                       <img
-                        src={getProductImageUrl(item.image)}
+                         src={getProductImageUrl(item.image, { width: 300, quality: 80 })}
                         alt={item.name}
                         className="w-full h-full object-cover"
                         loading="lazy"
@@ -275,6 +285,25 @@ function CartPage() {
 
       <Footer />
       <BottomNav />
+
+      <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogHeader>
+            <DialogTitle>Clear Cart</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Are you sure you want to remove all items from your cart? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClearDialogOpen(false)} className="border-slate-600 text-white hover:bg-slate-700">
+              Cancel
+            </Button>
+            <Button onClick={confirmClearCart} className="bg-red-600 hover:bg-red-700">
+              Clear Cart
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

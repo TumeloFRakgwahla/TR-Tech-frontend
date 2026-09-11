@@ -39,6 +39,7 @@ import { StatusBadge } from '../../components/admin/StatusBadge';
 import { AdminErrorState } from '../../components/admin/AdminEmptyState';
 import { USER_ROLES } from '../../constants';
 import { cn } from '../../lib/utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const SUBMENU_ITEMS = [
   { path: '/admin/users', label: 'All Users', icon: User, exact: true },
@@ -73,6 +74,7 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ letterSpacing: '-0.02em' }}>

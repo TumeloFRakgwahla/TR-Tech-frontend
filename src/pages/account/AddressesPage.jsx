@@ -22,6 +22,14 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog';
 import { MapPin, Plus, Edit, Trash2, Check, Loader2 } from 'lucide-react';
 
 // Static list of South African provinces for the province dropdown
@@ -38,6 +46,8 @@ export function AddressesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false); // Whether the add/edit form is visible
   const [editingId, setEditingId] = useState(null);   // ID of the address being edited (null = adding new)
   const [isLoading, setIsLoading] = useState(false);  // Submit in-progress flag
+  const [deleteTarget, setDeleteTarget] = useState(null); // Address pending deletion
+  const [isDeleting, setIsDeleting] = useState(false); // Delete in-progress flag
 
   // Form fields for the address
   const [formData, setFormData] = useState({
@@ -98,10 +108,19 @@ export function AddressesPage() {
     }
   };
 
-  // Delete handler: confirms with user before calling deleteAddress
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this address?')) {
-      await deleteAddress(id);
+  // Delete handler: opens confirmation dialog
+  const handleDelete = (id) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteAddress(deleteTarget);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -341,6 +360,25 @@ export function AddressesPage() {
           )}
         </div>
       </div>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogHeader>
+            <DialogTitle>Delete Address</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Are you sure you want to delete this address? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-slate-600 text-white hover:bg-slate-700">
+              Cancel
+            </Button>
+            <Button onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { accountAPI, adminAuthAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Save, Loader2, User, Lock, Activity } from 'lucide-react';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const EMPTY_PROFILE = {
   firstName: '',
@@ -99,6 +100,7 @@ export function AdminProfilePage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Admin Profile</h1>

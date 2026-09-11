@@ -1,9 +1,11 @@
 import { Navigate } from 'react-router-dom';
 import { useAdminAuth } from '../components/AdminAuthContext';
+import { useAdminPermissions } from '../contexts/AdminPermissionsContext';
 import Seo from '../components/Seo';
 
-export function AdminProtectedRoute({ children, redirectTo = '/admin/login' }) {
+export function AdminProtectedRoute({ children, redirectTo = '/admin/login', requiredPermission }) {
   const { isAuthenticated, user, loading } = useAdminAuth();
+  const { hasPermission } = useAdminPermissions();
 
   if (loading) {
     return (
@@ -20,6 +22,10 @@ export function AdminProtectedRoute({ children, redirectTo = '/admin/login' }) {
   const allowedRoles = ['admin', 'manager', 'staff'];
   if (!allowedRoles.includes(user?.role)) {
     return <Navigate to={redirectTo} replace />;
+  }
+
+  if (requiredPermission && !hasPermission(user?.role, requiredPermission)) {
+    return <Navigate to="/admin" replace />;
   }
 
   // Admin pages are behind auth — noindex to prevent crawling by search

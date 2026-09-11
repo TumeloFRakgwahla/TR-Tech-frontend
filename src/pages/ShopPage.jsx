@@ -189,7 +189,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
         {/* Product image with subtle zoom */}
         {product.image && !imageErrors[id] ? (
           <img
-            src={getProductImageUrl(product.image)}
+            src={getProductImageUrl(product.image, { width: 400, quality: 80 })}
             alt={`${product.name} product image`}
             className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-105"
             loading="lazy"

@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { getStatusConfig } from '../../lib/admin-utils';
 import { PRODUCT_PLACEHOLDER_IMAGE } from '../../constants';
 import { StockAlertWidget } from '../../components/admin/StockAlertWidget';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const threshold = 10;
 
@@ -133,6 +134,7 @@ export function InventoryManagement() {
 
   return (
     <div>
+      <Breadcrumbs />
       <div className="mb-4 py-4">
         <h1 className="text-2xl font-bold text-white">Inventory</h1>
         <p className="text-slate-300">Monitor and manage product stock levels</p>

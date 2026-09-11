@@ -19,6 +19,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ordersAPI, productsAPI } from '../../services/api';
 import { toast } from 'sonner';
 import { filterOrdersByPeriod, aggregateOrdersByMonth } from '../../utils/analytics';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'];
 
@@ -177,6 +178,7 @@ export function ReportsAnalytics() {
 
   return (
     <div>
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Reports</h1>

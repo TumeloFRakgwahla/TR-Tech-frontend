@@ -47,6 +47,8 @@ export function PaymentMethodsPage() {
   const [loading, setLoading] = useState(true);         // Initial loading state
   const [dialogOpen, setDialogOpen] = useState(false);  // Add method dialog visibility
   const [submitting, setSubmitting] = useState(false);  // Submit in-progress flag
+  const [deleteTarget, setDeleteTarget] = useState(null); // Payment method pending deletion
+  const [isDeleting, setIsDeleting] = useState(false); // Delete in-progress flag
 
   // Form fields for adding a new payment method
   const [form, setForm] = useState({
@@ -131,13 +133,21 @@ export function PaymentMethodsPage() {
 
   // Remove a payment method after user confirmation
   const handleDelete = async (id) => {
-    if (!window.confirm('Remove this payment method?')) return;
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      await paymentMethodsAPI.remove(id);
-      setMethods((prev) => prev.filter((m) => m._id !== id));
+      await paymentMethodsAPI.remove(deleteTarget);
+      setMethods((prev) => prev.filter((m) => m._id !== deleteTarget));
       toast.success('Payment method removed');
+      setDeleteTarget(null);
     } catch {
       toast.error('Failed to remove payment method');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -287,6 +297,25 @@ export function PaymentMethodsPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogHeader>
+            <DialogTitle>Remove Payment Method</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Are you sure you want to remove this payment method? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-slate-600 text-white hover:bg-slate-700">
+              Cancel
+            </Button>
+            <Button onClick={confirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">
+              {isDeleting ? 'Removing…' : 'Remove'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

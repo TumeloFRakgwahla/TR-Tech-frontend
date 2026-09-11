@@ -55,6 +55,17 @@ const emptyProduct = {
 const LOW_STOCK_THRESHOLD = 10;
 const PAGE_SIZE = 20;
 
+const generateSku = (name) => {
+  const slug = (name || 'PROD')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toUpperCase()
+    .slice(0, 24);
+  const stamp = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `${slug}-${stamp}-${rand}`;
+};
+
 export function ProductManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -293,6 +304,8 @@ export function ProductManagement() {
     };
     if (payload.sku) {
       payload.sku = payload.sku.toUpperCase();
+    } else {
+      payload.sku = generateSku(form.name);
     }
 
     try {
@@ -631,7 +644,7 @@ export function ProductManagement() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <img
-                          src={getProductImageUrl(product.images?.[0] || product.image)}
+                           src={getProductImageUrl(product.images?.[0] || product.image, { width: 200, quality: 75 })}
                           alt={product.name}
                           onError={(e) => { e.target.src = PRODUCT_PLACEHOLDER_IMAGE; }}
                           className="h-12 w-12 rounded-lg object-cover"

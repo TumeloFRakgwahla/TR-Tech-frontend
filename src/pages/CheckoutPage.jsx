@@ -19,82 +19,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Check, MapPin, CreditCard, ShoppingBag, ShieldCheck, Truck, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useCart } from '../components/CartContext';
-import { useAuth } from '../components/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { CheckoutModal } from '../components/CheckoutModal';
 import Seo from '../components/Seo';
-
-// Step definitions for the checkout progress bar
-const steps = [
-  { key: 'review', label: 'Review', icon: ShoppingBag },
-  { key: 'details', label: 'Details', icon: MapPin },
-  { key: 'payment', label: 'Payment', icon: CreditCard },
-  { key: 'confirm', label: 'Confirm', icon: Check },
-];
-
-// Progress bar showing current checkout step (simplified on mobile, full steps on desktop)
-function ProgressBar({ currentStep }) {
-  const currentIndex = steps.findIndex(s => s.key === currentStep);
-
-  return (
-    <div className="bg-white border-b border-border sticky top-16 md:top-20 z-20">
-      <div className="max-w-3xl mx-auto px-4 py-3">
-        {/* Mobile: Simplified progress */}
-        <div className="md:hidden">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">
-              Step {currentIndex + 1} of {steps.length}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {steps[currentIndex].label}
-            </span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${((currentIndex + 1) / steps.length) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Desktop: Full step indicator */}
-        <div className="hidden md:flex items-center justify-between">
-          {steps.map((step, index) => {
-            const isActive = index <= currentIndex;
-            const isCurrent = index === currentIndex;
-            const Icon = step.icon;
-
-            return (
-              <React.Fragment key={step.key}>
-                <div className="flex flex-col items-center gap-1">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                      isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className={`text-xs ${isCurrent ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
-                    {step.label}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-3 ${index < currentIndex ? 'bg-primary' : 'bg-muted'}`} />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Shipping threshold constant (free shipping kick-in)
 const FREE_SHIPPING_THRESHOLD = 500;
@@ -196,36 +127,10 @@ function OrderSummary({ compact = false }) {
   );
 }
 
-// Checkout step wrapper that handles authentication modal
-// If user is not authenticated, modal stays open and closing it triggers onBack
-function CheckoutStep({ onBack }) {
-  const { isAuthenticated } = useAuth();
-  const [modalOpen, setModalOpen] = useState(true);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setModalOpen(true);
-    }
-  }, [isAuthenticated]);
-
-  const handleModalClose = (open) => {
-    setModalOpen(open);
-    if (!open && onBack) {
-      onBack();
-    }
-  };
-
-  return (
-    <div className="py-4">
-      <CheckoutModal open={modalOpen} onOpenChange={handleModalClose} />
-    </div>
-  );
-}
-
 function CheckoutPage() {
   const navigate = useNavigate();
   const { cart } = useCart();
-  const [currentStep, setCurrentStep] = useState('review');
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Redirect to cart if no items present
   useEffect(() => {
@@ -240,7 +145,7 @@ function CheckoutPage() {
   }
 
   const handleProceed = () => {
-    setCurrentStep('details');
+    setModalOpen(true);
   };
 
   const handleBack = () => {
@@ -251,77 +156,69 @@ function CheckoutPage() {
     <div className="min-h-screen bg-muted/30">
       <Navbar />
       <Seo title="Checkout" description="Complete your order securely with Paystack. Review your cart, enter delivery details, and pay in seconds." noindex />
-      <ProgressBar currentStep={currentStep} />
 
       <main className="max-w-6xl mx-auto px-4 py-6 pb-24">
-        {currentStep === 'review' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl md:text-2xl font-bold text-foreground">Review Your Order</h1>
-              <Link
-                to="/cart"
-                className="text-sm font-medium text-primary hover:text-primary/80 min-h-[44px] flex items-center"
-              >
-                Edit Cart
-              </Link>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Review Your Order</h1>
+            <Link
+              to="/cart"
+              className="text-sm font-medium text-primary hover:text-primary/80 min-h-[44px] flex items-center"
+            >
+              Edit Cart
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Items list — fills the middle on larger screens */}
+            <div className="lg:col-span-2">
+              <CartItemsList />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Items list — fills the middle on larger screens */}
-              <div className="lg:col-span-2">
-                <CartItemsList />
-              </div>
-
-              {/* Price summary + action buttons — sticky on the right */}
-              <div className="lg:col-span-1">
-                <div className="lg:sticky lg:top-24 space-y-4">
-                  <OrderSummary />
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleBack}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                      Back to Cart
-                    </button>
-                    <button
-                      onClick={handleProceed}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
-                    >
-                      <span className="sm:hidden">Continue</span>
-                      <span className="hidden sm:inline">Proceed to Checkout</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </div>
+            {/* Price summary + action buttons — sticky on the right */}
+            <div className="lg:col-span-1">
+              <div className="lg:sticky lg:top-24 space-y-4">
+                <OrderSummary />
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleBack}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border border-border rounded-lg font-medium text-foreground hover:bg-muted transition-colors min-h-[48px]"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Cart
+                  </button>
+                  <button
+                    onClick={handleProceed}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors min-h-[48px]"
+                  >
+                    <span className="sm:hidden">Continue</span>
+                    <span className="hidden sm:inline">Proceed to Checkout</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Trust Signals */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
-                <ShieldCheck className="h-6 w-6 text-primary mb-1" />
-                <span className="text-xs font-medium">Secure Checkout</span>
-              </div>
-              <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
-                <Truck className="h-6 w-6 text-primary mb-1" />
-                <span className="text-xs font-medium">Fast Delivery</span>
-              </div>
-              <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
-                <Check className="h-6 w-6 text-primary mb-1" />
-                <span className="text-xs font-medium">Quality</span>
-              </div>
+          {/* Trust Signals */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
+              <ShieldCheck className="h-6 w-6 text-primary mb-1" />
+              <span className="text-xs font-medium">Secure Checkout</span>
+            </div>
+            <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
+              <Truck className="h-6 w-6 text-primary mb-1" />
+              <span className="text-xs font-medium">Fast Delivery</span>
+            </div>
+            <div className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-border">
+              <Check className="h-6 w-6 text-primary mb-1" />
+              <span className="text-xs font-medium">Quality</span>
             </div>
           </div>
-        )}
-
-        {currentStep === 'details' && (
-          <CheckoutStep
-            step={currentStep}
-            onBack={() => setCurrentStep('review')}
-          />
-        )}
+        </div>
       </main>
+
+      <CheckoutModal open={modalOpen} onOpenChange={setModalOpen} />
 
       <Footer />
       <BottomNav />

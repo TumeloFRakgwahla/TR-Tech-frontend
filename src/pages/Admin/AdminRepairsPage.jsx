@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -35,11 +34,11 @@ import { Search, Phone, Mail, Plus, Loader2, Upload, X, Wrench, Clock, BarChart3
 import { repairsAPI, uploadAPI } from '../../services/api';
 import { getProductImageUrl } from '../../lib/imageUrl';
 import { getStatusConfig } from '../../lib/admin-utils';
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 // Image URLs are resolved with the shared getProductImageUrl helper from lib/imageUrl.
 
 export function AdminRepairsPage() {
-  useAdminAuth();
   const [repairs, setRepairs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,7 +136,7 @@ export function AdminRepairsPage() {
 
   const stats = {
     total: repairs.length,
-    pending: repairs.filter((r) => r.status === 'New' || r.status === 'Pending').length,
+    pending: repairs.filter((r) => r.status === 'New').length,
     inProgress: repairs.filter((r) => r.status === 'In Progress' || r.status === 'Diagnosing' || r.status === 'Awaiting Parts').length,
     completed: repairs.filter((r) => r.status === 'Completed' || r.status === 'Ready').length,
   };
@@ -173,6 +172,7 @@ export function AdminRepairsPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div className="flex items-center justify-between mb-4 py-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Repairs</h1>

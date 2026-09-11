@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -15,7 +16,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '../../components/ui/dialog';
-import { Plus, Edit, Trash2, Mail, Tag, Image as ImageIcon, Loader2, Send, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Tag, Image as ImageIcon, Loader2, Send, BarChart3, LayoutDashboard } from 'lucide-react';
 import { marketingAPI } from '../../services/api';
 import { toast } from 'sonner';
 import { getStatusConfig } from '../../lib/admin-utils';
@@ -177,6 +178,18 @@ export function MarketingManagement() {
 
   return (
     <><div className="space-y-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm mb-4">
+        <span className="flex items-center gap-2">
+          <Link className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5" to="/admin" data-discover="true">
+            <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
+            Dashboard
+          </Link>
+        </span>
+        <span className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right h-4 w-4 text-slate-500" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          <span className="text-slate-400 font-medium">Marketing</span>
+        </span>
+      </nav>
       <div className="mb-4 py-4">
         <h1 className="text-2xl font-bold text-white">Marketing</h1>
         <p className="text-slate-300">Manage coupons, campaigns, and promotional content</p>
