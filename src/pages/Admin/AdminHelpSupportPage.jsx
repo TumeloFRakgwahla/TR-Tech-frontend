@@ -5,7 +5,6 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { SectionCard } from '../../components/ui/dashboard-card';
-import { Badge } from '../../components/ui/badge';
 import {
   Table,
   TableBody,
@@ -15,17 +14,16 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Separator } from '../../components/ui/separator';
 import { toast } from 'sonner';
 import { supportAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Send, Loader2, MessageSquare, LifeBuoy, BookOpen } from 'lucide-react';
-import { getStatusConfig, cn } from '../../lib/admin-utils';
+import { cn } from '../../lib/admin-utils';
 
 const EMPTY_TICKET = {
   subject: '',
-  category: 'technical',
-  priority: 'medium',
+  category: 'General',
+  priority: 'Medium',
   message: '',
 };
 
@@ -141,26 +139,27 @@ export function AdminHelpSupportPage() {
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
                   >
-                    <option value="technical">Technical Issue</option>
-                    <option value="billing">Billing / Payment</option>
-                    <option value="account">Account Access</option>
-                    <option value="feature">Feature Request</option>
-                    <option value="other">Other</option>
+                    <option value="General">General</option>
+                    <option value="Order">Order</option>
+                    <option value="Repair">Repair</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Billing">Billing</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-white">Priority</Label>
-                <select
-                  value={form.priority}
-                  onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
+                  <select
+                    value={form.priority}
+                    onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                  </select>
               </div>
               <div className="space-y-2">
                 <Label className="text-white">Message</Label>
@@ -224,9 +223,9 @@ export function AdminHelpSupportPage() {
                         <TableCell>
                           <span className={cn(
                             'admin-badge',
-                            ticket.status === 'open' ? 'admin-badge-warning' :
-                            ticket.status === 'in-progress' ? 'admin-badge-info' :
-                            ticket.status === 'resolved' ? 'admin-badge-success' : 'admin-badge-neutral'
+                            ticket.status === 'Open' ? 'admin-badge-warning' :
+                            ticket.status === 'In Progress' ? 'admin-badge-info' :
+                            ticket.status === 'Resolved' ? 'admin-badge-success' : 'admin-badge-neutral'
                           )}>
                             {ticket.status}
                           </span>

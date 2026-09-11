@@ -28,7 +28,7 @@ import { Shield, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export function SecurityPage() {
   // Get changePassword action and sessions list from account context
-  const { changePassword, sessions } = useAccount();
+  const { changePassword, sessions, revokeSession } = useAccount();
 
   // Local state for password change form
   const [currentPassword, setCurrentPassword] = useState('');
@@ -169,7 +169,7 @@ export function SecurityPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toast.info('Session revoke coming soon')}
+                      onClick={() => revokeSession(session._id)}
                       className="text-destructive hover:text-destructive"
                     >
                       Revoke

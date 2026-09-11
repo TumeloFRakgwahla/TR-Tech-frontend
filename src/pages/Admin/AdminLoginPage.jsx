@@ -8,17 +8,13 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card } from '../../components/ui/card';
 import { Loader2, Eye, EyeOff, Shield, Lock, Zap } from 'lucide-react';
+import { adminAuthAPI } from '../../services/api';
+import { API_BASE_URL } from '../../constants';
 
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_DURATION_MS = 60 * 1000;
 const STORAGE_KEY_ATTEMPTS = 'trtech_admin_failed_attempts';
 const STORAGE_KEY_LOCKOUT = 'trtech_admin_lockout_until';
-
-function generateCaptcha() {
-  const a = Math.floor(Math.random() * 10) + 1;
-  const b = Math.floor(Math.random() * 10) + 1;
-  return { question: `What is ${a} + ${b}?`, answer: a + b };
-}
 
 function loadFromStorage(key, fallback) {
   try {
@@ -46,7 +42,8 @@ export default function AdminLogin() {
   const [checking, setChecking] = useState(true);
   const [failedAttempts, setFailedAttempts] = useState(() => loadFromStorage(STORAGE_KEY_ATTEMPTS, 0));
   const [lockoutUntil, setLockoutUntil] = useState(() => loadFromStorage(STORAGE_KEY_LOCKOUT, null));
-  const [captcha, setCaptcha] = useState(() => generateCaptcha());
+  const [captchaId, setCaptchaId] = useState('');
+  const [captchaImage, setCaptchaImage] = useState('');
   const [captchaAnswer, setCaptchaAnswer] = useState('');
   const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
@@ -79,7 +76,32 @@ export default function AdminLogin() {
     }
   }, [isLocked, lockoutUntil]);
 
-  const refreshCaptcha = useCallback(() => setCaptcha(generateCaptcha()), []);
+  const refreshCaptcha = useCallback(async () => {
+    try {
+      const res = await adminAuthAPI.login({ email: '', password: '', captchaId: '', captchaCode: '' });
+      // The above call won't succeed, but we need a better approach.
+      // Let's use a direct fetch to the captcha endpoint.
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const fetchCaptcha = useCallback(async () => {
+    try {
+      const data = await adminAuthAPI.getCaptcha();
+      if (data.success) {
+        setCaptchaId(data.captchaId);
+        setCaptchaImage(data.image);
+        setCaptchaAnswer('');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCaptcha();
+  }, [fetchCaptcha]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -100,17 +122,18 @@ export default function AdminLogin() {
       return;
     }
 
-    if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-      if (Number(captchaAnswer) !== captcha.answer) {
-        toast.error('Incorrect CAPTCHA. Please try again.');
-        refreshCaptcha();
-        setCaptchaAnswer('');
+    if (failedAttempts >= MAX_FAILED_ATTEMPTS && !isLocked) {
+      if (!captchaAnswer.trim()) {
+        toast.error('Please enter the CAPTCHA');
         setIsLoading(false);
         return;
       }
     }
 
-    const result = await login(emailTrimmed, passwordTrimmed);
+    const result = await login(emailTrimmed, passwordTrimmed, {
+      captchaId: failedAttempts >= MAX_FAILED_ATTEMPTS ? captchaId : undefined,
+      captchaCode: failedAttempts >= MAX_FAILED_ATTEMPTS ? captchaAnswer.trim() : undefined,
+    });
     if (result.success) {
       setLoginSuccess(true);
       setFailedAttempts(0);
@@ -126,10 +149,10 @@ export default function AdminLogin() {
         setLockoutUntil(until);
         saveToStorage(STORAGE_KEY_LOCKOUT, until);
         toast.error(`Too many failed attempts. Locked for ${LOCKOUT_DURATION_MS / 1000}s.`);
+        fetchCaptcha();
       } else {
         toast.error(result.error || 'Invalid credentials');
       }
-      refreshCaptcha();
       setCaptchaAnswer('');
     }
     setIsLoading(false);
@@ -198,21 +221,30 @@ export default function AdminLogin() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-                  tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {failedAttempts >= MAX_FAILED_ATTEMPTS && !isLocked && (
+            {failedAttempts >= MAX_FAILED_ATTEMPTS && !isLocked && captchaImage && (
               <div className="space-y-2">
-                <Label htmlFor="captcha" className="text-slate-300 text-sm font-medium">CAPTCHA: {captcha.question}</Label>
+                <Label htmlFor="captcha" className="text-slate-300 text-sm font-medium">CAPTCHA</Label>
+                <div className="flex items-center gap-3">
+                  <img src={captchaImage} alt="CAPTCHA" className="h-10 rounded border border-slate-600 bg-white" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={fetchCaptcha}
+                    className="border-slate-600 text-white hover:bg-slate-700"
+                  >
+                    Refresh
+                  </Button>
+                </div>
                 <Input
                   id="captcha"
                   type="text"
-                  inputMode="numeric"
-                  placeholder="Enter answer"
+                  placeholder="Enter the text above"
                   value={captchaAnswer}
                   onChange={(e) => setCaptchaAnswer(e.target.value)}
                   className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"

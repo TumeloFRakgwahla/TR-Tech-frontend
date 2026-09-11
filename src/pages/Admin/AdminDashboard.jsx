@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   ArrowRight,
   Plus,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import {
   ComposedChart,
@@ -55,14 +57,12 @@ export function AdminDashboard() {
   const [dateRange, setDateRange] = useState('This Month');
   const [chartType, setChartType] = useState('revenue');
   const [chartPeriod, setChartPeriod] = useState('monthly');
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
-      setIsLoading(true);
       setError(null);
       try {
         const [statsRes, ordersRes, repairsRes, lowStockRes] = await Promise.all([
@@ -82,8 +82,6 @@ export function AdminDashboard() {
       } catch (err) {
         if (!isMounted) return;
         setError(err.message || 'Failed to load dashboard data');
-      } finally {
-        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -141,58 +139,6 @@ export function AdminDashboard() {
     });
   }, [stats, lowStockProducts.length]);
 
-  useEffect(() => {
-    const cards = document.querySelectorAll('.admin-kpi-card[data-current][data-previous]');
-    cards.forEach((card) => {
-      const current = parseFloat(card.getAttribute('data-current')) || 0;
-      const previous = parseFloat(card.getAttribute('data-previous')) || 0;
-      const percentageEl = card.querySelector('[data-percentage]');
-      if (!percentageEl) return;
-
-      let percent = 0;
-      if (previous > 0) {
-        percent = ((current - previous) / previous) * 100;
-      } else if (current > 0) {
-        percent = 100;
-      }
-
-      const rounded = Math.abs(Math.round(percent * 10) / 10);
-      const isUp = percent >= 0;
-
-      percentageEl.className = `admin-kpi-change mt-2 ${isUp ? 'admin-kpi-change-up' : 'admin-kpi-change-down'}`;
-      percentageEl.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${isUp ? 'trending-up' : 'trending-down'} w-3.5 h-3.5" aria-hidden="true">
-          <path d="M16 7h6v6"></path>
-          <path d="m22 7-8.5 8.5-5-5L2 17"></path>
-        </svg>
-        <span class="admin-kpi-percentage-value">${rounded}%</span>
-      `;
-    });
-  }, [kpis]);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-6 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="admin-kpi-card">
-              <Skeleton className="h-4 w-24 mb-3" />
-              <Skeleton className="h-8 w-32" />
-            </div>
-          ))}
-        </div>
-        <div className="admin-section-card">
-          <div className="admin-section-header">
-            <Skeleton className="h-6 w-40" />
-          </div>
-          <div className="admin-section-body">
-            <Skeleton className="h-80 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return <AdminErrorState error={error} onRetry={() => window.location.reload()} />;
   }
@@ -224,8 +170,9 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-3">
+      <div className="grid grid-cols-6 gap-3 overflow-x-auto">
         {kpis.map((kpi) => {
+          const TrendIcon = kpi.trend === 'up' ? TrendingUp : TrendingDown;
           return (
             <div key={kpi.title} className="admin-kpi-card" data-current={kpi.current} data-previous={kpi.previous}>
               <div className="admin-kpi-header">
@@ -236,9 +183,12 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="admin-kpi-value">{kpi.value}</p>
-                <span className="admin-kpi-change mt-2" data-percentage>
-                  <span className="admin-kpi-percentage-value">0%</span>
-                </span>
+                {kpi.trend && (
+                  <span className={`admin-kpi-change mt-2 ${kpi.trend === 'up' ? 'admin-kpi-change-up' : 'admin-kpi-change-down'}`}>
+                    <TrendIcon className="w-3.5 h-3.5" />
+                    <span className="admin-kpi-percentage-value">{kpi.percent}%</span>
+                  </span>
+                )}
               </div>
             </div>
           );

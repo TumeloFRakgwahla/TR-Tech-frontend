@@ -123,7 +123,7 @@ export function WishlistPage() {
                   <div className="relative bg-primary/5 aspect-[4/3]">
                     {product.image ? (
                       <img
-                        src={getProductImageUrl(product.image)}
+                         src={getProductImageUrl(product.image, { width: 400, quality: 80 })}
                         alt={product.name}
                         className="w-full h-full object-cover opacity-90"
                         loading="lazy"

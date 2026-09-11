@@ -587,13 +587,13 @@ export function AdminSettingsPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <Button variant="secondary" onClick={clearCache} className="bg-slate-700 text-white hover:bg-slate-600">
+              <Button variant="secondary" onClick={clearCache} disabled className="bg-slate-700 text-slate-500 cursor-not-allowed" title="Not yet implemented">
                 Clear Cache
               </Button>
-              <Button variant="secondary" onClick={exportData} className="bg-slate-700 text-white hover:bg-slate-600">
+              <Button variant="secondary" onClick={exportData} disabled className="bg-slate-700 text-slate-500 cursor-not-allowed" title="Not yet implemented">
                 Export Data
               </Button>
-              <Button variant="outline" onClick={resetSystem} className="border-red-600 text-red-400 hover:bg-red-600/10">
+              <Button variant="outline" onClick={resetSystem} disabled className="border-red-600 text-red-400 opacity-50 cursor-not-allowed" title="Not yet implemented">
                 Reset System
               </Button>
             </div>

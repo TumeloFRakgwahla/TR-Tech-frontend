@@ -11,8 +11,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async';
+import { disableNativeScrollRestoration } from './lib/scrollRestoration';
 import './index.css'
 import App from './App.jsx'
+
+disableNativeScrollRestoration();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

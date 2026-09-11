@@ -36,9 +36,10 @@ export function AdminAuthProvider({ children }) {
     }
   }, []);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, options = {}) => {
     try {
-      const data = await adminAuthAPI.login({ email, password });
+      const { captchaId, captchaCode } = options;
+      const data = await adminAuthAPI.login({ email, password, captchaId, captchaCode });
       setUser(data.user);
       toast.success('Admin login successful!');
       return { success: true };

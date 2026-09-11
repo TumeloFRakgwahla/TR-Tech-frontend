@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -39,7 +38,6 @@ import { getStatusConfig } from '../../lib/admin-utils';
 // Image URLs are resolved with the shared getProductImageUrl helper from lib/imageUrl.
 
 export function AdminRepairsPage() {
-  useAdminAuth();
   const [repairs, setRepairs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,7 +135,7 @@ export function AdminRepairsPage() {
 
   const stats = {
     total: repairs.length,
-    pending: repairs.filter((r) => r.status === 'New' || r.status === 'Pending').length,
+    pending: repairs.filter((r) => r.status === 'New').length,
     inProgress: repairs.filter((r) => r.status === 'In Progress' || r.status === 'Diagnosing' || r.status === 'Awaiting Parts').length,
     completed: repairs.filter((r) => r.status === 'Completed' || r.status === 'Ready').length,
   };

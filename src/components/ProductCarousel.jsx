@@ -52,7 +52,7 @@ function ProductCard({ product }) {
           </button>
           {product.image ? (
             <img
-              src={getProductImageUrl(product.image)}
+              src={getProductImageUrl(product.image, { width: 400, quality: 80 })}
               alt={product.name}
               className="w-full h-full object-cover"
               loading="lazy"

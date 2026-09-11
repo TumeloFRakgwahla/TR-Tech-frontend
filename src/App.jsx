@@ -29,6 +29,7 @@ import { AdminProtectedRoute } from './components/AdminProtectedRoute';
 
 // Global error boundary catches render errors and shows a fallback UI
 import { ErrorBoundary } from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 
 // Public pages — eagerly loaded for fast initial navigation
 import Home from './pages/HomePage';
@@ -44,6 +45,7 @@ import Wishlist from './pages/WishlistPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TrackOrderPage from './pages/TrackOrderPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import Support from './pages/SupportPage';
 
 // Admin pages — lazy loaded to reduce initial bundle size
 import AdminLogin from './pages/Admin/AdminLoginPage';
@@ -70,6 +72,7 @@ const AdminCategories = React.lazy(() => import('./pages/Admin/AdminCategoriesPa
 const AdminBrands = React.lazy(() => import('./pages/Admin/AdminBrandsPage'));
 const AdminSettings = React.lazy(() => import('./pages/Admin/AdminSettingsPage'));
 const AdminHelpSupport = React.lazy(() => import('./pages/Admin/AdminHelpSupportPage'));
+const AdminSupportTickets = React.lazy(() => import('./pages/Admin/AdminSupportTicketsPage'));
 const AdminProfile = React.lazy(() => import('./pages/Admin/AdminProfilePage'));
 
 /**
@@ -109,6 +112,7 @@ function App() {
       <Providers>
         {/* ErrorBoundary catches any render-phase or lifecycle errors */}
         <ErrorBoundary>
+          <ScrollToTop />
           {/* Suspense wraps lazy routes so the PageLoader shows during chunk fetches */}
           <Suspense fallback={<PageLoader />}>
             <main id="main-content">
@@ -123,6 +127,7 @@ function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/support" element={<Support />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/track-order" element={<TrackOrderPage />} />
               <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
@@ -159,6 +164,7 @@ function App() {
               <Route path="repairs" element={<AdminRepairs />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="help" element={<AdminHelpSupport />} />
+              <Route path="support" element={<AdminSupportTickets />} />
               <Route path="profile" element={<AdminProfile />} />
             </Route>
 

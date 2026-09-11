@@ -167,7 +167,7 @@ export function AdminLayout() {
             <div className="admin-header-inner">
               <SidebarTrigger />
               <div className={`admin-header-search ${searchFocused ? 'focused' : ''}`}>
-                <Search className="h-4 w-4 flex-shrink-0" style={{ color: 'rgb(var(--tr-text-muted))' }} />
+                <Search className="h-4 w-4 flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Search products, orders, customers..."
@@ -252,7 +252,7 @@ export function AdminLayout() {
                   <div className="admin-user-avatar">
                     {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'A'}
                   </div>
-                  <ChevronDown className="h-4 w-4 hidden sm:block" style={{ color: 'rgb(var(--tr-text-muted))' }} />
+                  <ChevronDown className="h-4 w-4 hidden sm:block" />
                   {dropdownOpen && (
                     <div className="admin-dropdown open">
                       <button className="admin-dropdown-item" onClick={() => { navigate('/admin/profile'); setDropdownOpen(false); }}>
