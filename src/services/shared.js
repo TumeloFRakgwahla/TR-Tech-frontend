@@ -32,6 +32,7 @@ export async function getCsrfToken() {
   }
   try {
     const res = await fetchWithTimeout(`${API_BASE_URL.replace(/\/v1\/?$/, '')}/csrf-token`, { credentials: 'include' });
+    if (!res.ok) return null;
     const data = await res.json();
     if (data.csrfToken) {
       cachedCsrfToken = data.csrfToken;

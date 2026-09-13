@@ -215,7 +215,7 @@ export function ServicesManagement() {
               </div>
               <div>
                 <label htmlFor="service-description" className="block text-sm font-medium text-slate-300 mb-1">Description</label>
-                <Input id="service-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="bg-slate-700 border-slate-600 text-white" />
+                <textarea id="service-description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="w-full rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-50" rows={4} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

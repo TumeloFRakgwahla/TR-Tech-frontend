@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -376,11 +377,24 @@ export function ProductManagement() {
                     <label htmlFor="product-sku" className="block text-sm font-medium text-slate-300 mb-1">SKU *</label>
                     <Input id="product-sku" value={form.sku || ''} onChange={(e) => setForm({ ...form, sku: e.target.value.toUpperCase() })} required className="bg-slate-700 border-slate-600 text-white" placeholder="SKU-XXXXX" />
                   </div>
-                </div>
+                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="product-category" className="block text-sm font-medium text-slate-300 mb-1">Category *</label>
+                 <div>
+                   <label htmlFor="product-description" className="block text-sm font-medium text-slate-300 mb-1">Description *</label>
+                   <Textarea
+                     id="product-description"
+                     value={form.description || ''}
+                     onChange={(e) => setForm({ ...form, description: e.target.value })}
+                     required
+                     maxLength={500}
+                     placeholder="Enter product description..."
+                     className="bg-slate-700 border-slate-600 text-white"
+                   />
+                 </div>
+
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                   <div>
+                     <label htmlFor="product-category" className="block text-sm font-medium text-slate-300 mb-1">Category *</label>
                     <Select
                       value={showNewCat ? '__new__' : form.category}
                       onValueChange={(val) => {

@@ -9,8 +9,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Plus,
-  TrendingUp,
-  TrendingDown,
   LayoutDashboard,
 } from 'lucide-react';
 import {
@@ -173,7 +171,6 @@ export function AdminDashboard() {
 
       <div className="grid grid-cols-6 gap-3 overflow-x-auto">
         {kpis.map((kpi) => {
-          const TrendIcon = kpi.trend === 'up' ? TrendingUp : TrendingDown;
           return (
             <div key={kpi.title} className="admin-kpi-card" data-current={kpi.current} data-previous={kpi.previous}>
               <div className="admin-kpi-header">
@@ -184,12 +181,6 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="admin-kpi-value">{kpi.value}</p>
-                {kpi.trend && (
-                  <span className={`admin-kpi-change mt-2 ${kpi.trend === 'up' ? 'admin-kpi-change-up' : 'admin-kpi-change-down'}`}>
-                    <TrendIcon className="w-3.5 h-3.5" />
-                    <span className="admin-kpi-percentage-value">{kpi.percent}%</span>
-                  </span>
-                )}
               </div>
             </div>
           );
