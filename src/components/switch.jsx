@@ -15,7 +15,7 @@ const Switch = React.forwardRef(({ className, ...props }, ref) => {
         props.checked ? "bg-blue-600" : "bg-slate-700",
         className
       )}
-      onClick={(e) => {
+      onClick={() => {
         if (props.onCheckedChange) {
           props.onCheckedChange(!props.checked)
         }
@@ -33,5 +33,4 @@ const Switch = React.forwardRef(({ className, ...props }, ref) => {
 })
 Switch.displayName = "Switch"
 
-// eslint-disable-next-line react-refresh/only-export-components
 export { Switch }

@@ -38,7 +38,7 @@ import { productsAPI, categoriesAPI, brandsAPI } from '../services/api';
 import { getProductImageUrl } from '../lib/imageUrl';
 import { formatPrice } from '../lib/format';
 import { StarRating } from '../components/ProductDetail';
-import { FALLBACK_CATEGORIES, FALLBACK_BRANDS, SORT_OPTIONS } from '../constants';
+import { SORT_OPTIONS } from '../constants';
 import { useScrollIndicators } from '../hooks/useScrollIndicators';
 
 // Price slider step increment (in ZAR)

@@ -19,7 +19,6 @@ import {
   Keyboard,
 } from 'lucide-react';
 import { categoriesAPI } from '../services/api';
-import { FALLBACK_CATEGORIES } from '../constants';
 import { useScrollIndicators } from '../hooks/useScrollIndicators';
 
 export const iconMap = {

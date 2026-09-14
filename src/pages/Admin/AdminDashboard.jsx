@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Plus,
-  LayoutDashboard,
 } from 'lucide-react';
 import {
   ComposedChart,
@@ -29,7 +28,6 @@ import { AdminErrorState } from '../../components/admin/AdminEmptyState';
 import { cn, getStatusConfig } from '../../lib/admin-utils';
 import { CHART_THEME } from '../../lib/chart-theme';
 import { getProductImageUrl } from '../../lib/imageUrl';
-import { Skeleton } from '../../components/Skeleton';
 import { PRODUCT_PLACEHOLDER_IMAGE } from '../../constants';
 import { filterOrdersByPeriod, aggregateOrdersByMonth, aggregateOrdersByWeek, aggregateOrdersByDay, aggregateOrdersByYear } from '../../utils/analytics';
 

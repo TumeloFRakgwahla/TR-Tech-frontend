@@ -9,7 +9,6 @@ import { Label } from '../../components/ui/label';
 import { Card } from '../../components/ui/card';
 import { Loader2, Eye, EyeOff, Shield, Lock, Zap } from 'lucide-react';
 import { adminAuthAPI } from '../../services/api';
-import { API_BASE_URL } from '../../constants';
 
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_DURATION_MS = 60 * 1000;
