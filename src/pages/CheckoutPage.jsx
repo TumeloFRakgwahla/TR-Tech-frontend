@@ -19,7 +19,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShieldCheck, Truck, Check, ShoppingBag } from 'lucide-react';
 import { useCart } from '../components/CartContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';

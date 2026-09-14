@@ -66,6 +66,7 @@ vi.mock('../services/api', () => ({
   authAPI: { getMe: vi.fn(), login: vi.fn(), register: vi.fn(), logout: vi.fn() },
   productsAPI: { getAll: vi.fn() },
   brandsAPI: { getActive: vi.fn() },
+  marketingAPI: { validateCoupon: vi.fn() },
 }));
 
 vi.mock('../components/CartContext', () => ({
