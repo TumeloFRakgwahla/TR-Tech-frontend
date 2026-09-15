@@ -19,7 +19,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
+} from '../../lib/recharts';
 import { ordersAPI, productsAPI, repairsAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import { formatPriceWithDecimals } from '../../lib/format';
