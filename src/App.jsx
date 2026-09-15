@@ -15,11 +15,13 @@
  * <Outlet />, keeping navigation/sidebar logic in one place.
  */
 
-import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { Suspense, Fragment } from 'react';
+import { Routes, Route, Outlet } from 'react-router-dom';
 
 // Providers wrap the entire app with auth, cart, wishlist, and UI contexts
 import { Providers } from './components/Providers';
+import { AuthProvider } from './components/AuthContext';
+import { AdminAuthProvider } from './components/AdminAuthContext';
 import CookieConsent from './components/CookieConsent';
 import { SidebarProvider } from './components/Sidebar';
 
@@ -99,6 +101,30 @@ const PageLoader = () => (
   </div>
 );
 
+/**
+ * Layout wrapper that provides AuthProvider (customer auth context).
+ * Only mounted for public and customer account routes.
+ */
+function PublicLayout() {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
+}
+
+/**
+ * Layout wrapper that provides AdminAuthProvider (admin auth context).
+ * Only mounted for admin routes.
+ */
+function AdminLayoutWrapper() {
+  return (
+    <AdminAuthProvider>
+      <Outlet />
+    </AdminAuthProvider>
+  );
+}
+
 function App() {
   return (
     <>
@@ -117,89 +143,93 @@ function App() {
           <Suspense fallback={<PageLoader />}>
             <main id="main-content">
             <Routes>
-              {/* ── Public Routes ─────────────────────────────── */}
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/book-repair" element={<RepairsPage />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/track-order" element={<TrackOrderPage />} />
-              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+              {/* ── Public & Customer Account Routes (wrapped in AuthProvider via layout) ─ */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/book-repair" element={<RepairsPage />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/track-order" element={<TrackOrderPage />} />
+                <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
 
-            {/* ── Admin Routes ─────────────────────────────── */}
-            {/* Admin login is public; everything else under /admin requires admin auth */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route
-              path="/admin"
-              element={
-                <AdminProtectedRoute>
-                  <SidebarProvider>
-                    <AdminLayout />
-                  </SidebarProvider>
-                </AdminProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="products" element={<ProductManagement />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="brands" element={<AdminBrands />} />
-              <Route path="services" element={<ServicesManagement />} />
-              <Route path="orders" element={<OrderManagement />} />
-              <Route path="customers" element={<CustomerManagement />} />
-              <Route path="inventory" element={<InventoryManagement />} />
-              <Route path="marketing" element={<MarketingManagement />} />
-              <Route path="reports" element={<ReportsAnalytics />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="users/add" element={<UserManagement />} />
-              <Route path="users/roles" element={<UserManagement />} />
-              <Route path="users/admins" element={<UserManagement />} />
-              <Route path="users/logs" element={<UserManagement />} />
-              <Route path="repairs" element={<AdminRepairs />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="help" element={<AdminHelpSupport />} />
-              <Route path="support" element={<AdminSupportTickets />} />
-              <Route path="profile" element={<AdminProfile />} />
-            </Route>
+                {/* ── Customer Account Routes ─────────────────── */}
+                {/* All /account routes require an authenticated customer session */}
+                <Route
+                  path="/account"
+                  element={
+                    <ProtectedRoute redirectTo="/">
+                      <AccountLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AccountDashboard />} />
+                  <Route path="profile" element={<ProfilePage />} />
+                  <Route path="addresses" element={<AddressesPage />} />
+                  <Route path="orders" element={<OrdersPage />} />
+                  <Route path="orders/:orderId" element={<OrderDetailPage />} />
+                  <Route path="repairs" element={<AccountRepairsPage />} />
+                  <Route path="repairs/:repairId" element={<RepairDetailPage />} />
+                  <Route path="security" element={<SecurityPage />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
+                  <Route path="payment-methods" element={<PaymentMethodsPage />} />
+                </Route>
+              </Route>
 
-            {/* ── Customer Account Routes ─────────────────── */}
-            {/* All /account routes require an authenticated customer session */}
-            <Route
-              path="/account"
-              element={
-                <ProtectedRoute redirectTo="/">
-                  <AccountLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AccountDashboard />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="addresses" element={<AddressesPage />} />
-              <Route path="orders" element={<OrdersPage />} />
-              <Route path="orders/:orderId" element={<OrderDetailPage />} />
-              <Route path="repairs" element={<AccountRepairsPage />} />
-              <Route path="repairs/:repairId" element={<RepairDetailPage />} />
-              <Route path="security" element={<SecurityPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="payment-methods" element={<PaymentMethodsPage />} />
-            </Route>
+              {/* ── Admin Routes (wrapped in AdminAuthProvider via layout) ─ */}
+              {/* Admin login is public; everything else under /admin requires admin auth */}
+              <Route element={<AdminLayoutWrapper />}>
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminProtectedRoute>
+                      <SidebarProvider>
+                        <AdminLayout />
+                      </SidebarProvider>
+                    </AdminProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="products" element={<ProductManagement />} />
+                  <Route path="categories" element={<AdminCategories />} />
+                  <Route path="brands" element={<AdminBrands />} />
+                  <Route path="services" element={<ServicesManagement />} />
+                  <Route path="orders" element={<OrderManagement />} />
+                  <Route path="customers" element={<CustomerManagement />} />
+                  <Route path="inventory" element={<InventoryManagement />} />
+                  <Route path="marketing" element={<MarketingManagement />} />
+                  <Route path="reports" element={<ReportsAnalytics />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="users/add" element={<UserManagement />} />
+                  <Route path="users/roles" element={<UserManagement />} />
+                  <Route path="users/admins" element={<UserManagement />} />
+                  <Route path="users/logs" element={<UserManagement />} />
+                  <Route path="repairs" element={<AdminRepairs />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="help" element={<AdminHelpSupport />} />
+                  <Route path="support" element={<AdminSupportTickets />} />
+                  <Route path="profile" element={<AdminProfile />} />
+                </Route>
+              </Route>
 
-            {/* ── Catch-all Route ───────────────────────────── */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-          </main>
-        </Suspense>
-      </ErrorBoundary>
+              {/* ── Catch-all Route ───────────────────────────── */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+            </main>
+          </Suspense>
+        </ErrorBoundary>
 
-      {/* Cookie Consent Banner - visible on all pages until accepted */}
-      <CookieConsent />
-    </Providers>
+        {/* Cookie Consent Banner - visible on all pages until accepted */}
+        <CookieConsent />
+      </Providers>
     </>
   );
 }
