@@ -179,30 +179,23 @@ export default function TrackOrderPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground">Customer</p>
-                    <p className="text-sm font-medium text-foreground">{order.customer?.name}</p>
+                    <p className="text-sm font-medium text-foreground">{order.customerName}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium text-foreground">{order.customer?.phone}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium text-foreground">{order.customer?.email}</p>
+                    <p className="text-sm font-medium text-foreground">{order.customerPhone}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Payment</p>
                     <p className="text-sm font-medium text-foreground">{order.paymentMethod}</p>
                   </div>
-                </div>
-
-                {order.customer?.address && (
                   <div>
-                    <p className="text-xs text-muted-foreground">Delivery Address</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {order.customer.address.street}, {order.customer.address.city}, {order.customer.address.province} {order.customer.address.postalCode}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Payment Status</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.paymentStatus)}`}>
+                      {order.paymentStatus}
+                    </span>
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="border-t border-border pt-4 mb-6">
