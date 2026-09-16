@@ -231,29 +231,25 @@ export default function OrderConfirmationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Customer Name</p>
-                  <p className="text-sm font-medium text-foreground">{order.customer?.name}</p>
+                  <p className="text-sm font-medium text-foreground">{order.customerName}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone Number</p>
-                  <p className="text-sm font-medium text-foreground">{order.customer?.phone}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium text-foreground">{order.customer?.email}</p>
+                  <p className="text-sm font-medium text-foreground">{order.customerPhone}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Payment Method</p>
                   <p className="text-sm font-medium text-foreground capitalize">{order.paymentMethod}</p>
                 </div>
               </div>
-              {order.customer?.address && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Delivery Address</p>
-                  <p className="text-sm text-foreground">
-                    {order.customer.address.street}, {order.customer.address.city}, {order.customer.address.province} {order.customer.address.postalCode}
-                  </p>
-                </div>
-              )}
+
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Delivery Address</p>
+                <p className="text-sm text-foreground">
+                  Address on file - contact customer for delivery details
+                </p>
+              </div>
+            </div>
             </div>
 
             <div className="border-t border-border pt-4">
@@ -324,8 +320,8 @@ export default function OrderConfirmationPage() {
               Continue Shopping
             </Link>
           </div>
-        </div>
-      </div>
+             </div>
+
       <Footer />
       <BottomNav />
     </div>

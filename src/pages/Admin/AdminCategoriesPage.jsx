@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
-import { SectionCard } from '../../components/ui/dashboard-card';
 import {
   Table,
   TableBody,
@@ -35,7 +33,7 @@ const emptyCategory = {
 export function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [form, setForm] = useState(emptyCategory);

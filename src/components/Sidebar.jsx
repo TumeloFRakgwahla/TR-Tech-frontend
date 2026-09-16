@@ -164,7 +164,6 @@ export const SidebarHeader = ({ children }) => (
 
 export const SidebarGroup = ({ children, label, sectionId, collapsible = true }) => {
   const { isCollapsed, expandedSections, toggleSection } = useContext(SidebarContext);
-  const [isOpen] = useState(true);
 
   if (isCollapsed) {
     return <div className="space-y-1">{children}</div>;

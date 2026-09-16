@@ -12,5 +12,4 @@
  *   - Switch: The switch UI component
  */
 
-// eslint-disable-next-line react-refresh/only-export-components
 export { Switch } from '../switch';

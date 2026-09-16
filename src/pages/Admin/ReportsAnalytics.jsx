@@ -13,7 +13,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+} from '../../lib/recharts';
 import { Download, TrendingUp, TrendingDown } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { ordersAPI, productsAPI } from '../../services/api';

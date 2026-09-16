@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -8,7 +7,6 @@ import { SectionCard } from '../../components/ui/dashboard-card';
 import { Switch } from '../../components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Separator } from '../../components/ui/separator';
-import { Badge } from '../../components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -19,8 +17,7 @@ import {
 import { toast } from 'sonner';
 import { settingsAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
-import { Save, RefreshCw, Globe, Mail, Shield, Bell, Palette, Monitor, Building2, Server, LayoutDashboard } from 'lucide-react';
-import { getStatusConfig } from '../../lib/admin-utils';
+import { Save, RefreshCw, Shield, Bell, Palette, Monitor, Building2, Server } from 'lucide-react';
 
 const EMPTY_SETTINGS = {
   business: {
@@ -67,7 +64,7 @@ const EMPTY_SETTINGS = {
 };
 
 export function AdminSettingsPage() {
-  const { user } = useAdminAuth();
+  useAdminAuth();
   const [activeTab, setActiveTab] = useState('business');
   const [settings, setSettings] = useState(EMPTY_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);

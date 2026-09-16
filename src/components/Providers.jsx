@@ -1,6 +1,4 @@
 import { BrowserRouter as Router } from 'react-router-dom';
-import { AuthProvider } from './AuthContext';
-import { AdminAuthProvider } from './AdminAuthContext';
 import { AdminPermissionsProvider } from '../contexts/AdminPermissionsContext';
 import { AccountProvider } from './AccountContext';
 import { CartProvider } from './CartContext';
@@ -11,30 +9,26 @@ import { Toaster } from 'sonner';
 export function Providers({ children }) {
   return (
     <Router>
-      <AuthProvider>
-        <AdminAuthProvider>
-          <AdminPermissionsProvider>
-            <AccountProvider>
-              <CartProvider>
-                <AuthModalProvider>
-                  <WishlistProvider>
-                    <Toaster
-                      position="top-right"
-                      richColors
-                      closeButton
-                      toastOptions={{
-                        class: 'sonner-toast',
-                        duration: 4000,
-                      }}
-                    />
-                    {children}
-                  </WishlistProvider>
-                </AuthModalProvider>
-              </CartProvider>
-            </AccountProvider>
-          </AdminPermissionsProvider>
-        </AdminAuthProvider>
-      </AuthProvider>
+      <AdminPermissionsProvider>
+        <AccountProvider>
+          <CartProvider>
+            <AuthModalProvider>
+              <WishlistProvider>
+                <Toaster
+                  position="top-right"
+                  richColors
+                  closeButton
+                  toastOptions={{
+                    class: 'sonner-toast',
+                    duration: 4000,
+                  }}
+                />
+                {children}
+              </WishlistProvider>
+            </AuthModalProvider>
+          </CartProvider>
+        </AccountProvider>
+      </AdminPermissionsProvider>
     </Router>
   );
 }

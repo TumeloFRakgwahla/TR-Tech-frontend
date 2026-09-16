@@ -599,7 +599,7 @@ export const settingsAPI = {
  */
 export const supportAPI = {
   submitTicket: async (ticketData) => {
-    return apiRequest(`${API_BASE_URL}/support/tickets`, {
+    return apiRequest(`${API_BASE_URL}/support`, {
       method: 'POST',
       body: ticketData,
     });
@@ -607,28 +607,28 @@ export const supportAPI = {
 
   getTickets: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const response = await fetchWithTimeout(`${API_BASE_URL}/support/tickets${queryString ? `?${queryString}` : ''}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/support${queryString ? `?${queryString}` : ''}`, {
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   getTicket: async (id) => {
-    const response = await fetchWithTimeout(`${API_BASE_URL}/support/tickets/${id}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/support/${id}`, {
       credentials: 'include',
     });
     return handleResponse(response);
   },
 
   updateTicket: async (id, ticketData) => {
-    return apiRequest(`${API_BASE_URL}/support/tickets/${id}`, {
+    return apiRequest(`${API_BASE_URL}/support/${id}`, {
       method: 'PUT',
       body: ticketData,
     });
   },
 
   deleteTicket: async (id) => {
-    return apiRequest(`${API_BASE_URL}/support/tickets/${id}`, {
+    return apiRequest(`${API_BASE_URL}/support/${id}`, {
       method: 'DELETE',
     });
   },

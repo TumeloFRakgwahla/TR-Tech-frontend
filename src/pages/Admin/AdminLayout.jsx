@@ -51,7 +51,6 @@ export function AdminLayout() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const searchRef = useRef(null);
   const notificationsRef = useRef(null);
   const messagesRef = useRef(null);
 

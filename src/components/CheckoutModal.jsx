@@ -13,6 +13,7 @@ import { ordersAPI, paymentsAPI, marketingAPI } from '../services/api';
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
   const { cart, totalPrice } = useCart();
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const shippingCost = totalPrice >= 500 || totalPrice === 0 ? 0 : 50;
   const orderTotal = totalPrice + shippingCost;
   const discount = appliedCoupon
@@ -37,7 +38,6 @@ export function CheckoutModal({ open, onOpenChange }) {
     notes: '',
   });
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
 
   useEffect(() => {

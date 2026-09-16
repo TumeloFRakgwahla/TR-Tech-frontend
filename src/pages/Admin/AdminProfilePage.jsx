@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { SectionCard } from '../../components/ui/dashboard-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Separator } from '../../components/ui/separator';
 import { toast } from 'sonner';
 import { accountAPI, adminAuthAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
