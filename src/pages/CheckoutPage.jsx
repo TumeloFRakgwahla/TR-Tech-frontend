@@ -26,12 +26,8 @@ import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { CheckoutModal } from '../components/CheckoutModal';
 import Seo from '../components/Seo';
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '../constants';
 
-// Shipping threshold constant (free shipping kick-in)
-const FREE_SHIPPING_THRESHOLD = 500;
-const SHIPPING_FEE = 50;
-
-// Computes shipping cost and grand total from a given subtotal
 const usePriceBreakdown = (subtotal) => {
   const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_FEE;
   const orderTotal = subtotal + shippingCost;

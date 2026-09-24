@@ -180,3 +180,12 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   staff: ['dashboard', 'repairs', 'orders', 'inventory'],
   customer: [],
 };
+
+// Shipping Configuration
+// Free shipping threshold and standard fee
+export const FREE_SHIPPING_THRESHOLD = 500;
+export const SHIPPING_FEE = 50;
+
+// Free shipping zones (case-insensitive city matching)
+// Orders shipping to these areas qualify for free shipping regardless of order value
+export const FREE_SHIPPING_CITIES = ['haenerstburg'];

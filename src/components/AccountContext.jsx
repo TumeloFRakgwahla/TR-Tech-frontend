@@ -13,7 +13,9 @@ export function AccountProvider({ children }) {
   const [notifications, setNotifications] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -31,7 +33,11 @@ export function AccountProvider({ children }) {
         setAddresses(data.data || []);
       }
     } catch (error) {
-      console.error('Failed to fetch addresses:', error);
+      if (error.requiresEmailVerification) {
+        setEmailVerificationRequired(true);
+      } else {
+        console.error('Failed to fetch addresses:', error);
+      }
     }
   }, []);
 
@@ -60,7 +66,11 @@ export function AccountProvider({ children }) {
         setNotifications(data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      if (error.requiresEmailVerification) {
+        setEmailVerificationRequired(true);
+      } else {
+        console.error('Failed to fetch notifications:', error);
+      }
     }
   }, []);
 
@@ -69,11 +79,29 @@ export function AccountProvider({ children }) {
       const data = await accountAPI.getSessions();
       if (data.success) {
         setSessions(data.data || []);
+        setEmailVerificationRequired(false);
       }
     } catch (error) {
-      console.error('Failed to fetch sessions:', error);
+      if (error.requiresEmailVerification) {
+        setEmailVerificationRequired(true);
+      } else {
+        console.error('Failed to fetch sessions:', error);
+      }
     }
   }, []);
+
+  const resendVerification = useCallback(async () => {
+    if (!user?.email) return;
+    setResendingVerification(true);
+    try {
+      await authAPI.resendVerification(user.email);
+      toast.success('Verification email sent. Please check your inbox.');
+    } catch {
+      toast.error('Could not send verification email. Please try again later.');
+    } finally {
+      setResendingVerification(false);
+    }
+  }, [user?.email]);
 
   const initializeAccount = useCallback(async () => {
     if (!isAuthenticated) {
@@ -209,10 +237,13 @@ export function AccountProvider({ children }) {
       setDefaultAddress,
       updateNotificationPreferences,
       revokeSession,
+      resendVerification,
+      emailVerificationRequired,
+      resendingVerification,
       refreshOrders: fetchOrders,
       refreshRepairs: fetchRepairs,
     }),
-    [profile, addresses, orders, repairs, notifications, sessions, loading, initializeAccount, fetchOrders, fetchRepairs, updateProfile, changePassword, addAddress, updateAddress, deleteAddress, setDefaultAddress, updateNotificationPreferences, revokeSession]
+    [profile, addresses, orders, repairs, notifications, sessions, loading, initializeAccount, fetchOrders, fetchRepairs, updateProfile, changePassword, addAddress, updateAddress, deleteAddress, setDefaultAddress, updateNotificationPreferences, revokeSession, resendVerification, emailVerificationRequired, resendingVerification]
   );
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
@@ -239,6 +270,9 @@ export function useAccount() {
       setDefaultAddress: async () => ({ success: false }),
       updateNotificationPreferences: async () => ({ success: false }),
       revokeSession: async () => ({ success: false }),
+      resendVerification: async () => {},
+      emailVerificationRequired: false,
+      resendingVerification: false,
       refreshOrders: async () => {},
       refreshRepairs: async () => {},
     };

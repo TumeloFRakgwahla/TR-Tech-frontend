@@ -24,11 +24,11 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
-import { Shield, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Shield, Loader2, Eye, EyeOff, MailWarning } from 'lucide-react';
 
 export function SecurityPage() {
   // Get changePassword action and sessions list from account context
-  const { changePassword, sessions, revokeSession } = useAccount();
+  const { changePassword, sessions, revokeSession, emailVerificationRequired, resendVerification, resendingVerification } = useAccount();
 
   // Local state for password change form
   const [currentPassword, setCurrentPassword] = useState('');
@@ -147,7 +147,24 @@ export function SecurityPage() {
         {/* Active sessions card */}
         <Card className="p-6 bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <h2 className="text-lg font-semibold text-foreground mb-4">Active Sessions</h2>
-          {!sessions || sessions.length === 0 ? (
+          {emailVerificationRequired ? (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <MailWarning className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium">Email verification required</p>
+                <p className="text-xs opacity-90 mt-1">Verify your email address to manage your active sessions and keep your account secure.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={resendingVerification}
+                onClick={resendVerification}
+                className="border-amber-300 text-amber-800 hover:bg-amber-100 min-h-[32px] whitespace-nowrap"
+              >
+                {resendingVerification ? 'Sending…' : 'Resend'}
+              </Button>
+            </div>
+          ) : !sessions || sessions.length === 0 ? (
             <p className="text-muted-foreground">No active sessions found</p>
           ) : (
             <div className="space-y-4">

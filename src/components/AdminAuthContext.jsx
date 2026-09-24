@@ -83,7 +83,7 @@ export function useAdminAuth() {
     return {
       user: null,
       loading: false,
-      login: () => {},
+      login: async () => ({ success: false, error: 'Admin auth context not available' }),
       logout: () => {},
       isAuthenticated: false,
     };

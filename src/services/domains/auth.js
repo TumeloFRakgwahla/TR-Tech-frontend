@@ -48,4 +48,11 @@ export const authAPI = {
       body: { email },
     });
   },
+
+  verifyEmail: async (token) => {
+    return apiRequest(`${API_BASE_URL}/auth/verify-email`, {
+      method: 'POST',
+      body: { token },
+    });
+  },
 };

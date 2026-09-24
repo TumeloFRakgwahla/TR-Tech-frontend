@@ -25,6 +25,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { useCart } from '../components/CartContext';
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '../constants';
 import { Button } from '../components/button.jsx';
 import {
   Dialog,
@@ -54,8 +55,8 @@ function CartPage() {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const getShippingCost = () => {
-    if (totalPrice >= 500) return 0;
-    return totalPrice > 0 ? 50 : 0;
+    if (totalPrice >= FREE_SHIPPING_THRESHOLD || totalPrice === 0) return 0;
+    return SHIPPING_FEE;
   };
 
   const shippingCost = getShippingCost();

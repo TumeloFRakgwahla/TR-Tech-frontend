@@ -97,6 +97,9 @@ export async function handleResponse(response) {
   if (!response.ok) {
     const error = new Error(data.message || 'An error occurred');
     error.status = response.status;
+    if (data.requiresEmailVerification) {
+      error.requiresEmailVerification = true;
+    }
     if (data.errors) {
       error.info = JSON.stringify(data.errors);
     }

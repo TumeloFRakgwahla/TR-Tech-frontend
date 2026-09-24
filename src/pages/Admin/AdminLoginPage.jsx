@@ -123,7 +123,7 @@ export default function AdminLogin() {
       captchaId: failedAttempts >= MAX_FAILED_ATTEMPTS ? captchaId : undefined,
       captchaCode: failedAttempts >= MAX_FAILED_ATTEMPTS ? captchaAnswer.trim() : undefined,
     });
-    if (result.success) {
+    if (result?.success) {
       setLoginSuccess(true);
       setFailedAttempts(0);
       setLockoutUntil(null);

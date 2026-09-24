@@ -52,8 +52,26 @@ export function AuthProvider({ children }) {
     try {
       const data = await authAPI.register(userData);
       setUser(data.user);
-      toast.success('Registration successful!');
-      return { success: true };
+      if (data.user?.emailVerified === false) {
+        if (data.verificationUrl) {
+          toast(
+            () => (
+              <div className="flex flex-col gap-1">
+                <p>Registration successful! Your email needs verification.</p>
+                <a href={data.verificationUrl} className="underline text-sm">
+                  Click here to verify your email (dev link)
+                </a>
+              </div>
+            ),
+            { duration: 15000 }
+          );
+        } else {
+          toast.success('Registration successful! Check your email to verify your address.');
+        }
+      } else {
+        toast.success('Registration successful!');
+      }
+      return { success: true, user: data.user };
     } catch (error) {
       toast.error(error.message || 'Registration failed');
       return { success: false, error: error.message };
@@ -100,8 +118,8 @@ export function useAuth() {
     return {
       user: null,
       loading: false,
-      login: () => {},
-      register: () => {},
+      login: async () => ({ success: false, error: 'Auth context not available' }),
+      register: async () => ({ success: false, error: 'Auth context not available' }),
       logout: () => {},
       updateUser: () => {},
       isAuthenticated: false,
