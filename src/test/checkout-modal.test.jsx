@@ -212,6 +212,86 @@ describe('CheckoutModal', () => {
     });
   });
 
+  // --- Validation accessibility -------------------------------------------
+  // Every validated field must advertise its invalid state and point at its
+  // error message, otherwise a screen-reader user is told nothing is wrong and
+  // cannot tell which field failed.
+
+  const VALIDATED = [
+    { name: 'name', label: /full name/i, value: 'John Doe' },
+    { name: 'email', label: /email/i, value: 'john@example.com' },
+    { name: 'phone', label: /phone/i, value: '+27821234567' },
+    { name: 'street', label: /street address/i, value: '123 Main Street' },
+    { name: 'city', label: /city/i, value: 'Cape Town' },
+  ];
+
+  /** Renders the modal and advances the guest to the delivery step. */
+  const openDeliveryStep = async () => {
+    render(wrapper({ children: <CheckoutModal open={true} onOpenChange={vi.fn()} /> }));
+    fireEvent.click(screen.getByTestId('checkout-continue-guest'));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /delivery details/i })).toBeInTheDocument();
+    });
+  };
+
+  it('associates each validation error with its input', async () => {
+    await openDeliveryStep();
+
+    // Submit the delivery step empty.
+    fireEvent.click(screen.getByTestId('checkout-continue-confirm'));
+    await waitFor(() => expect(screen.getAllByRole('alert').length).toBeGreaterThan(0));
+
+    for (const { name, label } of VALIDATED) {
+      const input = screen.getByLabelText(label);
+
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+
+      const describedBy = input.getAttribute('aria-describedby');
+      expect(describedBy).toBe(`${name}-error`);
+
+      // The referenced id must actually resolve to the error message.
+      const errorNode = document.getElementById(describedBy);
+      expect(errorNode).not.toBeNull();
+      expect(errorNode).toHaveAttribute('role', 'alert');
+      expect(errorNode.textContent.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it('clears the invalid state once the fields are valid', async () => {
+    await openDeliveryStep();
+
+    fireEvent.click(screen.getByTestId('checkout-continue-confirm'));
+    await waitFor(() => expect(screen.getAllByRole('alert').length).toBeGreaterThan(0));
+
+    for (const { label, value } of VALIDATED) {
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    }
+    fireEvent.click(screen.getByTestId('checkout-continue-confirm'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('checkout-continue-payment')).toBeInTheDocument();
+    });
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+  });
+
+  it('gives the coupon field an accessible name', async () => {
+    await openDeliveryStep();
+
+    // The coupon control lives on the payment step, so advance past delivery.
+    for (const { label, value } of VALIDATED) {
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    }
+    fireEvent.click(screen.getByTestId('checkout-continue-confirm'));
+    await waitFor(() => {
+      expect(screen.getByTestId('checkout-continue-payment')).toBeInTheDocument();
+    });
+
+    // Placeholder-only would leave this control with no accessible name.
+    const coupon = screen.getByLabelText('Coupon code');
+    expect(coupon).toBeInTheDocument();
+    expect(coupon).toHaveAttribute('aria-label', 'Coupon code');
+  });
+
   it('starts on the details step for authenticated users', async () => {
     useAuth.mockReturnValue({
       user: authedUser,

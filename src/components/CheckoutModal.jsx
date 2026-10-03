@@ -360,19 +360,21 @@ export function CheckoutModal({ open, onOpenChange }) {
               <h3 className="text-lg font-semibold text-gray-900">Delivery Details</h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="name" className="text-gray-700">Full Name *</Label>
                 <Input
                   id="name"
                   name="name"
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
                   value={deliveryDetails.name}
                   onChange={handleDeliveryChange}
                   placeholder="John Doe"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.name ? 'border-red-500' : ''}`}
                 />
-                {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
+                {errors.name && <p id="name-error" role="alert" className="text-xs text-red-600">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -382,13 +384,15 @@ export function CheckoutModal({ open, onOpenChange }) {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                   value={deliveryDetails.email}
                   onChange={handleDeliveryChange}
                   placeholder="john@example.com"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.email ? 'border-red-500' : ''}`}
                 />
-                {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+                {errors.email && <p id="email-error" role="alert" className="text-xs text-red-600">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -398,28 +402,32 @@ export function CheckoutModal({ open, onOpenChange }) {
                   name="phone"
                   type="tel"
                   autoComplete="tel"
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? 'phone-error' : undefined}
                   value={deliveryDetails.phone}
                   onChange={handleDeliveryChange}
                   placeholder="+27 82 123 4567"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.phone ? 'border-red-500' : ''}`}
                 />
-                {errors.phone && <p className="text-xs text-red-600">{errors.phone}</p>}
+                {errors.phone && <p id="phone-error" role="alert" className="text-xs text-red-600">{errors.phone}</p>}
               </div>
 
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="street" className="text-gray-700">Street Address *</Label>
                 <Input
                   id="street"
                   name="street"
                   autoComplete="street-address"
+                  aria-invalid={Boolean(errors.street)}
+                  aria-describedby={errors.street ? 'street-error' : undefined}
                   value={deliveryDetails.street}
                   onChange={handleDeliveryChange}
                   placeholder="123 Main Street"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.street ? 'border-red-500' : ''}`}
                 />
-                {errors.street && <p className="text-xs text-red-600">{errors.street}</p>}
+                {errors.street && <p id="street-error" role="alert" className="text-xs text-red-600">{errors.street}</p>}
               </div>
 
               <div className="space-y-2">
@@ -428,13 +436,15 @@ export function CheckoutModal({ open, onOpenChange }) {
                   id="city"
                   name="city"
                   autoComplete="address-level2"
+                  aria-invalid={Boolean(errors.city)}
+                  aria-describedby={errors.city ? 'city-error' : undefined}
                   value={deliveryDetails.city}
                   onChange={handleDeliveryChange}
                   placeholder="Johannesburg"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.city ? 'border-red-500' : ''}`}
                 />
-                {errors.city && <p className="text-xs text-red-600">{errors.city}</p>}
+                {errors.city && <p id="city-error" role="alert" className="text-xs text-red-600">{errors.city}</p>}
               </div>
 
               <div className="space-y-2">
@@ -450,7 +460,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 />
               </div>
 
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="province" className="text-gray-700">Province</Label>
                 <Input
                   id="province"
@@ -463,7 +473,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 />
               </div>
 
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="notes" className="text-gray-700">Order Notes (Optional)</Label>
                 <textarea
                   id="notes"
@@ -517,7 +527,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                     size="sm"
                     disabled={resendingVerification}
                     onClick={handleResendVerification}
-                    className="border-amber-300 text-amber-800 hover:bg-amber-100 min-h-[32px] whitespace-nowrap"
+                    className="border-amber-300 text-amber-800 hover:bg-amber-100 min-h-[44px] whitespace-nowrap"
                   >
                     {resendingVerification ? 'Sending…' : 'Resend'}
                   </Button>
@@ -535,6 +545,9 @@ export function CheckoutModal({ open, onOpenChange }) {
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   placeholder="Coupon code"
+                  aria-label="Coupon code"
+                  aria-invalid={Boolean(couponError)}
+                  aria-describedby={couponError ? 'coupon-error' : undefined}
                   className="flex-1"
                 />
                 <Button
@@ -562,7 +575,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                   Apply
                 </Button>
               </div>
-              {couponError && <p className="text-xs text-red-600">{couponError}</p>}
+              {couponError && <p id="coupon-error" role="alert" className="text-xs text-red-600">{couponError}</p>}
               {appliedCoupon && (
                 <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div>

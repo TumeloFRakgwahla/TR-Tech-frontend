@@ -157,7 +157,7 @@ function CartPage() {
                         </span>
                       </div>
                       <button
-                        onClick={() => removeFromCart(item._id || item.id)}
+                        onClick={() => removeFromCart(item._id || item.id, item.variantKey || '')}
                         className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-all flex-shrink-0 -mr-2 -mt-2"
                         aria-label="Remove item"
                       >
@@ -169,7 +169,7 @@ function CartPage() {
                       <div className="flex items-center justify-between mt-3 md:mt-4">
                         <div className="flex items-center border border-border rounded-md">
                           <button
-                            onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item._id || item.id, item.quantity - 1, item.variantKey || '')}
                             className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-muted rounded-l-md transition-all"
                             disabled={item.quantity <= 1}
                             aria-label="Decrease quantity"
@@ -178,7 +178,7 @@ function CartPage() {
                           </button>
                           <span className="px-4 py-2 text-sm font-medium min-w-[40px] text-center">{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item._id || item.id, item.quantity + 1, item.variantKey || '')}
                               className="min-w-[44px] min-h-[44px] flex items-center justify-center p-1 hover:bg-muted rounded-r-md transition-all"
                             aria-label="Increase quantity"
                           >

@@ -3,7 +3,6 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import {
-  SidebarProvider,
   Sidebar,
   SidebarContext,
   SidebarContent,
@@ -19,26 +18,12 @@ import {
 } from '../../components/Sidebar';
 import {
   Search,
-  Bell,
-  Mail,
   ChevronDown,
   Settings,
   HelpCircle,
   User,
   LogOut,
 } from 'lucide-react';
-
-const NOTIFICATIONS = [
-  { id: '1', title: 'New order received', message: 'Order #1234 has been placed', time: '2 min ago', read: false },
-  { id: '2', title: 'Repair completed', message: 'iPhone 13 repair is ready for pickup', time: '1 hour ago', read: false },
-  { id: '3', title: 'Low stock alert', message: 'iPhone 15 Pro Max has only 2 units left', time: '3 hours ago', read: true },
-];
-
-const MESSAGES = [
-  { id: '1', sender: 'John Doe', subject: 'Question about iPhone repair', time: '5 min ago', unread: true },
-  { id: '2', sender: 'Jane Smith', subject: 'Order delivery status', time: '1 hour ago', unread: true },
-  { id: '3', sender: 'Mike Wilson', subject: 'Product return request', time: '2 hours ago', unread: false },
-];
 
 export function AdminLayout() {
   const location = useLocation();
@@ -48,11 +33,7 @@ export function AdminLayout() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [messagesOpen, setMessagesOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const notificationsRef = useRef(null);
-  const messagesRef = useRef(null);
 
   const isActive = (path) => {
     if (path === '/admin') {
@@ -68,7 +49,8 @@ export function AdminLayout() {
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      navigate(`/admin?search=${encodeURIComponent(searchQuery.trim())}`);
+      // Order management is the only admin page that consumes ?search=…
+      navigate(`/admin/orders?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setSearchFocused(false);
     }
@@ -79,20 +61,18 @@ export function AdminLayout() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
-      if (messagesRef.current && !messagesRef.current.contains(event.target)) {
-        setMessagesOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
-    <SidebarProvider>
-      <div className="admin-layout flex min-h-screen">
+    // No provider here on purpose: AdminLayout consumes SidebarContext (for
+    // `isCollapsed`, to offset <main>) and renders the <Sidebar> that shares it.
+    // A provider mounted in this component would be *below* AdminLayout, so its
+    // own `useContext` call would receive undefined and crash the admin tree.
+    // SidebarProvider is mounted once in App.jsx, above <Routes>.
+    <div className="admin-layout flex min-h-screen">
         <Sidebar className="admin-sidebar-container">
           <SidebarHeader style={{ marginBottom: 0 }}>
             <div className="admin-sidebar-header">
@@ -179,69 +159,14 @@ export function AdminLayout() {
                 />
               </div>
               <div className="admin-header-actions">
-                <div className="relative" ref={notificationsRef}>
-                  <button
-                    className="admin-header-btn"
-                    aria-label="Notifications"
-                    onClick={() => { setNotificationsOpen(!notificationsOpen); setMessagesOpen(false); }}
-                  >
-                    <Bell className="h-5 w-5" />
-                    <span className="admin-notification-badge"></span>
-                  </button>
-                  {notificationsOpen && (
-                    <div className="admin-dropdown open" style={{ right: 0, minWidth: '20rem', maxHeight: '24rem', overflowY: 'auto' }}>
-                      <div className="px-3 py-2 border-b border-slate-700">
-                        <p className="text-sm font-semibold text-white">Notifications</p>
-                      </div>
-                      {NOTIFICATIONS.map((notification) => (
-                        <button key={notification.id} className="admin-dropdown-item" style={{ justifyContent: 'flex-start', alignItems: 'flex-start', gap: '0.75rem' }}>
-                          <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-white">{notification.title}</p>
-                            <p className="text-xs text-slate-400">{notification.message}</p>
-                            <p className="text-xs text-slate-500 mt-1">{notification.time}</p>
-                          </div>
-                          {!notification.read && <span className="admin-notification-badge" style={{ position: 'relative', top: '0.25rem' }}></span>}
-                        </button>
-                      ))}
-                      <div className="admin-dropdown-divider"></div>
-                      <button className="admin-dropdown-item text-center justify-center" style={{ color: 'rgb(var(--tr-blue))' }}>
-                        View all notifications
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div className="relative" ref={messagesRef}>
-                  <button
-                    className="admin-header-btn"
-                    aria-label="Messages"
-                    onClick={() => { setMessagesOpen(!messagesOpen); setNotificationsOpen(false); }}
-                  >
-                    <Mail className="h-5 w-5" />
-                    <span className="admin-messages-badge">3</span>
-                  </button>
-                  {messagesOpen && (
-                    <div className="admin-dropdown open" style={{ right: 0, minWidth: '20rem', maxHeight: '24rem', overflowY: 'auto' }}>
-                      <div className="px-3 py-2 border-b border-slate-700">
-                        <p className="text-sm font-semibold text-white">Messages</p>
-                      </div>
-                      {MESSAGES.map((message) => (
-                        <button key={message.id} className="admin-dropdown-item" style={{ justifyContent: 'flex-start', alignItems: 'flex-start', gap: '0.75rem' }}>
-                          <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-white">{message.sender}</p>
-                            <p className="text-xs text-slate-400">{message.subject}</p>
-                            <p className="text-xs text-slate-500 mt-1">{message.time}</p>
-                          </div>
-                          {message.unread && <span className="admin-notification-badge" style={{ position: 'relative', top: '0.25rem' }}></span>}
-                        </button>
-                      ))}
-                      <div className="admin-dropdown-divider"></div>
-                      <button className="admin-dropdown-item text-center justify-center" style={{ color: 'rgb(var(--tr-blue))' }}>
-                        View all messages
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div className="admin-user-profile" ref={dropdownRef} onClick={() => { setDropdownOpen(!dropdownOpen); setNotificationsOpen(false); setMessagesOpen(false); }}>
+                <button
+                  type="button"
+                  className="admin-user-profile"
+                  ref={dropdownRef}
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="true"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
                   <div className="hidden sm:block text-right">
                     <p className="admin-user-name">
                       {user?.firstName || 'Admin'} {user?.lastName || 'User'}
@@ -269,7 +194,7 @@ export function AdminLayout() {
                       </button>
                     </div>
                   )}
-                </div>
+                </button>
               </div>
             </div>
           </header>
@@ -278,8 +203,7 @@ export function AdminLayout() {
             <Outlet />
           </div>
         </main>
-      </div>
-    </SidebarProvider>
+    </div>
   );
 }
 

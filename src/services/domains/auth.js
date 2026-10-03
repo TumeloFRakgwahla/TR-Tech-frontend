@@ -55,4 +55,12 @@ export const authAPI = {
       body: { token },
     });
   },
+
+  // Backend always responds with success to avoid user enumeration.
+  forgotPassword: async (email) => {
+    return apiRequest(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      body: { email },
+    });
+  },
 };

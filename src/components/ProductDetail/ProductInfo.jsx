@@ -138,7 +138,7 @@ export function ProductInfo({
                 }`}
               >
                 <span className="text-muted-foreground">{key}:</span>
-                <span className="text-foreground font-medium text-left">{value}</span>
+                 <span className="text-foreground font-medium text-left break-words">{value}</span>
               </div>
             ))}
           </div>

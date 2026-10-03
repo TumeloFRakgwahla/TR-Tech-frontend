@@ -297,7 +297,7 @@ export function MarketingManagement() {
         </TabsContent>
 
         <TabsContent value="campaigns">
-          <div className="grid sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <KPICard title="Total Campaigns" value={totalCampaigns.toLocaleString()} icon={Mail} color="text-blue-400" bgColor="bg-blue-600/20" />
             <KPICard title="Emails Sent" value={totalSent.toLocaleString()} icon={Send} color="text-purple-400" bgColor="bg-purple-600/20" />
             <KPICard title="Open Rate" value={`${avgOpenRate}%`} icon={BarChart3} color="text-green-400" bgColor="bg-green-600/20" />

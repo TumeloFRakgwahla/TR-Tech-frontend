@@ -16,6 +16,11 @@
 export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '27791002552';
 export const WHATSAPP_BASE_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
+// Direct contact channels (displayed on the contact page)
+export const CONTACT_PHONE = import.meta.env.VITE_CONTACT_PHONE || '064 510 4733';
+export const CONTACT_PHONE_HREF = import.meta.env.VITE_CONTACT_PHONE_HREF || 'tel:0645104733';
+export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'trtechrepairsanddesigns@gmail.com';
+
 // API Configuration
 // In all environments, use a relative path so the same-origin proxy (Vite dev
 // server, nginx, or Express static serving) handles routing. When VITE_API_URL

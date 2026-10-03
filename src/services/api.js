@@ -367,6 +367,19 @@ export const wishlistAPI = {
     });
     return handleResponse(response);
   },
+
+  /**
+   * Merge guest wishlist ids into the authenticated wishlist.
+   *
+   * The server treats the wishlist as a set, so a replayed batch is a no-op and
+   * reusing `clientBatchId` across retries is always safe.
+   */
+  merge: async (productIds, clientBatchId) => {
+    return apiRequest(`${API_BASE_URL}/wishlist/merge`, {
+      method: 'POST',
+      body: { productIds, clientBatchId },
+    });
+  },
 };
 
 /**
@@ -403,6 +416,33 @@ export const cartAPI = {
   clear: async () => {
     return apiRequest(`${API_BASE_URL}/cart`, {
       method: 'DELETE',
+    });
+  },
+
+  /**
+   * Merge guest lines into the authenticated cart.
+   *
+   * Idempotent: `clientBatchId` must be reused when retrying the *same* logical
+   * merge, so a network retry cannot inflate quantities. A fresh id is correct
+   * only when genuinely new lines are being added.
+   */
+  merge: async (lines, clientBatchId) => {
+    return apiRequest(`${API_BASE_URL}/cart/merge`, {
+      method: 'POST',
+      body: { lines, clientBatchId },
+    });
+  },
+
+  /**
+   * Apply intent operations with optimistic concurrency.
+   *
+   * Rejects with `error.code === 'STALE_REV'` (status 409) when `baseRev` is
+   * out of date; `error.payload` then holds the authoritative cart.
+   */
+  mutate: async (ops, baseRev, clientBatchId) => {
+    return apiRequest(`${API_BASE_URL}/cart/mutate`, {
+      method: 'POST',
+      body: { ops, baseRev, clientBatchId },
     });
   },
 };

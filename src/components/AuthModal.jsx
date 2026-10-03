@@ -4,6 +4,7 @@ import { Button } from './button.jsx';
 import { Input } from './ui/input.jsx';
 import { Label } from './ui/label.jsx';
 import { useAuth } from './AuthContext';
+import { authAPI } from '../services/api';
 import { toast } from 'sonner';
 import { User, Mail, Lock, Phone, MapPin, ArrowLeft, Eye, EyeOff, Check, ShieldCheck, X } from 'lucide-react';
 
@@ -12,6 +13,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [resetPending, setResetPending] = useState(false);
   const [step, setStep] = useState(1);
   const { login, register } = useAuth();
 
@@ -101,6 +103,24 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
     if (validate()) {
       setStep(2);
       setErrors({});
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email?.trim()) {
+      toast.error('Enter your email address first');
+      return;
+    }
+    setResetPending(true);
+    try {
+      await authAPI.forgotPassword(formData.email.trim());
+      // Backend responds identically whether or not the account exists, to
+      // avoid user enumeration. Mirror that here.
+      toast.success('If that email exists, a reset link has been sent');
+    } catch {
+      toast.error('Could not send the reset link. Please try again.');
+    } finally {
+      setResetPending(false);
     }
   };
 
@@ -196,7 +216,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
         {/* Modern Header Section */}
         <div className="relative overflow-hidden">
           {/* Background Pattern - matching hero section gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent" />
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-0 left-0 w-32 h-32 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 right-0 w-40 h-40 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
@@ -284,12 +304,14 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                    <div className="space-y-1.5">
                      <div className="flex items-center justify-between">
                        <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Password</Label>
-                       <button
-                         type="button"
-                         className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
-                       >
-                         Forgot?
-                       </button>
+<button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          disabled={resetPending}
+                          className="min-h-[44px] px-2 -mr-2 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors disabled:opacity-50"
+                        >
+                          {resetPending ? 'Sending…' : 'Forgot?'}
+                        </button>
                      </div>
                      <div className="relative group">
                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
@@ -309,7 +331,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 min-w-touch min-h-touch flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -350,9 +372,9 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
             {mode === 'register' && step === 1 && (
               <>
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="firstName" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">First Name</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="firstName" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">First Name</Label>
                       <Input
                         id="firstName"
                         name="firstName"
@@ -456,7 +478,7 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 min-w-touch min-h-touch flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -513,10 +535,10 @@ export function AuthModal({ open, onOpenChange, onSuccess, initialMode = 'login'
                         onChange={handleChange}
                       />
                     </div>
-                     <div className="grid grid-cols-2 gap-2">
-                       <Input
-                         name="city"
-                         placeholder="City"
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Input
+                          name="city"
+                          placeholder="City"
                          value={formData.city}
                          onChange={handleChange}
                          className="h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all text-sm"

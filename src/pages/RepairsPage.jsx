@@ -129,7 +129,7 @@ export function RepairsPage() {
 
       <div className="pt-20 md:pb-0 content-wrapper">
       {/* Hero Section */}
-       <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
+       <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-20">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
            <div className="max-w-3xl mx-auto">
              <Wrench className="h-16 w-16 mx-auto mb-6 text-white" />
@@ -347,7 +347,7 @@ export function RepairsPage() {
       </section>
 
       {/* Why Book With Us */}
-      <section className="py-16 bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+      <section className="py-16 bg-gradient-to-r from-primary to-accent text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">

@@ -97,6 +97,12 @@ export async function handleResponse(response) {
   if (!response.ok) {
     const error = new Error(data.message || 'An error occurred');
     error.status = response.status;
+    // Expose the machine-readable code and the full body so callers can react
+    // to structured failures. Cart sync relies on this: a 409 STALE_REV
+    // response carries the authoritative cart in its payload, which the caller
+    // needs in order to requeue its intent.
+    if (data.code) error.code = data.code;
+    error.payload = data;
     if (data.requiresEmailVerification) {
       error.requiresEmailVerification = true;
     }

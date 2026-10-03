@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { accountAPI, adminAuthAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
 import { Save, Loader2, User, Lock, Activity } from 'lucide-react';
+import { Badge } from '../../components/ui/badge';
 import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 
 const EMPTY_PROFILE = {

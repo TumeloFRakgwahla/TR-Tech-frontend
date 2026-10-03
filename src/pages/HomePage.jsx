@@ -30,6 +30,7 @@ import CTA from '../components/CTA';
 import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../constants';
 
 const Home = () => {
   return (
@@ -41,7 +42,7 @@ const Home = () => {
         <Hero />
 
         {/* Category chips - horizontal scroll for quick navigation */}
-        <section className="py-4 bg-background border-b border-border">
+        <section className="py-5 md:py-6 bg-background border-b border-border">
           <div className="max-w-7xl mx-auto px-4">
             <CategoryChips />
           </div>
@@ -62,16 +63,16 @@ const Home = () => {
               </Link>
             </div>
             <ProductCarousel
-              endpoint="/api/v1/products?sort=featured&limit=8"
+              endpoint={`${API_BASE_URL}/products?sort=featured&limit=8`}
               emptyMessage="No trending products yet"
             />
           </div>
         </section>
 
       {/* Promo Banner - free delivery offer CTA */}
-      <section className="py-4 bg-background">
+      <section className="py-6 md:py-8 bg-background">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 md:p-8 text-primary-foreground">
+            <div className="bg-gradient-to-r from-primary to-accent rounded-xl p-6 md:p-8 text-primary-foreground">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="text-center md:text-left">
                   <h3 className="text-xl md:text-2xl font-bold mb-1">
@@ -107,7 +108,7 @@ const Home = () => {
               </Link>
             </div>
             <ProductCarousel
-              endpoint="/api/v1/products?sort=newest&limit=8"
+              endpoint={`${API_BASE_URL}/products?sort=newest&limit=8`}
               emptyMessage="No new arrivals yet"
             />
           </div>

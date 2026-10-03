@@ -13,7 +13,7 @@
  * - Displays order items with subtotal, shipping, discount, and total breakdown
  * - Optional tracking section with tracking number and external tracking URL
  * - Sidebar with delivery address, payment method/status, and optional notes
- * - Download invoice button (placeholder with toast notification)
+ * - Download invoice button (generates a self-contained HTML invoice)
  */
 
 import React, { useEffect, useState } from 'react';
@@ -25,6 +25,8 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, Download, Loader2 } from 'lucide-react';
+import { downloadInvoice } from '../../lib/invoice';
+import { getOrderNumber } from '../../lib/format';
 
 // Maps order status to Tailwind badge color classes
 const statusConfig = {
@@ -256,11 +258,18 @@ export function OrderDetailPage() {
               </Card>
             )}
 
-            {/* Download invoice button: placeholder action */}
+            {/* Download invoice button: generates a self-contained HTML invoice */}
             <Button
               variant="outline"
               className="w-full border-border text-foreground hover:bg-accent"
-              onClick={() => toast.info('Invoice download coming soon')}
+              onClick={() => {
+                try {
+                  downloadInvoice(order, getOrderNumber(order));
+                  toast.success('Invoice downloaded');
+                } catch {
+                  toast.error('Failed to download invoice');
+                }
+              }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Invoice

@@ -20,7 +20,7 @@ export function FilterBar({ filters, values, onChange }) {
           className="pl-10 bg-slate-700 border-slate-600 text-white"
         />
       </div>
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
         {filters.map((filter) => (
           <Select
             key={filter.key}

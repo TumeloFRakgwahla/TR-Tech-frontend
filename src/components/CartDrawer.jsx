@@ -142,7 +142,7 @@ export function CartDrawer({ children }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantKey || '')}
                                 className="h-8 w-8 p-0 hover:bg-muted"
                                 disabled={item.quantity <= 1}
                                 aria-label="Decrease quantity"
@@ -153,7 +153,7 @@ export function CartDrawer({ children }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantKey || '')}
                                 className="h-8 w-8 p-0 hover:bg-muted"
                                 aria-label="Increase quantity"
                               >
@@ -178,7 +178,7 @@ export function CartDrawer({ children }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeFromCart(item.id)}
+                                onClick={() => removeFromCart(item.id, item.variantKey || '')}
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                 aria-label="Remove item"
                               >

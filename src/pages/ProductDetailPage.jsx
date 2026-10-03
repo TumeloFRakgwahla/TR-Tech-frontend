@@ -179,10 +179,11 @@ export function ProductDetailPage() {
             <p className="text-muted-foreground mb-6 text-sm">
               {getSafeErrorMessage(error)}
             </p>
-            <Link to="/shop">
-              <button className="bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded">
-                Back to Shop
-              </button>
+            <Link
+              to="/shop"
+              className="inline-flex items-center justify-center bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded min-h-[44px]"
+            >
+              Back to Shop
             </Link>
           </div>
         </div>

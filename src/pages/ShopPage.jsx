@@ -169,7 +169,7 @@ function ProductCard({ product, imageErrors, setImageErrors, addToCart }) {
             toggleWishlist(product);
           }}
           disabled={toggling}
-          className={`absolute top-2.5 right-2.5 z-20 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full backdrop-blur-md transition-all duration-200 shadow-sm ${
+          className={`absolute top-2.5 right-2.5 z-20 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full backdrop-blur-md transition-all duration-200 shadow-sm ${
             toggling
               ? 'opacity-60 cursor-wait bg-white/95'
               : inWishlist
@@ -311,7 +311,9 @@ function FilterChips({ filters, sortBy, setSortBy }) {
     },
     {
       label: 'Under R1000',
-      active: filters.priceRange <= 1000,
+      // Only "active" when a narrower max price is actually applied —
+      // otherwise a low-priced catalog would show it as on by default.
+      active: filters.priceRange < filters.maxPrice && filters.priceRange <= 1000,
       toggle: () => filters.setPriceRange(filters.priceRange <= 1000 ? filters.maxPrice : 1000),
     },
     {
@@ -326,14 +328,18 @@ function FilterChips({ filters, sortBy, setSortBy }) {
   return (
     <div
       ref={ref}
+      role="group"
+      aria-label="Quick filters"
       className={`flex gap-2 overflow-x-auto scrollbar-hide ${className}`}
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
       {quickFilters.map((filter) => (
         <button
           key={filter.label}
+          type="button"
           onClick={filter.toggle}
-          className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 min-h-[32px] active:scale-[0.96] ${
+          aria-pressed={filter.active}
+          className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 min-h-[32px] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 ${
             filter.active
               ? 'bg-gradient-to-r from-primary to-primary/90 text-white shadow-sm shadow-primary/25 hover:shadow-md'
               : 'bg-white text-slate-600 border border-slate-200 hover:border-primary/40 hover:text-primary'
@@ -345,10 +351,12 @@ function FilterChips({ filters, sortBy, setSortBy }) {
       ))}
       {filters.activeFilterCount > 0 && (
         <button
+          type="button"
           onClick={filters.clearAll}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-100 hover:bg-rose-100 hover:border-rose-200 active:scale-[0.96] transition-all duration-200 min-h-[32px]"
+          aria-label="Clear all filters"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-100 hover:bg-rose-100 hover:border-rose-200 active:scale-[0.96] transition-all duration-200 min-h-[32px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2"
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3" aria-hidden="true" />
           Clear All
         </button>
       )}
@@ -1002,7 +1010,7 @@ function ShopContent() {
         noindex={FILTER_PARAMS.some((p) => searchParams.has(p))}
       />
       <div className="min-h-screen bg-muted/30 pt-16 md:pt-20">
-        <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-12 md:py-20">
+        <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-12 md:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-3xl md:text-6xl font-bold mb-4 md:mb-6">Tech Shop</h1>
             <p className="text-lg md:text-2xl max-w-3xl mx-auto">
@@ -1044,7 +1052,7 @@ function ShopContent() {
             <div className="flex items-center gap-2 pb-3">
                {/* Tablet + mobile filter trigger (hidden at lg where sidebar is visible) */}
                <button
-                  className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-foreground min-h-[36px] px-3 rounded-full border border-border bg-background hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
+                  className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-foreground min-h-[44px] px-4 rounded-full border border-border bg-background hover:border-primary/40 hover:text-primary active:scale-[0.97] transition-all"
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
                 aria-expanded={mobileFiltersOpen}
                 aria-controls="mobile-filters"
@@ -1079,7 +1087,7 @@ function ShopContent() {
                   id="sort-select"
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
-                  className="appearance-none text-xs sm:text-sm border border-border rounded-full pl-3 sm:pl-4 pr-8 py-2 sm:py-2.5 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[36px] sm:min-h-[40px] cursor-pointer hover:border-primary active:scale-[0.98] transition-all"
+                  className="appearance-none text-xs sm:text-sm border border-border rounded-full pl-3 sm:pl-4 pr-8 py-2 sm:py-2.5 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[44px] cursor-pointer hover:border-primary active:scale-[0.98] transition-all"
                 >
                   {SORT_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1109,7 +1117,7 @@ function ShopContent() {
 
             {mobileFiltersOpen && (
               <div
-                className="fixed inset-0 z-50 bg-foreground/50 backdrop-blur-sm md:hidden animate-fade-in"
+                className="fixed inset-0 z-50 bg-foreground/50 backdrop-blur-sm lg:hidden animate-fade-in"
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-hidden="true"
               >
@@ -1127,7 +1135,7 @@ function ShopContent() {
                       <h3 className="text-base font-bold text-foreground">Filters</h3>
                       <button
                         onClick={() => setMobileFiltersOpen(false)}
-                        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted"
                         aria-label="Close filters"
                       >
                         <X className="h-5 w-5" />

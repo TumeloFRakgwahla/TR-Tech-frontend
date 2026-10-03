@@ -131,7 +131,7 @@ export default function CookieConsent() {
               <h2 className="text-base font-semibold text-gray-900">Cookie preferences</h2>
               <button
                 onClick={() => setShowSettings(false)}
-                className="text-sm text-gray-500 hover:text-gray-800 min-h-[40px] min-w-[40px] inline-flex items-center justify-center"
+                className="text-sm text-gray-500 hover:text-gray-800 min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
                 aria-label="Back to consent summary"
               >
                 Back

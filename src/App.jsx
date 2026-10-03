@@ -134,6 +134,8 @@ function App() {
           {/* Suspense wraps lazy routes so the PageLoader shows during chunk fetches */}
           <Suspense fallback={<PageLoader />}>
             <main id="main-content">
+            {/* Single SidebarProvider for the whole router, above every route. */}
+            <SidebarProvider>
             <Routes>
               {/* ── Public & Customer Account Routes ── AuthProvider wraps all routes via Providers.jsx ─ */}
               <Route element={<PublicLayout />}>
@@ -183,9 +185,12 @@ function App() {
                   path="/admin"
                   element={
                     <AdminProtectedRoute>
-                      <SidebarProvider>
-                        <AdminLayout />
-                      </SidebarProvider>
+                      {/* SidebarProvider is mounted once, above <Routes>, so that
+                          AdminLayout can both consume the context and render the
+                          <Sidebar> that shares it. Mounting it inside AdminLayout
+                          made AdminLayout a consumer of its own provider, which
+                          is always undefined and crashed the whole admin tree. */}
+                      <AdminLayout />
                     </AdminProtectedRoute>
                   }
                 >
@@ -216,6 +221,7 @@ function App() {
               {/* ── Catch-all Route ───────────────────────────── */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
+            </SidebarProvider>
             </main>
           </Suspense>
         </ErrorBoundary>

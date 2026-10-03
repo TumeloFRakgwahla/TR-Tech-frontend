@@ -17,7 +17,7 @@ import {
 import { toast } from 'sonner';
 import { settingsAPI } from '../../services/api';
 import { useAdminAuth } from '../../components/AdminAuthContext';
-import { Save, RefreshCw, Shield, Bell, Palette, Monitor, Building2, Server } from 'lucide-react';
+import { Save, RefreshCw, Shield, Bell, Palette, Monitor, Building2, Server, LayoutDashboard } from 'lucide-react';
 
 const EMPTY_SETTINGS = {
   business: {

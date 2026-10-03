@@ -1,7 +1,21 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Search, Menu } from 'lucide-react';
 
-export const SidebarContext = createContext();
+// A default value keeps a consumer that renders outside the provider from
+// crashing on destructuring. Components degrade to an expanded sidebar instead
+// of taking down the tree.
+export const SidebarContext = createContext({
+  isOpen: false,
+  setIsOpen: () => {},
+  toggleSidebar: () => {},
+  isCollapsed: false,
+  setIsCollapsed: () => {},
+  toggleCollapsed: () => {},
+  expandedSections: {},
+  toggleSection: () => {},
+  searchQuery: '',
+  setSearchQuery: () => {},
+});
 
 const NAV_GROUPS = [
   {
@@ -44,6 +58,7 @@ const NAV_GROUPS = [
     label: 'Administration',
     items: [
       { path: '/admin/users', icon: 'user-cog', label: 'User Management' },
+      { path: '/admin/support', icon: 'help-circle', label: 'Support Tickets' },
     ],
   },
 ];
@@ -74,14 +89,25 @@ const ICON_MAP = {
 };
 
 export const SidebarProvider = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  // Mobile drawer starts closed. Desktop visibility is forced by
+  // `md:translate-x-0 md:flex` on the drawer itself, so this is safe there.
+  const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
+    // An explicit stored choice always wins.
     try {
       const stored = localStorage.getItem('trtech_sidebar_collapsed');
-      return stored ? JSON.parse(stored) : false;
+      if (stored !== null) return JSON.parse(stored);
     } catch {
-      return false;
+      // Storage unavailable — fall through to the viewport default
     }
+
+    // No stored preference: default to collapsed below the `lg` breakpoint.
+    // Above `md` the sidebar is docked rather than overlaid, so at tablet widths
+    // an expanded 256px sidebar left little room for data tables (768px screen
+    // - 256px sidebar = ~512px). Collapsing to 64px keeps the table usable.
+    // Below `md` the sidebar is an overlay drawer, so this does not apply.
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return true;
+    return false;
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSections, setExpandedSections] = useState({});
@@ -123,9 +149,9 @@ export const Sidebar = ({ children, className = '' }) => {
   return (
     <>
       <div
-        className={`transition-all duration-300 fixed inset-y-0 left-0 admin-z-sidebar shadow-xl ${
+        className={`transition-all duration-300 fixed inset-y-0 left-0 z-50 shadow-xl ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 md:z-50 md:flex md:flex-col ${
+        } md:translate-x-0 md:flex md:flex-col ${
           isCollapsed ? 'w-16' : 'w-64'
         } ${className}`}
       >
@@ -141,9 +167,9 @@ export const Sidebar = ({ children, className = '' }) => {
         </button>
       </div>
 
-      {!isOpen && (
+      {isOpen && (
         <div
-          className={`admin-mobile-overlay ${!isOpen ? 'active' : ''} md:hidden`}
+          className="admin-mobile-overlay active md:hidden"
           onClick={toggleSidebar}
           aria-hidden="true"
         />

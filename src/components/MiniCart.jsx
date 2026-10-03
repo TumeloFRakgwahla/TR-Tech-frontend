@@ -106,7 +106,7 @@ export function MiniCart() {
                       <div className="flex items-center gap-2 mt-1">
                       <div className="flex items-center border border-gray-200 rounded-md">
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item._id || item.id, item.quantity - 1, item.variantKey || '')}
                           className="p-1.5 text-gray-700 hover:bg-gray-200 hover:text-black transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                           disabled={item.quantity <= 1}
                           aria-label="Decrease quantity"
@@ -115,7 +115,7 @@ export function MiniCart() {
                         </button>
                         <span className="px-2.5 text-xs font-semibold text-gray-900">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item._id || item.id, item.quantity + 1, item.variantKey || '')}
                           className="p-1.5 text-gray-700 hover:bg-gray-200 hover:text-black transition-all"
                           aria-label="Increase quantity"
                         >
@@ -123,7 +123,7 @@ export function MiniCart() {
                         </button>
                       </div>
                         <button
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => removeFromCart(item._id || item.id, item.variantKey || '')}
                           className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="h-3 w-3" />

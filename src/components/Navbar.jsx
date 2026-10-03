@@ -241,6 +241,7 @@ const Navbar = () => {
             </Link>
             <Link
               to="/wishlist"
+              aria-label="Wishlist"
               className="relative cursor-pointer bg-white text-primary hover:bg-gray-200 hover:shadow-md rounded-md px-4 py-2 inline-flex items-center justify-center transition-all"
             >
               <Heart className="h-6 w-5" />
@@ -343,12 +344,12 @@ const Navbar = () => {
         </div>
 
         {/* Mobile/tablet slide-out menu with backdrop, categories, and account section */}
-        <div
-          className={`lg:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
-            isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
-          aria-hidden={!isOpen}
-        >
+          <div
+            className={`lg:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
+              isOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'
+            }`}
+            aria-hidden={!isOpen}
+          >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
@@ -475,7 +476,7 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   <span className="flex items-center gap-4">
-                    <Book className="h-5 w-5 text-accent-foreground" />Book a Repair
+                    <Book className="h-5 w-5 text-accent" />Book a Repair
                   </span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
                 </Link>
@@ -562,7 +563,7 @@ const Navbar = () => {
             </div>
 
             {/* Sticky bottom CTA inside mobile menu */}
-            <div className="border-t border-border p-4 py bg-white pb-safe">
+            <div className="border-t border-border p-4 bg-white pb-safe">
               <Link
                 to="/book-repair"
                 className="block w-full text-center bg-primary text-primary-foreground py-3.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors min-h-[48px] flex items-center justify-center shadow-sm"

@@ -55,7 +55,6 @@ export function VerifyEmailPage() {
       if (response.success) {
         toast.success('Verification email sent. Please check your inbox.');
         if (response.verificationUrl) {
-          console.log('[verify-email-dev] Verification URL:', response.verificationUrl);
           toast.success(
             () => (
               <div className="flex flex-col gap-1">
@@ -99,10 +98,11 @@ export function VerifyEmailPage() {
               <p className="text-muted-foreground mb-6">
                 Your email address has been successfully verified.
               </p>
-              <Link to="/">
-                <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors min-h-[44px]">
-                  Continue to Home
-                </button>
+              <Link
+                to="/"
+                className="w-full flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors min-h-[44px]"
+              >
+                Continue to Home
               </Link>
             </>
           )}
@@ -144,10 +144,13 @@ export function VerifyEmailPage() {
                     'Resend Verification Email'
                   )}
                 </button>
-                <Link to="/auth/login">
-                  <button className="w-full px-4 py-2.5 border border-border rounded-lg hover:bg-muted transition-colors min-h-[44px]">
-                    Back to Login
-                  </button>
+                {/* Customer sign-in is modal-driven (no /auth/login route exists), so this
+                    returns to the storefront where the Navbar sign-in control lives. */}
+                <Link
+                  to="/"
+                  className="w-full flex items-center justify-center px-4 py-2.5 border border-border rounded-lg hover:bg-muted transition-colors min-h-[44px]"
+                >
+                  Back to Login
                 </Link>
               </div>
             </>

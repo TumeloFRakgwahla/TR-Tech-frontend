@@ -35,7 +35,7 @@ function ProductCard({ product }) {
               toggleWishlist(product);
             }}
             disabled={toggling}
-            className={`absolute top-2 right-2 z-10 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full transition-all ${
+            className={`absolute top-2 right-2 z-10 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-all ${
               toggling
                 ? 'opacity-50 cursor-wait'
                 : inWishlist
