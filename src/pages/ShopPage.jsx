@@ -65,6 +65,7 @@ function useFilters(maxPrice = 30000) {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [priceRange, setPriceRange] = useState(maxPrice);
   const [searchQuery, setSearchQuery] = useState('');
+  const [minRating, setMinRating] = useState(0);
   const debouncedSearchQuery = useDebounce(searchQuery);
 
   // Toggle category selection (add if not present, remove if present)
@@ -88,12 +89,13 @@ function useFilters(maxPrice = 30000) {
     setInStockOnly(false);
     setPriceRange(maxPrice);
     setSearchQuery('');
+    setMinRating(0);
   }, [maxPrice]);
 
   // Count of active filters for badge display
   const activeFilterCount = useMemo(() => (
-    selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0)
-  ), [selectedCategories, selectedBrands, inStockOnly, priceRange, maxPrice]);
+    selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0) + (minRating > 0 ? 1 : 0)
+  ), [selectedCategories, selectedBrands, inStockOnly, priceRange, maxPrice, minRating]);
 
   return {
     selectedCategories, toggleCategory,
@@ -101,6 +103,7 @@ function useFilters(maxPrice = 30000) {
     inStockOnly, setInStockOnly,
     priceRange, setPriceRange,
     searchQuery, setSearchQuery, debouncedSearchQuery,
+    minRating, setMinRating,
     clearAll, activeFilterCount,
     isFiltered: activeFilterCount > 0,
     maxPrice,
@@ -310,16 +313,13 @@ function FilterChips({ filters, sortBy, setSortBy }) {
       ),
     },
     {
-      label: 'Under R1000',
-      // Only "active" when a narrower max price is actually applied —
-      // otherwise a low-priced catalog would show it as on by default.
-      active: filters.priceRange < filters.maxPrice && filters.priceRange <= 1000,
-      toggle: () => filters.setPriceRange(filters.priceRange <= 1000 ? filters.maxPrice : 1000),
-    },
-    {
-      label: 'Top Rated',
-      active: sortBy === 'rating',
-      toggle: () => setSortBy(sortBy === 'rating' ? 'featured' : 'rating'),
+      label: '4 Stars & Up',
+      active: filters.minRating === 4,
+      toggle: () => {
+        const next = filters.minRating === 4 ? 0 : 4;
+        filters.setMinRating(next);
+        setSortBy(next ? 'rating' : 'featured');
+      },
     },
   ];
 
@@ -365,12 +365,13 @@ function FilterChips({ filters, sortBy, setSortBy }) {
 }
 
 // Full filter sidebar with refined sections and active-pill stack
-function FilterSidebar({ filters, maxPrice, categories, brands }) {
+function FilterSidebar({ filters, maxPrice, categories, brands, sortBy, setSortBy }) {
   const {
     selectedCategories, toggleCategory,
     selectedBrands, toggleBrand,
     inStockOnly, setInStockOnly,
     priceRange, setPriceRange,
+    minRating, setMinRating,
     clearAll, isFiltered,
   } = filters;
 
@@ -379,6 +380,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
     brands: true,
     price: true,
     stock: true,
+    rating: true,
   });
 
   const toggleSection = (section) => {
@@ -411,7 +413,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
     if (e.key === 'Enter') e.target.blur();
   };
 
-  const totalActiveFilters = selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0);
+  const totalActiveFilters = selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0) + (minRating > 0 ? 1 : 0);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
@@ -481,6 +483,33 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
                   onClick={() => setInStockOnly(false)}
                   className="ml-0.5 hover:bg-emerald-200 rounded-full p-0.5 transition-colors"
                   aria-label="Remove in stock filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {priceRange < maxPrice && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary ring-1 ring-primary/20">
+                Max R{priceRange.toLocaleString()}
+                <button
+                  onClick={() => setPriceRange(maxPrice)}
+                  className="ml-0.5 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                  aria-label={`Remove price filter, showing up to R${maxPrice.toLocaleString()}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {minRating > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 ring-1 ring-amber-200">
+                {minRating === 5 ? '5 Stars' : `${minRating} Stars & Up`}
+                <button
+                  onClick={() => {
+                    setMinRating(0);
+                    setSortBy('featured');
+                  }}
+                  className="ml-0.5 hover:bg-amber-200 rounded-full p-0.5 transition-colors"
+                  aria-label={`Remove ${minRating} star filter`}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -734,6 +763,77 @@ function FilterSidebar({ filters, maxPrice, categories, brands }) {
             )}
           </label>
         </div>
+
+        {/* Rating Section */}
+        <div className="px-5 py-4">
+          <button
+            onClick={() => toggleSection('rating')}
+            className="w-full flex items-center justify-between group"
+            aria-expanded={expandedSections.rating}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-900">Rating</span>
+              {minRating > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold ring-1 ring-amber-200">
+                  {minRating === 5 ? '5' : `${minRating}+`}
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${expandedSections.rating ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`overflow-hidden transition-all duration-300 ${expandedSections.rating ? 'max-h-48 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+            <div className="space-y-1.5">
+              {[5, 4, 3].map((rating) => (
+                <label
+                  key={rating}
+                  className={`flex items-center gap-3 cursor-pointer py-2 px-2.5 rounded-lg transition-all ${
+                    minRating === rating ? 'bg-amber-50 ring-1 ring-amber-200' : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="relative flex-shrink-0">
+                    <input
+                      type="radio"
+                      name="rating-filter"
+                      checked={minRating === rating}
+                      onChange={() => {
+                        setMinRating(rating);
+                        setSortBy('rating');
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                      minRating === rating
+                        ? 'border-amber-500 scale-100'
+                        : 'border-slate-300 peer-hover:border-amber-400 scale-100'
+                    }`}>
+                      {minRating === rating && (
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                      )}
+                    </div>
+                  </div>
+                  <span className={`text-sm transition-colors flex-1 ${
+                    minRating === rating ? 'text-slate-900 font-semibold' : 'text-slate-600'
+                  }`}>
+                    {rating === 5 ? '5 Stars' : `${rating} Stars & Up`}
+                  </span>
+                  <span className="text-xs text-slate-400">{rating === 5 ? 'Only' : 'Minimum'}</span>
+                </label>
+              ))}
+              {minRating > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMinRating(0);
+                    setSortBy('featured');
+                  }}
+                  className="w-full text-left text-xs font-medium text-slate-500 hover:text-slate-700 py-2 px-2.5 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Clear rating filter
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Footer Actions */}
@@ -849,7 +949,7 @@ function ShopContent() {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, sortBy]);
+  }, [filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, filters.minRating, sortBy]);
 
   // Apply initial category filter from URL when categories are loaded
   useEffect(() => {
@@ -982,9 +1082,10 @@ function ShopContent() {
         product.description?.toLowerCase().includes(filters.debouncedSearchQuery.toLowerCase()) ||
         product.category?.toLowerCase().includes(filters.debouncedSearchQuery.toLowerCase()) ||
         product.brand?.toLowerCase().includes(filters.debouncedSearchQuery.toLowerCase());
-      return catMatch && brandMatch && priceMatch && stockMatch && searchMatch;
+      const ratingMatch = filters.minRating === 0 || ((product.rating || 0) >= filters.minRating && (product.reviews || 0) >= 3);
+      return catMatch && brandMatch && priceMatch && stockMatch && searchMatch && ratingMatch;
     });
-  }, [products, filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery]);
+  }, [products, filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, filters.minRating]);
 
   // Sort filtered products by selected option
   const sortedProducts = useMemo(() => {
@@ -1111,7 +1212,7 @@ function ShopContent() {
           <div className="flex gap-6 lg:gap-8">
             <aside className="hidden lg:block w-64 lg:w-72 flex-shrink-0" aria-label="Product filters">
               <div className="sticky top-[140px] lg:top-[156px]">
-                <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
+                <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} sortBy={sortBy} setSortBy={setSortBy} />
               </div>
             </aside>
 
@@ -1143,7 +1244,7 @@ function ShopContent() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} />
+                    <FilterSidebar filters={filters} maxPrice={maxPrice} categories={categories} brands={brands} sortBy={sortBy} setSortBy={setSortBy} />
                   </div>
                   <div className="sticky bottom-0 bg-background/95 backdrop-blur-md border-t border-border p-4 pb-safe z-10">
                     <button
