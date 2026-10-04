@@ -66,6 +66,8 @@ function useFilters(maxPrice = 30000) {
   const [priceRange, setPriceRange] = useState(maxPrice);
   const [searchQuery, setSearchQuery] = useState('');
   const [minRating, setMinRating] = useState(0);
+  const [onSaleOnly, setOnSaleOnly] = useState(false);
+  const [newArrivalsOnly, setNewArrivalsOnly] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery);
 
   // Toggle category selection (add if not present, remove if present)
@@ -90,12 +92,14 @@ function useFilters(maxPrice = 30000) {
     setPriceRange(maxPrice);
     setSearchQuery('');
     setMinRating(0);
+    setOnSaleOnly(false);
+    setNewArrivalsOnly(false);
   }, [maxPrice]);
 
   // Count of active filters for badge display
   const activeFilterCount = useMemo(() => (
-    selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0) + (minRating > 0 ? 1 : 0)
-  ), [selectedCategories, selectedBrands, inStockOnly, priceRange, maxPrice, minRating]);
+    selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0) + (minRating > 0 ? 1 : 0) + (onSaleOnly ? 1 : 0) + (newArrivalsOnly ? 1 : 0)
+  ), [selectedCategories, selectedBrands, inStockOnly, priceRange, maxPrice, minRating, onSaleOnly, newArrivalsOnly]);
 
   return {
     selectedCategories, toggleCategory,
@@ -104,6 +108,8 @@ function useFilters(maxPrice = 30000) {
     priceRange, setPriceRange,
     searchQuery, setSearchQuery, debouncedSearchQuery,
     minRating, setMinRating,
+    onSaleOnly, setOnSaleOnly,
+    newArrivalsOnly, setNewArrivalsOnly,
     clearAll, activeFilterCount,
     isFiltered: activeFilterCount > 0,
     maxPrice,
@@ -313,6 +319,20 @@ function FilterChips({ filters, sortBy, setSortBy }) {
       ),
     },
     {
+      label: 'On Sale',
+      active: filters.onSaleOnly,
+      toggle: () => filters.setOnSaleOnly(!filters.onSaleOnly),
+    },
+    {
+      label: 'New Arrivals',
+      active: filters.newArrivalsOnly,
+      toggle: () => {
+        const next = !filters.newArrivalsOnly;
+        filters.setNewArrivalsOnly(next);
+        setSortBy(next ? 'newest' : 'featured');
+      },
+    },
+    {
       label: '4 Stars & Up',
       active: filters.minRating === 4,
       toggle: () => {
@@ -413,7 +433,7 @@ function FilterSidebar({ filters, maxPrice, categories, brands, sortBy, setSortB
     if (e.key === 'Enter') e.target.blur();
   };
 
-  const totalActiveFilters = selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0) + (minRating > 0 ? 1 : 0);
+  const totalActiveFilters = selectedCategories.length + selectedBrands.length + (inStockOnly ? 1 : 0) + (priceRange < maxPrice ? 1 : 0) + (minRating > 0 ? 1 : 0) + (onSaleOnly ? 1 : 0) + (newArrivalsOnly ? 1 : 0);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
@@ -510,6 +530,33 @@ function FilterSidebar({ filters, maxPrice, categories, brands, sortBy, setSortB
                   }}
                   className="ml-0.5 hover:bg-amber-200 rounded-full p-0.5 transition-colors"
                   aria-label={`Remove ${minRating} star filter`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {filters.onSaleOnly && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 ring-1 ring-rose-200">
+                On Sale
+                <button
+                  onClick={() => filters.setOnSaleOnly(false)}
+                  className="ml-0.5 hover:bg-rose-200 rounded-full p-0.5 transition-colors"
+                  aria-label="Remove sale filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {filters.newArrivalsOnly && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 ring-1 ring-blue-200">
+                New Arrivals
+                <button
+                  onClick={() => {
+                    filters.setNewArrivalsOnly(false);
+                    setSortBy('featured');
+                  }}
+                  className="ml-0.5 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                  aria-label="Remove new arrivals filter"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -949,7 +996,7 @@ function ShopContent() {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, filters.minRating, sortBy]);
+  }, [filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, filters.minRating, filters.onSaleOnly, filters.newArrivalsOnly, sortBy]);
 
   // Apply initial category filter from URL when categories are loaded
   useEffect(() => {
@@ -1083,9 +1130,10 @@ function ShopContent() {
         product.category?.toLowerCase().includes(filters.debouncedSearchQuery.toLowerCase()) ||
         product.brand?.toLowerCase().includes(filters.debouncedSearchQuery.toLowerCase());
       const ratingMatch = filters.minRating === 0 || ((product.rating || 0) >= filters.minRating && (product.reviews || 0) >= 3);
-      return catMatch && brandMatch && priceMatch && stockMatch && searchMatch && ratingMatch;
+      const saleMatch = !filters.onSaleOnly || (product.originalPrice && product.originalPrice > product.price);
+      return catMatch && brandMatch && priceMatch && stockMatch && searchMatch && ratingMatch && saleMatch;
     });
-  }, [products, filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, filters.minRating]);
+  }, [products, filters.selectedCategories, filters.selectedBrands, filters.inStockOnly, filters.priceRange, filters.debouncedSearchQuery, filters.minRating, filters.onSaleOnly]);
 
   // Sort filtered products by selected option
   const sortedProducts = useMemo(() => {
