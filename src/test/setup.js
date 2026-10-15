@@ -14,3 +14,7 @@
 import '@testing-library/jest-dom';
 
 window.open = () => {};
+
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}

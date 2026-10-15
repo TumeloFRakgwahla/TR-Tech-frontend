@@ -20,7 +20,6 @@ import { Routes, Route, Outlet } from 'react-router-dom';
 
 // Providers wrap the entire app with auth, cart, wishlist, and UI contexts
 import { Providers } from './components/Providers';
-import { AuthProvider } from './components/AuthContext';
 import { AdminAuthProvider } from './components/AdminAuthContext';
 import CookieConsent from './components/CookieConsent';
 import { SidebarProvider } from './components/Sidebar';
@@ -48,6 +47,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import TrackOrderPage from './pages/TrackOrderPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import Support from './pages/SupportPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 // Admin pages — lazy loaded to reduce initial bundle size
 import AdminLogin from './pages/Admin/AdminLoginPage';
@@ -101,16 +101,8 @@ const PageLoader = () => (
   </div>
 );
 
-/**
- * Layout wrapper that provides AuthProvider (customer auth context).
- * Only mounted for public and customer account routes.
- */
 function PublicLayout() {
-  return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
-  );
+  return <Outlet />;
 }
 
 /**
@@ -142,8 +134,10 @@ function App() {
           {/* Suspense wraps lazy routes so the PageLoader shows during chunk fetches */}
           <Suspense fallback={<PageLoader />}>
             <main id="main-content">
+            {/* Single SidebarProvider for the whole router, above every route. */}
+            <SidebarProvider>
             <Routes>
-              {/* ── Public & Customer Account Routes (wrapped in AuthProvider via layout) ─ */}
+              {/* ── Public & Customer Account Routes ── AuthProvider wraps all routes via Providers.jsx ─ */}
               <Route element={<PublicLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -158,6 +152,7 @@ function App() {
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/track-order" element={<TrackOrderPage />} />
                 <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
 
                 {/* ── Customer Account Routes ─────────────────── */}
                 {/* All /account routes require an authenticated customer session */}
@@ -190,9 +185,12 @@ function App() {
                   path="/admin"
                   element={
                     <AdminProtectedRoute>
-                      <SidebarProvider>
-                        <AdminLayout />
-                      </SidebarProvider>
+                      {/* SidebarProvider is mounted once, above <Routes>, so that
+                          AdminLayout can both consume the context and render the
+                          <Sidebar> that shares it. Mounting it inside AdminLayout
+                          made AdminLayout a consumer of its own provider, which
+                          is always undefined and crashed the whole admin tree. */}
+                      <AdminLayout />
                     </AdminProtectedRoute>
                   }
                 >
@@ -223,6 +221,7 @@ function App() {
               {/* ── Catch-all Route ───────────────────────────── */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
+            </SidebarProvider>
             </main>
           </Suspense>
         </ErrorBoundary>

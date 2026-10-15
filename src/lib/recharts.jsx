@@ -13,7 +13,6 @@ import {
   Cell,
   Area,
   Funnel,
-  FunnelText,
   LabelList,
 } from 'recharts';
 
@@ -32,6 +31,5 @@ export {
   Cell,
   Area,
   Funnel,
-  FunnelText,
   LabelList,
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -46,7 +47,7 @@ import { useAdminAuth } from '../../components/AdminAuthContext';
 import { toast } from 'sonner';
 import { getStatusConfig } from '../../lib/admin-utils';
 import { ORDER_STATUSES } from '../../constants';
-import { formatPriceWithDecimals } from '../../lib/format';
+import { formatPriceWithDecimals, getOrderNumber } from '../../lib/format';
 import { Skeleton } from '../../components/Skeleton';
 import { StatusBadge, StatusDot } from '../../components/admin/StatusBadge';
 import { AdminEmptyState, AdminErrorState } from '../../components/admin/AdminEmptyState';
@@ -58,8 +59,10 @@ const STATUS_PIPELINE = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Deliv
 
 export function OrderManagement() {
   useAdminAuth();
+  // Header search lands here as ?search=…; seed the local query from it.
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,13 +90,19 @@ export function OrderManagement() {
     loadOrders();
   }, []);
 
+  // Keep the local query in sync when the header search navigates here.
+  useEffect(() => {
+    setSearchQuery(searchParams.get('search') || '');
+  }, [searchParams]);
+
   const filteredOrders = useMemo(() => {
     if (!searchQuery.trim()) return orders;
     const q = searchQuery.toLowerCase();
     return orders.filter((order) => {
       const id = String(order._id || order.id || '').toLowerCase();
+      const number = String(order.orderNumber || '').toLowerCase();
       const customer = String(typeof order.customer === 'string' ? order.customer : (order.customer?.name || order.customer || '')).toLowerCase();
-      return id.includes(q) || customer.includes(q);
+      return id.includes(q) || number.includes(q) || customer.includes(q);
     });
   }, [orders, searchQuery]);
 
@@ -217,7 +226,7 @@ export function OrderManagement() {
       <body>
         ${selectedOrdersData.map(order => `
           <div class="order">
-            <div class="header">Order #${String(order._id).slice(-6).toUpperCase()}</div>
+            <div class="header">Order #${getOrderNumber(order)}</div>
             <div class="meta">Customer: ${order.customer?.name || 'Unknown'} | Date: ${new Date(order.createdAt).toLocaleDateString()} | Status: ${order.status}</div>
             <table>
               <thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead>
@@ -248,7 +257,7 @@ export function OrderManagement() {
             userId: order.userId,
             type: 'order',
             title: 'Order Update',
-            message: `There is an update on your order #${String(order._id).slice(-6).toUpperCase()}.`,
+            message: `There is an update on your order #${getOrderNumber(order)}.`,
             data: { orderId: order._id },
           });
           sent++;
@@ -470,7 +479,7 @@ export function OrderManagement() {
                         {selectedOrders.has(order._id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
                       </button>
                     </TableCell>
-                    <TableCell className="font-semibold text-white">#{String(order._id).slice(-6).toUpperCase()}</TableCell>
+                    <TableCell className="font-semibold text-white">#{getOrderNumber(order)}</TableCell>
                     <TableCell className="text-white">{typeof order.customer === 'string' ? order.customer : (order.customer?.name || 'Unknown')}</TableCell>
                     <TableCell className="text-white">{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell className="text-white">{(order.items || []).length}</TableCell>
@@ -521,7 +530,7 @@ export function OrderManagement() {
                       onClick={() => openDialog(order)}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold text-white text-sm">#{String(order._id).slice(-6).toUpperCase()}</p>
+                        <p className="font-semibold text-white text-sm">#{getOrderNumber(order)}</p>
                         <ChevronRight className="h-4 w-4 text-slate-400" />
                       </div>
                       <p className="text-xs text-slate-400 mb-1">{order.customer?.name || 'Unknown'}</p>
@@ -669,7 +678,7 @@ export function OrderManagement() {
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      window.location.origin + '/track-order?id=' + selectedOrder._id
+                      window.location.origin + '/track-order?orderId=' + getOrderNumber(selectedOrder)
                     );
                     toast.success('Tracking link copied');
                   }}

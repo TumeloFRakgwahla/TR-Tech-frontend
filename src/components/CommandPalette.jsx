@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from './ui/dialog';
-import { Search, LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Megaphone, BarChart3, UserCog, Wrench, Tags, Building, ArrowRight } from 'lucide-react';
+import { Search, LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Megaphone, BarChart3, UserCog, Wrench, Tags, Building, HelpCircle, ArrowRight } from 'lucide-react';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', keywords: 'home overview stats' },
@@ -25,6 +25,7 @@ const navItems = [
   { path: '/admin/marketing', icon: Megaphone, label: 'Marketing', keywords: 'coupons campaigns promotions' },
   { path: '/admin/reports', icon: BarChart3, label: 'Reports', keywords: 'analytics insights export' },
   { path: '/admin/users', icon: UserCog, label: 'User Management', keywords: 'staff team permissions roles' },
+  { path: '/admin/support', icon: HelpCircle, label: 'Support Tickets', keywords: 'tickets help support requests' },
 ];
 
 const quickActions = [

@@ -167,7 +167,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-3 overflow-x-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {kpis.map((kpi) => {
           return (
             <div key={kpi.title} className="admin-kpi-card" data-current={kpi.current} data-previous={kpi.previous}>
@@ -193,7 +193,7 @@ export function AdminDashboard() {
               <p className="admin-section-description">Track your revenue, orders, and profit over time</p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="admin-chart-tons">
+              <div className="admin-chart-tabs">
                 {CHART_TYPES.map((type) => (
                   <button
                     key={type.key}
@@ -225,7 +225,7 @@ export function AdminDashboard() {
           </div>
         </div>
         <div className="admin-section-body" style={{ paddingTop: 0 }}>
-          <div className="h-[320px] chart-container">
+          <div className="h-[260px] sm:h-[300px] md:h-[340px] chart-container">
             {salesData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={salesData}>
@@ -252,14 +252,16 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="admin-section-card">
           <div className="admin-section-header">
             <h2 className="admin-section-title">Recent Orders</h2>
-            <Link to="/admin/orders">
-              <button className="admin-quick-action-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>
-                View All <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+            <Link
+              to="/admin/orders"
+              className="admin-quick-action-secondary inline-flex items-center gap-1"
+              style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}
+            >
+              View All <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           <div className="admin-section-body" style={{ paddingTop: 0 }}>
@@ -320,10 +322,12 @@ export function AdminDashboard() {
         <div className="admin-section-card">
           <div className="admin-section-header">
             <h2 className="admin-section-title">Recent Repairs</h2>
-            <Link to="/admin/repairs">
-              <button className="admin-quick-action-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>
-                View All <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+            <Link
+              to="/admin/repairs"
+              className="admin-quick-action-secondary inline-flex items-center gap-1"
+              style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}
+            >
+              View All <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           <div className="admin-section-body" style={{ paddingTop: 0 }}>
@@ -352,7 +356,21 @@ export function AdminDashboard() {
                       <tr key={repair._id}>
                         <td className="font-medium text-white">#{String(repair._id).slice(-6).toUpperCase()}</td>
                         <td>{repair.customer?.name || repair.customerName || 'Unknown'}</td>
-                        <td>{repair.deviceType || repair.device || 'N/A'}</td>
+                        <td>
+  {(() => {
+    const device = repair.deviceType || repair.device;
+    if (!device) return 'N/A';
+    if (typeof device === 'string') return device;
+    if (typeof device === 'object') {
+      const parts = [];
+      if (device.type) parts.push(device.type);
+      if (device.brand) parts.push(device.brand);
+      if (device.model) parts.push(device.model);
+      return parts.length > 0 ? parts.join(' ') : 'N/A';
+    }
+    return 'N/A';
+  })()}
+</td>
                         <td>
                           <span className={cn(
                             'admin-badge',
@@ -464,23 +482,25 @@ export function AdminDashboard() {
           <h2 className="admin-section-title">Quick Actions</h2>
         </div>
         <div className="admin-section-body">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-5xl mx-auto">
             {[
               { label: 'Add Product', href: '/admin/products?add=true', primary: true },
               { label: 'Add Service', href: '/admin/services?add=true', primary: false },
               { label: 'New Repair', href: '/admin/repairs?add=true', primary: false },
-              { label: 'Add Customer', href: '/admin/customers?add=true', primary: false },
+              { label: 'Add Customer', href: '/admin/users/add', primary: false },
               { label: 'View Orders', href: '/admin/orders', primary: false },
               { label: 'Generate Report', href: '/admin/reports', primary: false },
             ].map((action) => (
-              <Link key={action.label} to={action.href}>
-                <button className={cn(
+              <Link
+                key={action.label}
+                to={action.href}
+                className={cn(
                   'admin-quick-action',
                   action.primary ? 'admin-quick-action-primary' : 'admin-quick-action-secondary'
-                )}>
-                  <Plus className="w-4 h-4" />
-                  {action.label}
-                </button>
+                )}
+              >
+                <Plus className="w-4 h-4" />
+                {action.label}
               </Link>
             ))}
           </div>

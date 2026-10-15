@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -39,13 +40,15 @@ import { Breadcrumbs } from '../../components/admin/Breadcrumbs';
 // Image URLs are resolved with the shared getProductImageUrl helper from lib/imageUrl.
 
 export function AdminRepairsPage() {
+  // ?add=true (from the dashboard quick action) opens the create dialog.
+  const [searchParams] = useSearchParams();
   const [repairs, setRepairs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDevice, setFilterDevice] = useState('all');
   const [selectedRepair, setSelectedRepair] = useState(null);
-  const [isAddRepairOpen, setIsAddRepairOpen] = useState(false);
+  const [isAddRepairOpen, setIsAddRepairOpen] = useState(searchParams.get('add') === 'true');
 
   // Fetch repairs from backend
   useEffect(() => {
@@ -197,7 +200,7 @@ export function AdminRepairsPage() {
         </Dialog>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="Total Requests" value={stats.total.toLocaleString()} icon={Wrench} color="text-blue-400" bgColor="bg-blue-600/20" />
         <KPICard title="Pending" value={stats.pending.toLocaleString()} icon={Clock} color="text-yellow-400" bgColor="bg-yellow-600/20" />
         <KPICard title="In Progress" value={stats.inProgress.toLocaleString()} icon={BarChart3} color="text-blue-400" bgColor="bg-blue-600/20" />

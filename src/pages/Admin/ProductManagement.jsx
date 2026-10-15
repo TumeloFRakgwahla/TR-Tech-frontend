@@ -62,7 +62,16 @@ const generateSku = (name) => {
     .replace(/^-+|-+$/g, '')
     .toUpperCase()
     .slice(0, 24);
-  const stamp = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+  // Regex-free on purpose. Tailwind's content scanner reads this file as raw
+  // text (comments included) and turns any date-separator character class into
+  // a utility candidate, emitting a malformed selector that fails CSS parsing.
+  // Never write that character class literally in any file under `src/`.
+  const stamp = new Date()
+    .toISOString()
+    .split('')
+    .filter((ch) => ch >= '0' && ch <= '9')
+    .join('')
+    .slice(0, 14);
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `${slug}-${stamp}-${rand}`;
 };
@@ -80,7 +89,8 @@ export function ProductManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // ?add=true (from the dashboard quick action) opens the create dialog.
+  const [dialogOpen, setDialogOpen] = useState(searchParams.get('add') === 'true');
   const [editingProduct, setEditingProduct] = useState(null);
   const [form, setForm] = useState(emptyProduct);
   const [submitError, setSubmitError] = useState('');

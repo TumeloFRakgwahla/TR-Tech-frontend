@@ -91,19 +91,19 @@ export default function UserManagement() {
           const Icon = item.icon;
           const isActive = item.exact ? currentPath === item.path : currentPath.startsWith(item.path);
           return (
-            <Link key={item.path} to={item.path}>
-              <button
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200',
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {item.label}
-                {isActive && <ChevronRight className="w-3 h-3 ml-1" />}
-              </button>
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 min-h-[44px]',
+                isActive
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              {item.label}
+              {isActive && <ChevronRight className="w-3 h-3 ml-1" />}
             </Link>
           );
         })}
@@ -487,8 +487,11 @@ function AddUserPage({ onLog }) {
             <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
               {isLoading ? 'Creating...' : 'Create User'}
             </Button>
-            <Link to="/admin/users">
-              <Button type="button" variant="outline" className="border-slate-600 text-white hover:bg-slate-700">Cancel</Button>
+            <Link
+              to="/admin/users"
+              className="inline-flex items-center justify-center rounded-md border border-slate-600 text-white hover:bg-slate-700 min-h-[44px] px-4 py-2.5"
+            >
+              Cancel
             </Link>
           </div>
         </form>
@@ -565,7 +568,7 @@ function RolesPermissionsPage() {
   };
 
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-1">
         <div className="admin-section-card">
           <div className="admin-section-header">
@@ -636,7 +639,7 @@ function RolesPermissionsPage() {
                 <p>Select a role to view and edit its permissions</p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(availablePermissions).map(([key, perm]) => {
                   const enabled = rolePermissions.includes(key);
                   return (

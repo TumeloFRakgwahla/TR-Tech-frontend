@@ -145,7 +145,7 @@ export function ReportsAnalytics() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i} className="p-5 bg-slate-800/80 border-slate-700">
               <div className="h-3 w-20 bg-slate-700 rounded mb-3" />
@@ -153,7 +153,7 @@ export function ReportsAnalytics() {
             </Card>
           ))}
         </div>
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-6 bg-slate-800/80 border-slate-700">
             <div className="h-5 w-32 bg-slate-700 rounded mb-4" />
             <div className="h-64 w-full bg-slate-700/50 rounded" />
@@ -202,7 +202,7 @@ export function ReportsAnalytics() {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card className="p-5 bg-slate-800/80 border-slate-700">
           <div className="flex items-center justify-between mb-2">
             <p className="text-slate-400 text-xs">Total Revenue</p>
@@ -249,7 +249,7 @@ export function ReportsAnalytics() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card className="p-6 bg-slate-800/80 border-slate-700">
           <h3 className="text-lg font-semibold mb-4 text-white">Sales Overview</h3>
           <div className="h-64 chart-container">

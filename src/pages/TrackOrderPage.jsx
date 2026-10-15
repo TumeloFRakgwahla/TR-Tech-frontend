@@ -26,8 +26,10 @@ export default function TrackOrderPage() {
       const trimmedPhone = phone.trim();
 
       if (trimmedOrderId) {
-        if (!/^[a-fA-F0-9]{24}$/.test(trimmedOrderId)) {
-          setError('Invalid order ID format. Please enter a 24-character ID.');
+        // Accept either a 24-character ObjectId or a short order number
+        // (e.g. TR-000123) — whichever the customer has to hand.
+        if (!/^[a-fA-F0-9]{24}$|^TR-\d{6}$/i.test(trimmedOrderId)) {
+          setError('Invalid order reference. Enter your order number (e.g. TR-000123) or the 24-character order ID.');
           setLoading(false);
           return;
         }
@@ -93,14 +95,14 @@ export default function TrackOrderPage() {
               <Package className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Track Your Order</h1>
-            <p className="text-muted-foreground">Enter your order ID or phone number to check your order status</p>
+            <p className="text-muted-foreground">Enter your order number or phone number to check your order status</p>
           </div>
 
           <form onSubmit={handleTrack} className="bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8 mb-6">
             <div className="space-y-4">
               <div>
                 <label htmlFor="orderId" className="block text-sm font-medium mb-2">
-                  Order ID
+                  Order Number
                 </label>
                 <div className="relative">
                   <ClipboardList className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -109,11 +111,11 @@ export default function TrackOrderPage() {
                     type="text"
                     value={orderId}
                      onChange={(e) => setOrderId(e.target.value)}
-                     placeholder="e.g., 65a1b2c3d4e5f6a7b8c9d0e1"
-                     className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
-                     pattern="[a-fA-F0-9]{24}"
-                     maxLength={24}
-                     title="Enter a valid 24-character order ID"
+                      placeholder="e.g., TR-000123"
+                      className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
+                      pattern="[a-fA-F0-9]{24}|TR-\d{6}"
+                      maxLength={24}
+                      title="Enter your order number (TR-000123) or 24-character order ID"
                    />
                 </div>
               </div>
@@ -168,7 +170,9 @@ export default function TrackOrderPage() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-foreground">Order Found</h2>
-                  <p className="text-sm text-muted-foreground">Order ID: {order._id}</p>
+                  <p className="text-sm text-muted-foreground break-all font-mono">
+                    Order Number: {order.orderNumber || order._id}
+                  </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                   {order.status}
@@ -179,11 +183,11 @@ export default function TrackOrderPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground">Customer</p>
-                    <p className="text-sm font-medium text-foreground">{order.customerName}</p>
+                    <p className="text-sm font-medium text-foreground break-words">{order.customer?.name || order.customerName || '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium text-foreground">{order.customerPhone}</p>
+                    <p className="text-sm font-medium text-foreground break-words">{order.customer?.phone || order.customerPhone || '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Payment</p>

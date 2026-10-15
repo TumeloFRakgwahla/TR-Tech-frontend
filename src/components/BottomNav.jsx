@@ -109,7 +109,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 lg:hidden safe-area-inset-bottom"
+      className="fixed bottom-0 inset-x-0 bg-background border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40 lg:hidden pb-safe"
       role="navigation"
       aria-label="Bottom navigation"
     >

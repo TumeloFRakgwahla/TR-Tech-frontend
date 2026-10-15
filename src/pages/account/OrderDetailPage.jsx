@@ -13,17 +13,20 @@
  * - Displays order items with subtotal, shipping, discount, and total breakdown
  * - Optional tracking section with tracking number and external tracking URL
  * - Sidebar with delivery address, payment method/status, and optional notes
- * - Download invoice button (placeholder with toast notification)
+ * - Download invoice button (generates a self-contained HTML invoice)
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAccount } from '../../components/AccountContext';
+import { ordersAPI } from '../../services/api';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, Download, Loader2 } from 'lucide-react';
+import { downloadInvoice } from '../../lib/invoice';
+import { getOrderNumber } from '../../lib/format';
 
 // Maps order status to Tailwind badge color classes
 const statusConfig = {
@@ -37,10 +40,54 @@ const statusConfig = {
 
 export function OrderDetailPage() {
   // Get order ID from URL route parameter
-  const { id } = useParams();
-  const { orders, loading } = useAccount();
-  // Find the specific order matching the route param ID
-  const order = orders.find((o) => o._id === id);
+  const { orderId } = useParams();
+  const { orders, loading: contextLoading } = useAccount();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
+  const id = orderId;
+
+  useEffect(() => {
+    const cached = orders.find((o) => o._id === id);
+    if (cached) {
+      setOrder(cached);
+      setLoading(false);
+      return;
+    }
+
+    // If still loading context and order not in cache, wait
+    if (contextLoading) {
+      setLoading(true);
+      return;
+    }
+
+    // Fallback: fetch the order directly from the API
+    const fetchOrder = async () => {
+      if (!id) {
+        setFetchError('Invalid order ID.');
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await ordersAPI.myOrder(id);
+        if (response.success && response.data) {
+          setOrder(response.data);
+        } else {
+          setFetchError('Order not found or you do not have access to it.');
+        }
+      } catch (error) {
+        const message = error.status === 404
+          ? 'Order not found or you do not have access to it.'
+          : (error.message || 'Failed to load order');
+        setFetchError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [id, orders, contextLoading]);
 
   // Loading state while orders are being fetched
   if (loading) {
@@ -58,7 +105,9 @@ export function OrderDetailPage() {
         <div className="max-w-4xl text-center py-16">
           <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h1 className="text-2xl font-bold text-foreground mb-2">Order Not Found</h1>
-          <p className="text-muted-foreground mb-6">The order you're looking for doesn't exist or you don't have access to it.</p>
+          <p className="text-muted-foreground mb-6">
+            {fetchError || 'The order you\'re looking for doesn\'t exist or you don\'t have access to it.'}
+          </p>
           <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Link to="/account/orders">Back to Orders</Link>
           </Button>
@@ -209,11 +258,18 @@ export function OrderDetailPage() {
               </Card>
             )}
 
-            {/* Download invoice button: placeholder action */}
+            {/* Download invoice button: generates a self-contained HTML invoice */}
             <Button
               variant="outline"
               className="w-full border-border text-foreground hover:bg-accent"
-              onClick={() => toast.info('Invoice download coming soon')}
+              onClick={() => {
+                try {
+                  downloadInvoice(order, getOrderNumber(order));
+                  toast.success('Invoice downloaded');
+                } catch {
+                  toast.error('Failed to download invoice');
+                }
+              }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Invoice

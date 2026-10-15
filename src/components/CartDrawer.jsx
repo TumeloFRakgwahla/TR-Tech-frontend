@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { CheckoutModal } from './CheckoutModal';
 import { Link } from 'react-router-dom';
 import { getProductImageUrl } from '../lib/imageUrl';
+import { FREE_SHIPPING_THRESHOLD } from '../constants';
 
 const conditionStyles = {
   new: 'bg-green-100 text-green-700',
@@ -39,7 +40,7 @@ export function CartDrawer({ children }) {
   };
 
   const subtotal = totalPrice;
-  const shippingThreshold = 500;
+  const shippingThreshold = FREE_SHIPPING_THRESHOLD;
   const remainingForFreeShipping = Math.max(0, shippingThreshold - subtotal);
   const progressPercentage = Math.min(100, (subtotal / shippingThreshold) * 100);
 
@@ -141,7 +142,7 @@ export function CartDrawer({ children }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantKey || '')}
                                 className="h-8 w-8 p-0 hover:bg-muted"
                                 disabled={item.quantity <= 1}
                                 aria-label="Decrease quantity"
@@ -152,7 +153,7 @@ export function CartDrawer({ children }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantKey || '')}
                                 className="h-8 w-8 p-0 hover:bg-muted"
                                 aria-label="Increase quantity"
                               >
@@ -177,7 +178,7 @@ export function CartDrawer({ children }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeFromCart(item.id)}
+                                onClick={() => removeFromCart(item.id, item.variantKey || '')}
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                 aria-label="Remove item"
                               >

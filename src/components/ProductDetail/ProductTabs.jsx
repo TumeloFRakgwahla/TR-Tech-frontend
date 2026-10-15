@@ -82,7 +82,7 @@ export function ProductTabs({ product, specifications, reviews }) {
                   <span className="text-muted-foreground font-medium">
                     {key}:
                   </span>
-                  <span className="text-foreground">{value}</span>
+                   <span className="text-foreground break-words">{value}</span>
                 </div>
               ))}
             </div>

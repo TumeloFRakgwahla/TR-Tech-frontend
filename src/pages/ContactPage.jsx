@@ -29,7 +29,7 @@ import { Phone, Mail, MessageCircle, MapPin, Clock, Facebook, Instagram } from '
 import { Button } from "../components/button.jsx";
 import { contactAPI } from '../services/api';
 import { createWhatsAppUrl, sanitizeWhatsAppInput } from '../lib/sanitize';
-import { WHATSAPP_NUMBER } from '../constants';
+import { WHATSAPP_NUMBER, WHATSAPP_BASE_URL, CONTACT_PHONE, CONTACT_PHONE_HREF, CONTACT_EMAIL } from '../constants';
 import { toast } from 'sonner';
 
 const Contact = () => {
@@ -176,20 +176,20 @@ ${sanitizeWhatsAppInput(formData.message)}
     {
       icon: Phone,
       title: 'Call Us',
-      details: ['064 510 4733'],
-      action: () => { window.location.href = 'tel:0645104733'; },
+      details: [CONTACT_PHONE],
+      action: () => { window.location.href = CONTACT_PHONE_HREF; },
     },
     {
       icon: MessageCircle,
       title: 'WhatsApp',
-      details: ['079 100 2552'],
-      action: () => { window.location.href = 'https://wa.me/27791002552'; },
+      details: [WHATSAPP_NUMBER],
+      action: () => { window.location.href = `${WHATSAPP_BASE_URL}`; },
     },
     {
       icon: Mail,
       title: 'Email Us',
-      details: ['trtechrepairsanddesigns@gmail.com'],
-      action: () => { window.location.href = 'mailto:trtechrepairsanddesigns@gmail.com'; },
+      details: [CONTACT_EMAIL],
+      action: () => { window.location.href = `mailto:${CONTACT_EMAIL}`; },
     },
   ];
 
@@ -203,7 +203,7 @@ ${sanitizeWhatsAppInput(formData.message)}
       <div className="pt-20 md:pb-0 content-wrapper">
 
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
+        <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Get in Touch
@@ -238,7 +238,11 @@ ${sanitizeWhatsAppInput(formData.message)}
                   <h3 className="font-bold text-lg mb-2 text-center">{method.title}</h3>
                   <div className="text-muted-foreground text-center">
                     {method.details.map((detail, idx) => (
-                      <p key={idx} className="text-sm">{detail}</p>
+                      // `break-words`: a 30-character email cannot wrap on its own,
+                      // and in the 3-column md layout each card is only ~214px
+                      // wide, which pushed the page into horizontal scroll at
+                      // tablet widths.
+                      <p key={idx} className="text-sm break-words">{detail}</p>
                     ))}
                   </div>
                 </div>
@@ -444,7 +448,7 @@ ${sanitizeWhatsAppInput(formData.message)}
         </section>
 
         {/* CTA Section */}
-        <section className=" bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
+        <section className=" bg-gradient-to-r from-primary to-accent text-primary-foreground py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               Prefer to Chat?

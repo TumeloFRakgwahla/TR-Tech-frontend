@@ -86,7 +86,7 @@ export function CustomerManagement() {
         <p className="text-slate-300">View and manage customer information</p>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <KPICard title="Total Customers" value={stats.total.toLocaleString()} icon={Users} color="text-blue-400" bgColor="bg-blue-600/20" />
         <KPICard title="Active" value={stats.active.toLocaleString()} icon={CheckCircle} color="text-green-400" bgColor="bg-green-600/20" />
         <KPICard title="New This Month" value={stats.newThisMonth.toLocaleString()} icon={UserPlus} color="text-purple-400" bgColor="bg-purple-600/20" />
@@ -134,9 +134,9 @@ export function CustomerManagement() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => toast.info('View customer details coming soon')}><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => toast.info('Email client integration coming soon')}><Mail className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700" onClick={() => toast.info('Call integration coming soon')}><Phone className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label="View customer details" className="text-white hover:bg-slate-700" onClick={() => toast.info('View customer details coming soon')}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label="Email customer" className="text-white hover:bg-slate-700" onClick={() => toast.info('Email client integration coming soon')}><Mail className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label="Call customer" className="text-white hover:bg-slate-700" onClick={() => toast.info('Call integration coming soon')}><Phone className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>

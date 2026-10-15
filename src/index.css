@@ -96,6 +96,30 @@
     display: none;
   }
 
+  /* Horizontal scroll fades for .scroll-container rows (chip rails,
+     carousels, thumbnail strips, tab bars). The useScrollIndicators
+     hook toggles can-scroll-left/right as the user scrolls; the
+     masks fade the content at the edges so it reads as "there is
+     more to scroll to" — the standard e-commerce rail affordance. */
+  .scroll-container {
+    position: relative;
+  }
+
+  .scroll-container.can-scroll-left {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 2.5rem);
+    mask-image: linear-gradient(to right, transparent 0, black 2.5rem);
+  }
+
+  .scroll-container.can-scroll-right {
+    -webkit-mask-image: linear-gradient(to left, transparent 0, black 2.5rem);
+    mask-image: linear-gradient(to left, transparent 0, black 2.5rem);
+  }
+
+  .scroll-container.can-scroll-left.can-scroll-right {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 2.5rem, black calc(100% - 2.5rem), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 2.5rem, black calc(100% - 2.5rem), transparent 100%);
+  }
+
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -448,6 +472,38 @@
     color: rgb(var(--tr-text-muted));
   }
 
+  /* --- Form controls ---
+     `.admin-input` was referenced by AuditLogPage and UserManagementSubPages
+     but never defined, so those selects rendered unstyled. Padding is set on
+     the input, not the container, so callers can still override it. */
+  .admin-input {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    background-color: rgb(var(--tr-navy-light));
+    border: 1px solid rgb(var(--tr-border));
+    border-radius: 0.5rem;
+    color: rgb(var(--tr-text-primary));
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .admin-input:focus,
+  .admin-input:focus-visible {
+    outline: none;
+    border-color: rgb(var(--tr-blue));
+    box-shadow: 0 0 0 2px rgb(var(--tr-blue-bg));
+  }
+  .admin-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .admin-input option {
+    background-color: rgb(var(--tr-navy-light));
+    color: rgb(var(--tr-text-primary));
+  }
+
   /* --- Notification badge --- */
   .admin-notification-badge {
     position: absolute;
@@ -560,16 +616,20 @@
     margin: 0.5rem 0;
   }
 
-  /* --- Mobile overlay --- */
-  .admin-mobile-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: none;
-  }
-  .admin-mobile-overlay.active {
-    display: block;
+  /* --- Mobile overlay ---
+     Scoped to below md in CSS rather than relying on a Tailwind `md:hidden`
+     utility: this block is unlayered, and unlayered rules outrank every
+     `@layer utilities` entry regardless of specificity. */
+  @media (max-width: 767px) {
+    .admin-mobile-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+    .admin-mobile-overlay.active {
+      display: block;
+    }
   }
 
   /* --- Content --- */
@@ -620,7 +680,6 @@
     flex-direction: column;
     gap: 0.375rem;
     min-width: 0;
-    min-width: 140px;
   }
   .admin-kpi-card:hover {
     border-color: rgb(var(--tr-border-hover));
@@ -845,6 +904,14 @@
     display: flex;
     align-items: center;
     gap: 0.125rem;
+    /* Six tabs must not overflow narrow viewports. */
+    flex-wrap: wrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .admin-chart-tabs::-webkit-scrollbar {
+    display: none;
   }
   .admin-chart-tab {
     padding: 0.375rem 0.625rem;
@@ -856,6 +923,8 @@
     cursor: pointer;
     border: none;
     background: transparent;
+    white-space: nowrap;
+    min-height: 44px;
   }
   .admin-chart-tab:hover {
     color: rgb(var(--tr-white));
@@ -907,19 +976,38 @@
   }
 }
 
-/* Mobile dialog responsiveness fixes */
+/* Dialogs must never grow past the viewport: long forms would otherwise push
+   their own submit button out of reach. Applies at every breakpoint. */
+[data-radix-dialog-content] {
+  max-height: calc(100dvh - 2rem) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile dialog responsiveness.
+   Targets the `data-radix-dialog-content` attribute set by ui/dialog.jsx.
+   This block is unlayered, so these declarations outrank Tailwind's layered
+   utilities — the `!important`s are required to beat them reliably. */
 @media (max-width: 640px) {
   [data-radix-dialog-content] {
     top: auto !important;
     bottom: 0 !important;
-    transform: translateX(-50%) !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
     max-height: calc(100dvh - 1rem) !important;
+    max-width: 100% !important;
     border-radius: 1rem 1rem 0 0 !important;
     padding-bottom: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
+  /* Clearance for the iOS home indicator on the last scrollable row. */
   [data-radix-dialog-content] > *:last-child {
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
@@ -941,8 +1029,13 @@
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
+  /* Previously 720px. At tablet portrait (768px) the docked sidebar left only
+     ~704px of content, so a 720px floor forced a horizontal scroll inside an
+     already-narrow column. 640px matches the base floor and fits once the
+     sidebar defaults to collapsed below the lg breakpoint. Columns that genuinely
+     need more room still scroll inside this wrapper, not the page. */
   .table-responsive table {
-    min-width: 720px;
+    min-width: 640px;
   }
 
   .table-responsive {

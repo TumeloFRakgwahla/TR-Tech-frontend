@@ -1,297 +1,207 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { cartAPI } from '../services/api';
+import { CartSyncEngine, GUEST_NAMESPACE } from '../services/cartSync';
 import { useAuth } from './AuthContext';
 
-const CART_STORAGE_KEY = 'trtech_cart';
-const CART_STORAGE_VERSION = 1;
-
-// Safe localStorage read with versioning — falls back gracefully and
-// never throws. If the stored value is corrupted or from an old version,
-// we discard it and start fresh.
-function readStorage(key, defaultValue = []) {
-  try {
-    const saved = localStorage.getItem(key);
-    if (!saved) return defaultValue;
-    const parsed = JSON.parse(saved);
-    // Versioned storage: if the stored data has a version that doesn't
-    // match the current format, discard it and use the default.
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.version !== CART_STORAGE_VERSION && parsed.items !== undefined) {
-      return parsed.items;
-    }
-    return Array.isArray(parsed) ? parsed : defaultValue;
-  } catch {
-    // Storage corruption — clear the bad entry so future writes are clean
-    try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
-    return defaultValue;
-  }
-}
+/**
+ * Cart state.
+ *
+ * All persistence, queueing and conflict handling live in `cartSync.js`. This
+ * provider is a thin React binding over that engine: it maps engine state onto
+ * the shape the UI expects and forwards user intents.
+ *
+ * Consumers historically read `item._id || item.id`, so the mapping below keeps
+ * that contract while the engine works in terms of `product`.
+ */
 
 const CartStateContext = createContext(undefined);
 const CartDispatchContext = createContext(undefined);
 
+/** Engine line -> component-facing cart item. */
+const toCartItem = (item) => ({
+  ...item,
+  id: item.product,
+  _id: item.product,
+});
+
+const readGuestItems = () => {
+  try {
+    const raw = localStorage.getItem(GUEST_NAMESPACE);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed?.items) ? parsed.items : [];
+  } catch {
+    return [];
+  }
+};
+
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState(() => readStorage(CART_STORAGE_KEY));
-  const [syncing, setSyncing] = useState(false);
-  const cartRef = useRef(cart);
-  cartRef.current = cart;
   const { isAuthenticated, user } = useAuth();
-  const syncTimerRef = useRef(null);
-  const syncInProgressRef = useRef(false);
-  // Snapshot of the last synced cart state — used to detect what changed
-  // between syncs without re-fetching from the server (avoids race condition
-  // where a fetch + merge runs concurrently with a local change)
-  const lastSyncedCartRef = useRef([]);
+  const userId = user?.id || user?._id || null;
 
+  const engineRef = useRef(null);
+  if (engineRef.current === null) {
+    engineRef.current = new CartSyncEngine({
+      transport: cartAPI,
+      userId,
+    });
+  }
+  const engine = engineRef.current;
+
+  const [snapshot, setSnapshot] = useState(() => engine.getState());
+  const [syncing, setSyncing] = useState(false);
+  // Surfaced so the UI can explain a merge that clamped or dropped lines.
+  const [warnings, setWarnings] = useState([]);
+
+  const cart = useMemo(() => snapshot.items.map(toCartItem), [snapshot.items]);
+
+  useEffect(() => engine.subscribe(setSnapshot), [engine]);
+
+  /**
+   * Reconciliation, covering two cases that a naive `userId`-change watcher
+   * misses.
+   *
+   * `bootstrappedUserRef` holds the userId we have already reconciled for:
+   *   - `undefined` = we have not looked yet
+   *   - `null`      = reconciled as a guest (nothing to fetch)
+   *
+   * The important case is a hard page reload while already signed in. There
+   * `userId` is identical on the first render, so a plain "did userId change?"
+   * effect never fires and the server cart is never fetched — the UI would sit
+   * on stale localStorage until something else triggered a refresh.
+   */
+  const bootstrappedUserRef = useRef(undefined);
   useEffect(() => {
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-    } catch {
-      // Storage full or unavailable
+    if (bootstrappedUserRef.current === userId) return;
+    const previous = bootstrappedUserRef.current;
+    bootstrappedUserRef.current = userId;
+
+    if (previous === undefined) {
+      // First look. A guest has nothing to fetch; a signed-in user does.
+      if (userId) void engine.refresh();
+      return;
     }
-  }, [cart]);
 
-  const getProductId = useCallback((product) => product._id || product.id, []);
-
-  const mergeCarts = useCallback((localCart, serverCart) => {
-    // Local cart is the source of truth for the current session.
-    // We keep local items and only add server items that don't exist locally.
-    // If a server item was deleted locally, we respect that deletion and
-    // sync the removal on the next sync cycle.
-    const localIds = new Set(localCart.map((item) => getProductId(item)));
-    const merged = [...localCart];
-    for (const serverItem of serverCart) {
-      if (!localIds.has(getProductId(serverItem))) {
-        merged.push(serverItem);
-      }
-    }
-    return merged;
-  }, [getProductId]);
-
-  const fetchServerCart = useCallback(async () => {
-    if (!isAuthenticated) return;
-    try {
-      setSyncing(true);
-      const data = await cartAPI.getAll();
-      if (data.success) {
-        const serverCart = data.data || [];
-        const merged = mergeCarts(cartRef.current, serverCart);
-        setCart(merged);
-        // Record the merged state as "last synced" so future syncs
-        // only sync items that changed after this merge
-        lastSyncedCartRef.current = [...merged];
-      }
-    } catch (error) {
-      console.error('Failed to fetch server cart:', error);
-    } finally {
-      setSyncing(false);
-    }
-  }, [isAuthenticated, mergeCarts]);
-
-  const syncCartToServer = useCallback(async () => {
-    if (!isAuthenticated || syncInProgressRef.current) return;
-    syncInProgressRef.current = true;
-    try {
-      setSyncing(true);
-      const localCart = cartRef.current;
-      const lastSynced = [...lastSyncedCartRef.current];
-
-      // If lastSynced is empty and localCart has items, this is the first
-      // sync after login — push all local items to the server
-      const isFirstSync = lastSynced.length === 0;
-
-      const operations = [];
-
-      if (isFirstSync) {
-        // First sync: add all local items that aren't on server
-        for (const localItem of localCart) {
-          const id = getProductId(localItem);
-          if (!/^[a-f\d]{24}$/i.test(id)) {
-            console.warn('Skipping cart sync for invalid product ID:', id);
-            continue;
+    if (!previous && userId) {
+      // Guest -> signed in. Read the guest cart BEFORE switching namespaces,
+      // otherwise the guest lines are unreachable when the merge runs.
+      const guestItems = readGuestItems();
+      engine.setUser(userId);
+      void (async () => {
+        setSyncing(true);
+        try {
+          // Pull authoritative state first, then fold the guest cart in, so the
+          // merge sums onto the current server cart rather than an empty one.
+          await engine.refresh();
+          const result = await engine.mergeGuestCart(guestItems);
+          if (result.status === 'merged' && result.warnings?.length) {
+            setWarnings(result.warnings);
           }
-          operations.push({ type: 'add', id, promise: cartAPI.add({
-            product: id,
-            name: localItem.name,
-            condition: localItem.condition,
-            price: localItem.price,
-            quantity: localItem.quantity,
-            image: localItem.image,
-          }) });
+        } finally {
+          setSyncing(false);
         }
-      } else {
-        // Subsequent syncs: diff against lastSynced snapshot
-        const lastSyncedMap = new Map();
-        lastSynced.forEach((item) => {
-          const id = getProductId(item);
-          if (id) lastSyncedMap.set(id, item);
-        });
-
-        const localMap = new Map();
-        localCart.forEach((item) => {
-          const id = getProductId(item);
-          if (id) localMap.set(id, item);
-        });
-
-        // Items in lastSynced but not in local → deleted locally → remove from server
-        for (const [id] of lastSyncedMap) {
-          if (!localMap.has(id)) {
-            if (!/^[a-f\d]{24}$/i.test(id)) continue;
-            operations.push({ type: 'remove', id, promise: cartAPI.remove(id) });
-          }
-        }
-
-        // Items in local that changed or are new
-        for (const [id, localItem] of localMap) {
-          const lastSyncedItem = lastSyncedMap.get(id);
-          if (!lastSyncedItem) {
-            // New item since last sync
-            if (/^[a-f\d]{24}$/i.test(id)) {
-              operations.push({ type: 'add', id, promise: cartAPI.add({
-                product: id,
-                name: localItem.name,
-                condition: localItem.condition,
-                price: localItem.price,
-                quantity: localItem.quantity,
-                image: localItem.image,
-              }) });
-            }
-          } else if (lastSyncedItem.quantity !== localItem.quantity) {
-            // Quantity changed since last sync
-            if (/^[a-f\d]{24}$/i.test(id)) {
-              operations.push({ type: 'update', id, promise: cartAPI.update(id, localItem.quantity) });
-            }
-          }
-        }
-      }
-
-      if (operations.length > 0) {
-        const results = await Promise.allSettled(operations.map((op) => op.promise));
-        const failures = results
-          .map((result, index) => ({ result, op: operations[index] }))
-          .filter(({ result }) => result.status === 'rejected');
-        if (failures.length > 0) {
-          console.error(`${failures.length} cart sync operation(s) failed:`, failures.map(({ op, result }) => ({
-            type: op.type,
-            id: op.id,
-            error: result.reason?.message || result.reason,
-          })));
-          toast.error('Some cart changes could not be synced.');
-        }
-      }
-
-      // Record the current local state as "last synced" so we only
-      // diff against it next time
-      lastSyncedCartRef.current = [...localCart];
-    } catch (error) {
-      console.error('Failed to sync cart to server:', error);
-      toast.error('Failed to sync cart. Please refresh the page.');
-    } finally {
-      setSyncing(false);
-      syncInProgressRef.current = false;
+      })();
+      return;
     }
-  }, [isAuthenticated, getProductId]);
 
+    // Logout, or a direct account switch. Flush before dropping the session,
+    // otherwise intents queued for the old account are lost.
+    void (async () => {
+      await engine.flushBeforeExit();
+      engine.setUser(userId);
+      setWarnings([]);
+      if (userId) await engine.refresh();
+    })();
+  }, [userId, engine]);
+
+  // Reconcile when the tab becomes visible again: another device may have
+  // changed the cart while this tab was in the background.
   useEffect(() => {
-    if (isAuthenticated && (user?.id || user?._id)) {
-      fetchServerCart();
-    }
-  }, [isAuthenticated, user?.id || user?._id, fetchServerCart]);
-
-  useEffect(() => {
-    if (isAuthenticated && cart.length > 0 && !syncTimerRef.current) {
-      syncTimerRef.current = setTimeout(() => {
-        syncCartToServer();
-        syncTimerRef.current = null;
-      }, 1000);
-    }
-    return () => {
-      if (syncTimerRef.current) {
-        clearTimeout(syncTimerRef.current);
-        syncTimerRef.current = null;
-      }
+    if (typeof document === 'undefined' || !isAuthenticated) return undefined;
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') void engine.refresh();
     };
-  }, [cart, isAuthenticated, syncCartToServer]);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [isAuthenticated, engine]);
+
+  // Stop syncing state updates after unmount.
+  useEffect(() => () => engine.destroy(), [engine]);
+
+  const getProductId = useCallback((product) => product?._id || product?.id || product?.product, []);
 
   const addToCart = useCallback((product, quantity = 1) => {
     const productId = getProductId(product);
-    const availableStock = product.stock || 0;
+    const availableStock = product?.stock ?? null;
+    const existing = engine.state.items.find(
+      (item) => item.product === productId && (item.variantKey || '') === (product?.variantKey || '')
+    );
 
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => getProductId(item) === productId);
-      if (existingItem) {
-        const newQuantity = existingItem.quantity + quantity;
-        if (newQuantity > availableStock) {
-          return prevCart;
-        }
-        return prevCart.map((item) =>
-          getProductId(item) === productId ? { ...item, quantity: newQuantity } : item
-        );
-      }
-      if (availableStock === 0) {
-        return prevCart;
-      }
-      return [...prevCart, { ...product, id: productId, quantity }];
-    });
-
-    const existingItem = cartRef.current.find((item) => getProductId(item) === productId);
-    if (existingItem) {
-      const newQuantity = existingItem.quantity + quantity;
-      if (newQuantity > availableStock) {
-        toast.error(`Cannot add more ${product.name}. Only ${availableStock} available in stock.`);
-        return;
-      }
-      toast.success('Quantity updated in cart');
-    } else {
-      if (availableStock === 0) {
-        toast.error(`${product.name} is out of stock`);
-        return;
-      }
-      toast.success('Added to cart');
-    }
-  }, [getProductId]);
-
-  const removeFromCart = useCallback((productId) => {
-    setCart((prevCart) => prevCart.filter((item) => getProductId(item) !== productId));
-    toast.success('Removed from cart');
-  }, [getProductId]);
-
-  const updateQuantity = useCallback((productId, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
+    const nextQuantity = (existing?.quantity || 0) + quantity;
+    if (availableStock !== null && availableStock <= 0) {
+      toast.error(`${product.name} is out of stock`);
       return;
     }
-    setCart((prevCart) => {
-      const item = prevCart.find((item) => getProductId(item) === productId);
-      if (item && quantity > (item.stock || 0)) {
-        return prevCart;
-      }
-      return prevCart.map((item) => (getProductId(item) === productId ? { ...item, quantity } : item));
-    });
-    const item = cartRef.current.find((item) => getProductId(item) === productId);
-    if (item && quantity > (item.stock || 0)) {
-      toast.error(`Only ${item.stock || 0} available in stock for ${item.name}`);
+    if (availableStock !== null && nextQuantity > availableStock) {
+      toast.error(`Cannot add more ${product.name}. Only ${availableStock} available in stock.`);
+      return;
     }
-  }, [getProductId, removeFromCart]);
+
+    // Optimistic local echo for guests and signed-in users alike; the server
+    // response replaces it as soon as the flush completes.
+    engine.enqueue({
+      type: 'ADD',
+      product: productId,
+      variantKey: product?.variantKey || '',
+      quantity,
+      name: product?.name,
+      price: product?.price,
+      condition: product?.condition,
+      category: product?.category,
+      image: product?.image,
+      stock: availableStock,
+    });
+    toast.success(existing ? 'Quantity updated in cart' : 'Added to cart');
+  }, [engine, getProductId]);
+
+  const removeFromCart = useCallback((productId, variantKey = '') => {
+    engine.enqueue({ type: 'REMOVE', product: productId, variantKey });
+    toast.success('Removed from cart');
+  }, [engine]);
+
+  const updateQuantity = useCallback((productId, quantity, variantKey = '') => {
+    if (quantity <= 0) {
+      engine.enqueue({ type: 'REMOVE', product: productId, variantKey });
+      return;
+    }
+    const existing = engine.state.items.find(
+      (item) => item.product === productId && (item.variantKey || '') === variantKey
+    );
+    if (existing?.stock !== null && existing?.stock !== undefined && quantity > existing.stock) {
+      toast.error(`Only ${existing.stock} available in stock for ${existing.name}`);
+      return;
+    }
+    engine.enqueue({ type: 'SET_QTY', product: productId, variantKey, quantity });
+  }, [engine]);
 
   const clearCart = useCallback(() => {
-    setCart([]);
-    lastSyncedCartRef.current = [];
-    // Sync immediately to ensure server cart is cleared. Don't wait
-    // for the debounced sync — a page unload could skip the fire-and-forget.
-    if (isAuthenticated) {
-      cartAPI.clear().catch((error) => {
-        console.error('Failed to clear server cart:', error);
-        toast.error('Failed to clear cart on server. Please try again.');
-      });
-    }
-  }, [isAuthenticated]);
+    engine.enqueue({ type: 'CLEAR' });
+  }, [engine]);
 
-  const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
-  const totalPrice = useMemo(
-    () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+  const refreshCart = useCallback(() => engine.refresh(), [engine]);
+
+  const totalItems = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.quantity || 0), 0),
     [cart]
   );
+
+  // Prefer the server subtotal. Fall back to summing the item prices, which are
+  // themselves server-owned, so guests still get a correct total.
+  const totalPrice = useMemo(() => {
+    if (typeof snapshot.subtotal === 'number') return snapshot.subtotal;
+    return cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.quantity || 0), 0);
+  }, [cart, snapshot.subtotal]);
 
   const stateValue = useMemo(
     () => ({
@@ -299,8 +209,12 @@ export function CartProvider({ children }) {
       totalItems,
       totalPrice,
       syncing,
+      warnings,
+      pendingChanges: snapshot.pending,
+      rev: snapshot.rev,
+      refreshCart,
     }),
-    [cart, totalItems, totalPrice, syncing]
+    [cart, totalItems, totalPrice, syncing, warnings, snapshot.pending, snapshot.rev, refreshCart]
   );
 
   const dispatchValue = useMemo(
@@ -331,6 +245,10 @@ export function useCartState() {
       totalItems: 0,
       totalPrice: 0,
       syncing: false,
+      warnings: [],
+      pendingChanges: 0,
+      rev: 0,
+      refreshCart: () => {},
     };
   }
   return context;

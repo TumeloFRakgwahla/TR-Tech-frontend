@@ -16,7 +16,7 @@ import { Button } from "./button.jsx"; // Icons for buttons
 const CTA = () => {
   return (
     // Section with gradient background and centered content
-    <section id="cta" className="py-16 bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+    <section id="cta" className="py-16 bg-gradient-to-r from-primary to-accent text-primary-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center w-full">
         {/* Section heading */}
         <h2 className="text-3xl md:text-4xl font-bold mb-4">

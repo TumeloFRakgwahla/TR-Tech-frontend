@@ -104,9 +104,11 @@ describe('AdminLoginPage', () => {
 
   it('renders login form with email and password', () => {
     render(wrapper({ children: <AdminLogin /> }));
-    // Verify both input fields are present and accessible by label
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    // Verify both input fields are present and accessible by label.
+    // Exact strings: the show/hide toggle's aria-label also mentions
+    // "password", so a regex would match multiple elements.
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
   });
 
   it('renders sign in button', () => {
@@ -125,7 +127,9 @@ describe('AdminLoginPage', () => {
 
   it('updates password field on input', () => {
     render(wrapper({ children: <AdminLogin /> }));
-    const passwordInput = screen.getByLabelText(/password/i);
+    // Exact label: the show/hide toggle's aria-label also contains
+    // "password", so a regex would match multiple elements.
+    const passwordInput = screen.getByLabelText('Password');
     // Verify the password input reflects user typing
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     expect(passwordInput.value).toBe('password123');

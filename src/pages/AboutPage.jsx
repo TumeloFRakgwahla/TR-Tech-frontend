@@ -29,7 +29,7 @@ const About = () => {
       <div className="pt-20 md:pb-0 content-wrapper">
 
       {/* Hero Section - gradient banner with company tagline */}
-      <section className="bg-gradient-to-r from-primary to-secondary text-primary-foreground py-20">
+      <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             About TR-Tech

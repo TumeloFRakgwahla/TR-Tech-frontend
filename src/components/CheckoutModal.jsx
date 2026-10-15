@@ -7,14 +7,28 @@ import { useAuth } from './AuthContext';
 import { useCart } from './CartContext';
 import { AuthModal } from './AuthModal';
 import { toast } from 'sonner';
-import { ShoppingBag, User, MapPin, CreditCard, Check, ShieldCheck, Truck, Loader2 } from 'lucide-react';
-import { ordersAPI, paymentsAPI, marketingAPI } from '../services/api';
+import { ShoppingBag, User, MapPin, CreditCard, Check, ShieldCheck, Truck, Loader2, MailWarning } from 'lucide-react';
+import { ordersAPI, paymentsAPI, marketingAPI, authAPI } from '../services/api';
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE, FREE_SHIPPING_CITIES } from '../constants';
 
 export function CheckoutModal({ open, onOpenChange }) {
   const { user, isAuthenticated } = useAuth();
   const { cart, totalPrice } = useCart();
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const shippingCost = totalPrice >= 500 || totalPrice === 0 ? 0 : 50;
+  const [deliveryDetails, setDeliveryDetails] = useState({
+    name: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    street: user?.address?.street || '',
+    city: user?.address?.city || '',
+    postalCode: user?.address?.postalCode || '',
+    province: user?.address?.province || '',
+    notes: '',
+  });
+  const isFreeShippingCity =
+    deliveryDetails.city &&
+    FREE_SHIPPING_CITIES.includes(deliveryDetails.city.toLowerCase());
+  const shippingCost = totalPrice >= FREE_SHIPPING_THRESHOLD || totalPrice === 0 || isFreeShippingCity ? 0 : SHIPPING_FEE;
   const orderTotal = totalPrice + shippingCost;
   const discount = appliedCoupon
     ? appliedCoupon.type === 'Percentage'
@@ -26,17 +40,6 @@ export function CheckoutModal({ open, onOpenChange }) {
   const [step, setStep] = useState(isAuthenticated ? 'details' : 'auth');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const [deliveryDetails, setDeliveryDetails] = useState({
-    name: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    street: user?.address?.street || '',
-    city: user?.address?.city || '',
-    postalCode: user?.address?.postalCode || '',
-    province: user?.address?.province || '',
-    notes: '',
-  });
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
 
@@ -106,6 +109,23 @@ export function CheckoutModal({ open, onOpenChange }) {
     setAuthModalOpen(false);
   }, []);
 
+  const [resendingVerification, setResendingVerification] = useState(false);
+
+  const handleResendVerification = async () => {
+    if (!user?.email) return;
+    setResendingVerification(true);
+    try {
+      await authAPI.resendVerification(user.email);
+      toast.success('Verification email sent. Please check your inbox.');
+    } catch {
+      toast.error('Could not send verification email. Please try again later.');
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
+  const isEmailVerified = user?.emailVerified;
+
   const buildOrderData = (method = 'Card') => ({
     items: cart.map((item) => ({
       product: item._id || item.id,
@@ -152,6 +172,27 @@ export function CheckoutModal({ open, onOpenChange }) {
   const handlePaystackSubmit = async () => {
     if (!validateCheckout()) return;
 
+    if (isAuthenticated && isEmailVerified === false) {
+      toast.error(
+        () => (
+          <div className="flex flex-col gap-2">
+            <p>Please verify your email address to continue.</p>
+            <button
+              onClick={() => {
+                toast.dismiss();
+                handleResendVerification();
+              }}
+              className="self-start text-sm underline font-medium"
+            >
+              Resend verification email
+            </button>
+          </div>
+        ),
+        { duration: 15000 }
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const orderData = buildOrderData('Card');
@@ -179,7 +220,37 @@ export function CheckoutModal({ open, onOpenChange }) {
       toast.error(paystackResponse.message || 'Failed to initialize payment. Please try again.');
     } catch (error) {
       console.error('Paystack payment error:', error);
-      toast.error(error.message || 'Payment initialization failed. Please try again.');
+      if (error.requiresEmailVerification) {
+        toast.error(
+          () => (
+            <div className="flex flex-col gap-2">
+              <p>Please verify your email address to continue.</p>
+              <button
+                onClick={() => {
+                  toast.dismiss();
+                  handleResendVerification();
+                }}
+                className="self-start text-sm underline font-medium"
+              >
+                Resend verification email
+              </button>
+            </div>
+          ),
+          { duration: 15000 }
+        );
+      } else if (
+        error.status === 502 ||
+        error.status === 401 ||
+        error.message?.includes('401') ||
+        error.message?.includes('Paystack')
+      ) {
+        toast.error(
+          'Payment service is temporarily unavailable. Please try again later or contact support.',
+          { duration: 10000 }
+        );
+      } else {
+        toast.error(error.message || 'Payment initialization failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -289,19 +360,21 @@ export function CheckoutModal({ open, onOpenChange }) {
               <h3 className="text-lg font-semibold text-gray-900">Delivery Details</h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="name" className="text-gray-700">Full Name *</Label>
                 <Input
                   id="name"
                   name="name"
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
                   value={deliveryDetails.name}
                   onChange={handleDeliveryChange}
                   placeholder="John Doe"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.name ? 'border-red-500' : ''}`}
                 />
-                {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
+                {errors.name && <p id="name-error" role="alert" className="text-xs text-red-600">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -311,13 +384,15 @@ export function CheckoutModal({ open, onOpenChange }) {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                   value={deliveryDetails.email}
                   onChange={handleDeliveryChange}
                   placeholder="john@example.com"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.email ? 'border-red-500' : ''}`}
                 />
-                {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
+                {errors.email && <p id="email-error" role="alert" className="text-xs text-red-600">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -327,28 +402,32 @@ export function CheckoutModal({ open, onOpenChange }) {
                   name="phone"
                   type="tel"
                   autoComplete="tel"
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? 'phone-error' : undefined}
                   value={deliveryDetails.phone}
                   onChange={handleDeliveryChange}
                   placeholder="+27 82 123 4567"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.phone ? 'border-red-500' : ''}`}
                 />
-                {errors.phone && <p className="text-xs text-red-600">{errors.phone}</p>}
+                {errors.phone && <p id="phone-error" role="alert" className="text-xs text-red-600">{errors.phone}</p>}
               </div>
 
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="street" className="text-gray-700">Street Address *</Label>
                 <Input
                   id="street"
                   name="street"
                   autoComplete="street-address"
+                  aria-invalid={Boolean(errors.street)}
+                  aria-describedby={errors.street ? 'street-error' : undefined}
                   value={deliveryDetails.street}
                   onChange={handleDeliveryChange}
                   placeholder="123 Main Street"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.street ? 'border-red-500' : ''}`}
                 />
-                {errors.street && <p className="text-xs text-red-600">{errors.street}</p>}
+                {errors.street && <p id="street-error" role="alert" className="text-xs text-red-600">{errors.street}</p>}
               </div>
 
               <div className="space-y-2">
@@ -357,13 +436,15 @@ export function CheckoutModal({ open, onOpenChange }) {
                   id="city"
                   name="city"
                   autoComplete="address-level2"
+                  aria-invalid={Boolean(errors.city)}
+                  aria-describedby={errors.city ? 'city-error' : undefined}
                   value={deliveryDetails.city}
                   onChange={handleDeliveryChange}
                   placeholder="Johannesburg"
                   required
                   className={`bg-white border-gray-200 text-gray-900 focus:border-primary focus:ring-primary ${errors.city ? 'border-red-500' : ''}`}
                 />
-                {errors.city && <p className="text-xs text-red-600">{errors.city}</p>}
+                {errors.city && <p id="city-error" role="alert" className="text-xs text-red-600">{errors.city}</p>}
               </div>
 
               <div className="space-y-2">
@@ -379,7 +460,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 />
               </div>
 
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="province" className="text-gray-700">Province</Label>
                 <Input
                   id="province"
@@ -392,7 +473,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                 />
               </div>
 
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <Label htmlFor="notes" className="text-gray-700">Order Notes (Optional)</Label>
                 <textarea
                   id="notes"
@@ -431,13 +512,32 @@ export function CheckoutModal({ open, onOpenChange }) {
           </div>
         )}
 
-        {/* Payment Step — Paystack gateway (no method selection) */}
-        {step === 'payment' && (
-          <div className="space-y-4 py-4">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold text-gray-900">Payment Method</h3>
-            </div>
+          {/* Payment Step — Paystack gateway (no method selection) */}
+          {step === 'payment' && (
+            <div className="space-y-4 py-4">
+              {isAuthenticated && isEmailVerified === false && (
+                <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <MailWarning className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium">Please verify your email address to continue.</p>
+                    <p className="text-xs opacity-90 mt-1">A verification link has been sent to your email on registration.</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={resendingVerification}
+                    onClick={handleResendVerification}
+                    className="border-amber-300 text-amber-800 hover:bg-amber-100 min-h-[44px] whitespace-nowrap"
+                  >
+                    {resendingVerification ? 'Sending…' : 'Resend'}
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 mb-4">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold text-gray-900">Payment Method</h3>
+              </div>
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -445,6 +545,9 @@ export function CheckoutModal({ open, onOpenChange }) {
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   placeholder="Coupon code"
+                  aria-label="Coupon code"
+                  aria-invalid={Boolean(couponError)}
+                  aria-describedby={couponError ? 'coupon-error' : undefined}
                   className="flex-1"
                 />
                 <Button
@@ -472,7 +575,7 @@ export function CheckoutModal({ open, onOpenChange }) {
                   Apply
                 </Button>
               </div>
-              {couponError && <p className="text-xs text-red-600">{couponError}</p>}
+              {couponError && <p id="coupon-error" role="alert" className="text-xs text-red-600">{couponError}</p>}
               {appliedCoupon && (
                 <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div>

@@ -1,162 +1,133 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { wishlistAPI } from '../services/api';
+import { WishlistSync, GUEST_WISHLIST_NAMESPACE } from '../services/wishlistSync';
 import { useAuth } from './AuthContext';
 import { useAuthModal } from './AuthModalContext';
 
-const WISHLIST_STORAGE_KEY = 'trtech_wishlist';
-const WISHLIST_STORAGE_VERSION = 1;
-
-// Safe localStorage read with versioning — falls back gracefully and
-// never throws. If the stored value is corrupted, we discard it and
-// start fresh so a bad entry never clears the cart silently.
-function readStorage(key, defaultValue = []) {
-  try {
-    const saved = localStorage.getItem(key);
-    if (!saved) return defaultValue;
-    const parsed = JSON.parse(saved);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.version !== WISHLIST_STORAGE_VERSION && parsed.items !== undefined) {
-      return parsed.items;
-    }
-    return Array.isArray(parsed) ? parsed : defaultValue;
-  } catch {
-    try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
-    return defaultValue;
-  }
-}
+/**
+ * Wishlist state.
+ *
+ * The single behavioural change from the previous implementation is the
+ * auth-boundary merge: guest selections are folded in with one atomic
+ * `POST /wishlist/merge` instead of one `add` call per product. Storage is
+ * namespaced per account, so signing out and signing in as someone else never
+ * leaks the previous account's wishlist into view.
+ */
 
 const WishlistStateContext = createContext(undefined);
 const WishlistDispatchContext = createContext(undefined);
 
+const readGuestWishlist = () => {
+  try {
+    const raw = localStorage.getItem(GUEST_WISHLIST_NAMESPACE);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed?.products) ? parsed.products : [];
+  } catch {
+    return [];
+  }
+};
+
 export function WishlistProvider({ children }) {
-  const [wishlist, setWishlist] = useState(() => readStorage(WISHLIST_STORAGE_KEY));
+  const { user } = useAuth();
+  const userId = user?.id || user?._id || null;
+  const { openAuthModal } = useAuthModal();
+
+  const syncRef = useRef(null);
+  if (syncRef.current === null) {
+    syncRef.current = new WishlistSync({ transport: wishlistAPI, userId });
+  }
+  const sync = syncRef.current;
+
+  const [wishlist, setWishlist] = useState(() => sync.read());
   const [loading, setLoading] = useState(false);
   const [togglingIds, setTogglingIds] = useState(new Set());
-  const { isAuthenticated } = useAuth();
-  const { openAuthModal } = useAuthModal();
   const wishlistRef = useRef(wishlist);
   wishlistRef.current = wishlist;
 
+  const getProductId = useCallback((product) => product?._id || product?.id || product?.product, []);
+
+  // Persist the local view (guest and signed-in alike) for instant paints.
   useEffect(() => {
-    try {
-      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlist));
-    } catch {
-      // Storage unavailable or quota exceeded
-    }
-  }, [wishlist]);
+    sync.write(wishlist);
+  }, [sync, wishlist]);
 
-  const getProductId = useCallback((product) => product._id || product.id, []);
-
-  const mergeLocalWishlist = useCallback(async (serverProducts) => {
-    const currentWishlist = wishlistRef.current;
-    const serverIds = new Set((serverProducts || []).map((p) => getProductId(p)));
-    const localIds = currentWishlist.map((p) => getProductId(p));
-    const newProductIds = localIds.filter((id) => !serverIds.has(id));
-
-    if (newProductIds.length === 0) {
-      return { merged: serverProducts, allSynced: true };
-    }
-
-    try {
-      const results = await Promise.allSettled(
-        newProductIds.map((id) => wishlistAPI.add(id))
-      );
-      const failures = results.filter((r) => r.status === 'rejected');
-      if (failures.length > 0 && failures.length < newProductIds.length) {
-        toast.error('Some wishlist items could not be saved to your account');
-      } else if (failures.length === newProductIds.length) {
-        toast.error('Failed to save wishlist items. They remain in your local wishlist.');
-      }
-
-      const failedProductIds = new Set(
-        results
-          .map((r, i) => (r.status === 'rejected' ? newProductIds[i] : null))
-          .filter(Boolean)
-      );
-      const failedLocalItems = currentWishlist.filter((p) =>
-        failedProductIds.has(getProductId(p))
-      );
-
-      return {
-        merged: [...serverProducts, ...failedLocalItems],
-        allSynced: failedProductIds.size === 0,
-      };
-    } catch {
-      toast.error('Failed to save wishlist items. They remain in your local wishlist.');
-      return {
-        merged: [
-          ...serverProducts,
-          ...currentWishlist.filter((p) => !serverIds.has(getProductId(p))),
-        ],
-        allSynced: false,
-      };
-    }
-  }, [getProductId]);
+  /**
+   * Reconciliation. See the equivalent comment in CartContext: `undefined`
+   * means "not looked yet", `null` means "reconciled as a guest". The
+   * already-signed-in-on-mount case must fetch explicitly, because `userId`
+   * does not change across a reload and a plain change-watcher never fires.
+   */
+  const bootstrappedUserRef = useRef(undefined);
 
   const fetchWishlist = useCallback(async () => {
-    if (!isAuthenticated) {
-      setWishlist(readStorage(WISHLIST_STORAGE_KEY));
+    if (!userId) {
+      setWishlist(readGuestWishlist());
       return;
     }
-
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await wishlistAPI.getAll();
-      const serverProducts = data.data || [];
-      const { merged, allSynced } = await mergeLocalWishlist(serverProducts);
-      setWishlist(merged);
-      // Only clear localStorage if all local items were successfully
-      // synced to the server. If any failed, keep them in localStorage
-      // so they survive page reloads for retry on next login.
-      if (allSynced) {
-        localStorage.removeItem(WISHLIST_STORAGE_KEY);
+      const result = await sync.fetch();
+      if (result.status === 'fetched') {
+        setWishlist(result.products);
       }
-    } catch {
-      toast.error('Failed to load wishlist from server');
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, mergeLocalWishlist]);
+  }, [sync, userId]);
 
-  const prevAuthRef = useRef(false);
-  const fetchedRef = useRef(false);
-  const fetchWishlistRef = useRef(fetchWishlist);
-  fetchWishlistRef.current = fetchWishlist;
-
+  // Declared after `fetchWishlist` on purpose: it is in the dependency array,
+  // and referencing it before declaration would throw during render.
   useEffect(() => {
-    if (isAuthenticated && !prevAuthRef.current) {
-      prevAuthRef.current = true;
-      fetchedRef.current = false;
-    } else if (!isAuthenticated) {
-      prevAuthRef.current = false;
-      fetchedRef.current = false;
+    if (bootstrappedUserRef.current === userId) return;
+    const previous = bootstrappedUserRef.current;
+    bootstrappedUserRef.current = userId;
+
+    if (previous === undefined) {
+      if (userId) void fetchWishlist();
       return;
     }
 
-    if (!fetchedRef.current) {
-      fetchedRef.current = true;
-      fetchWishlistRef.current();
+    if (!previous && userId) {
+      // Guest -> signed in. Guest entries are read before the namespace
+      // switches, so the merge can still find them.
+      const guestItems = readGuestWishlist();
+      sync.setUser(userId);
+      void (async () => {
+        setLoading(true);
+        try {
+          const merged = await sync.mergeGuestWishlist(guestItems);
+          if (merged.status === 'merged') {
+            setWishlist(merged.products);
+            if (merged.warnings?.length) {
+              toast.error('Some saved items are no longer available and were not carried over.');
+            }
+          } else {
+            const fetched = await sync.fetch();
+            if (fetched.status === 'fetched') setWishlist(fetched.products);
+          }
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return;
     }
-  }, [isAuthenticated]);
+
+    sync.setUser(userId);
+    setWishlist(sync.read());
+    if (userId) void fetchWishlist();
+  }, [userId, sync, fetchWishlist]);
 
   const addToWishlist = useCallback(async (product) => {
     const productId = getProductId(product);
-    const productData = { ...product, id: productId };
 
-    setWishlist((prev) => {
-      if (prev.find((item) => getProductId(item) === productId)) {
-        return prev;
-      }
-      return [...prev, productData];
-    });
+    setWishlist((prev) => (prev.some((item) => getProductId(item) === productId) ? prev : [...prev, product]));
 
-    if (!isAuthenticated) {
+    if (!userId) {
       toast('Added to wishlist', {
         description: 'Sign in to save it permanently',
-        action: {
-          label: 'Sign In',
-          onClick: () => openAuthModal(),
-        },
+        action: { label: 'Sign In', onClick: () => openAuthModal() },
         duration: 5000,
       });
       return;
@@ -175,14 +146,14 @@ export function WishlistProvider({ children }) {
         return next;
       });
     }
-  }, [isAuthenticated, getProductId, openAuthModal]);
+  }, [userId, getProductId, openAuthModal]);
 
   const removeFromWishlist = useCallback(async (product) => {
     const productId = getProductId(product);
 
     setWishlist((prev) => prev.filter((item) => getProductId(item) !== productId));
 
-    if (!isAuthenticated) {
+    if (!userId) {
       toast.success('Removed from wishlist', {
         description: 'Sign in to manage your wishlist across devices',
       });
@@ -202,23 +173,22 @@ export function WishlistProvider({ children }) {
         return next;
       });
     }
-  }, [isAuthenticated, getProductId]);
+  }, [userId, getProductId]);
 
   const toggleWishlist = useCallback(async (product) => {
     const productId = getProductId(product);
-    const isInWishlist = wishlist.some((item) => getProductId(item) === productId);
-
-    if (isInWishlist) {
+    const present = wishlistRef.current.some((item) => getProductId(item) === productId);
+    if (present) {
       await removeFromWishlist(product);
     } else {
       await addToWishlist(product);
     }
-  }, [wishlist, getProductId, addToWishlist, removeFromWishlist]);
+  }, [getProductId, addToWishlist, removeFromWishlist]);
 
   const isInWishlist = useCallback((product) => {
     const productId = getProductId(product);
-    return wishlist.some((item) => getProductId(item) === productId);
-  }, [wishlist, getProductId]);
+    return wishlistRef.current.some((item) => getProductId(item) === productId);
+  }, [getProductId]);
 
   const isToggling = useCallback((product) => {
     const productId = getProductId(product);
@@ -226,17 +196,16 @@ export function WishlistProvider({ children }) {
   }, [togglingIds, getProductId]);
 
   const checkWishlistStatus = useCallback(async (productId) => {
-    if (!isAuthenticated) return isInWishlist(productId);
+    if (!userId) return wishlistRef.current.some((item) => getProductId(item) === productId);
     try {
       const data = await wishlistAPI.check(productId);
       return data.inWishlist;
     } catch {
-      return isInWishlist(productId);
+      return wishlistRef.current.some((item) => getProductId(item) === productId);
     }
-  }, [isAuthenticated, isInWishlist]);
+  }, [userId, getProductId]);
 
-  const hasGuestItems = useMemo(() => !isAuthenticated && wishlist.length > 0, [isAuthenticated, wishlist.length]);
-
+  const hasGuestItems = useMemo(() => !userId && wishlist.length > 0, [userId, wishlist.length]);
   const wishlistCount = useMemo(() => wishlist.length, [wishlist]);
 
   const stateValue = useMemo(
@@ -248,9 +217,9 @@ export function WishlistProvider({ children }) {
       isInWishlist,
       checkWishlistStatus,
       hasGuestItems,
-      isAuthenticated,
+      isAuthenticated: !!userId,
     }),
-    [wishlist, wishlistCount, loading, isToggling, isInWishlist, checkWishlistStatus, hasGuestItems, isAuthenticated]
+    [wishlist, wishlistCount, loading, isToggling, isInWishlist, checkWishlistStatus, hasGuestItems, userId]
   );
 
   const dispatchValue = useMemo(

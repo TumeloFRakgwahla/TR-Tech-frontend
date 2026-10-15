@@ -61,3 +61,18 @@ export function calculateSubtotal(price, quantity) {
 export function calculateTotal(items) {
   return items.reduce((sum, item) => sum + calculateSubtotal(item.price, item.quantity), 0);
 }
+
+/**
+ * Returns the customer-facing identifier for an order.
+ *
+ * The backend now assigns a short `orderNumber` (e.g. `TR-000123`) at
+ * creation time. Legacy orders created before that field existed have no
+ * number, so the 24-character `_id` is used as a fallback. Never show a
+ * raw ObjectId to a customer when a number is available.
+ *
+ * @param {object} order - Order document
+ * @returns {string} Order number or, failing that, the ObjectId
+ */
+export function getOrderNumber(order) {
+  return order?.orderNumber || order?._id || '';
+}

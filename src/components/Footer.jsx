@@ -7,7 +7,6 @@
  * - Dynamic shop category links fetched from the backend
  * - Static navigation columns: Shop, Company, Help & Support
  * - Newsletter signup form that redirects to WhatsApp
- * - Payment method badges (Visa, Mastercard, PayFast, Ozow)
  * - Copyright notice with dynamic year
  *
  * The shop categories are fetched on mount and refreshed when admin
@@ -50,6 +49,7 @@ const footerNav = {
     { label: 'Track Order', href: '/track-order' },
     { label: 'Wishlist', href: '/wishlist' },
     { label: 'Cart', href: '/cart' },
+    { label: 'Support', href: '/support' },
     { label: 'Shipping Info', href: '/about#shipping' },
     { label: 'Returns Policy', href: '/about#returns' },
     { label: 'Privacy Policy', href: '/about#privacy' },
@@ -108,7 +108,7 @@ const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground pt-14 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
           <div>
             <Link to="/" className="flex items-center gap-3 mb-5">
               <img
@@ -128,7 +128,7 @@ const Footer = () => {
                 href="https://www.facebook.com/share/1DmHykq6Xr/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200"
+                className="w-11 h-11 min-w-touch min-h-touch bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200"
                 aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
@@ -137,7 +137,7 @@ const Footer = () => {
                 href="https://www.tiktok.com/@trtech.repairs.an"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200"
+                className="w-11 h-11 min-w-touch min-h-touch bg-primary-foreground/10 rounded-xl flex items-center justify-center text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-200"
                 aria-label="TikTok"
               >
                 <TikTokIcon />

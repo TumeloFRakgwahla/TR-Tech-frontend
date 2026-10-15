@@ -1,0 +1,219 @@
+import React, { useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { ShoppingCart, Heart, Truck, PackageCheck } from 'lucide-react';
+import { useCart } from '../../components/CartContext';
+import { useWishlist } from '../../components/WishlistContext';
+import { getProductImageUrl } from '../../lib/imageUrl';
+import { formatPrice } from '../../lib/format';
+import { StarRating } from '../ProductDetail/StarRating';
+
+export function ProductCardFixed({ product, imageErrors, setImageErrors }) {
+  const id = product._id || product.id;
+  const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist, isToggling } = useWishlist();
+  const inWishlist = isInWishlist(product);
+  const toggling = isToggling(product);
+
+  const discount = useMemo(() => {
+    if (product.originalPrice && product.originalPrice > product.price) {
+      return Math.round((1 - product.price / product.originalPrice) * 100);
+    }
+    return null;
+  }, [product.originalPrice, product.price]);
+
+  const handleImageError = useCallback(() => {
+    setImageErrors(prev => ({ ...prev, [id]: true }));
+  }, [id, setImageErrors]);
+
+  const inStock = product.stock && product.stock > 0;
+  const lowStock = inStock && product.stock <= 5;
+  const outOfStock = !inStock;
+
+  // Determine product condition badge
+  const condition = product.condition || 'New';
+  const isNew = condition === 'New';
+  const isPreOwned = condition === 'Used' || condition === 'Refurbished';
+
+  // Determine promotional badge
+  const isOnSale = discount && discount > 0;
+  const isBestSeller = product.isBestSeller || (product.reviews && product.reviews >= 50 && (product.rating || 0) >= 4.5);
+
+  return (
+    <article className="group relative flex flex-col h-full bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-300 ease-out overflow-hidden focus-within:ring-2 focus-within:ring-primary/40">
+      {/* Image surface */}
+      <Link to={`/products/${id}`} className="block relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
+        {/* Decorative gradient sheen on hover */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.03] via-transparent to-blue-500/[0.05] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" aria-hidden="true" />
+
+        {/* Badge stack (top-left) */}
+        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col items-start gap-1.5">
+          {/* Show all badges conditionally using fragments to avoid whitespace issues */}
+          {isOnSale && (
+            <>
+              <span className="inline-flex items-center gap-1 bg-gradient-to-r from-red-600 to-rose-500 text-white text-[11px] font-bold leading-none px-2 py-1 rounded-md shadow-sm">
+                <span>-{discount}%</span>
+                <span className="opacity-80">OFF</span>
+              </span>
+            </>
+          )}
+          {isOnSale && discount >= 70 && (
+            <>
+              <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider leading-none px-2 py-1 rounded-md shadow-sm">
+                Flash
+              </span>
+            </>
+          )}
+          {isNew && !isOnSale && (
+            <>
+              <span className="inline-flex items-center gap-1 bg-green-600 text-white text-[11px] font-bold leading-none px-2 py-1 rounded-md shadow-sm">
+                <span>NEW</span>
+              </span>
+            </>
+          )}
+          {isBestSeller && !isOnSale && !isNew && (
+            <>
+              <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider leading-none px-2 py-1 rounded-md shadow-sm">
+                Best Seller
+              </span>
+            </>
+          )}
+          {isPreOwned && (
+            <>
+              <span className="inline-flex items-center gap-1 bg-slate-600 text-white text-[11px] font-bold leading-none px-2 py-1 rounded-md shadow-sm">
+                Pre-Owned
+              </span>
+            </>
+          )}
+          {outOfStock && (
+            <>
+              <span className="inline-flex items-center bg-slate-900/90 backdrop-blur text-white text-[10px] font-bold uppercase tracking-wider leading-none px-2 py-1 rounded-md">
+                Sold Out
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Wishlist button (top-right) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(product);
+          }}
+          disabled={toggling}
+          className={`absolute top-2.5 right-2.5 z-20 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full backdrop-blur-md transition-all duration-200 shadow-sm ${
+            toggling
+              ? 'opacity-60 cursor-wait bg-white/95'
+              : inWishlist
+              ? 'bg-white text-rose-500 hover:bg-rose-50 ring-1 ring-rose-200'
+              : 'bg-white/95 text-slate-500 hover:text-rose-500 hover:bg-white ring-1 ring-slate-200/80'
+          }`}
+          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-pressed={inWishlist}
+        >
+          {toggling ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <Heart className={`h-[18px] w-[18px] transition-transform ${inWishlist ? 'fill-rose-500 scale-110' : 'group-hover:scale-110'}`} />
+          )}
+        </button>
+
+        {/* Product image with subtle zoom */}
+        {product.image && !imageErrors[id] ? (
+          <img
+            src={getProductImageUrl(product.image, { width: 400, quality: 80 })}
+            alt={`${product.name} product image`}
+            className="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+            onError={handleImageError}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <PackageCheck className="h-20 w-20 text-slate-300" aria-hidden="true" />
+          </div>
+        )}
+
+        {/* Bottom stock chip on image */}
+        {lowStock && (
+          <div className="absolute bottom-2.5 left-2.5 z-10 inline-flex items-center gap-1 bg-amber-50/95 backdrop-blur text-amber-700 text-[10px] font-semibold leading-none px-2 py-1 rounded-md ring-1 ring-amber-200/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
+            Only {product.stock} left
+          </div>
+        )}
+
+        {/* Free shipping indicator */}
+        {product.freeShipping && (
+          <div className="absolute bottom-2.5 right-2.5 z-10 inline-flex items-center gap-1 bg-green-50/95 backdrop-blur text-green-700 text-[10px] font-semibold leading-none px-2 py-1 rounded-md ring-1 ring-green-200/80">
+            <Truck className="h-3 w-3" aria-hidden="true" />
+            Free Shipping
+          </div>
+        )}
+      </Link>
+
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-4 gap-2">
+        {/* Brand & category meta */}
+        {(product.brand || product.category) && (
+          <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-slate-500">
+            {product.brand && <span className="text-primary/80">{product.brand}</span>}
+            {product.brand && product.category && <span className="text-slate-300">·</span>}
+            {product.category && <span>{product.category}</span>}
+          </div>
+        )}
+
+        {/* Title */}
+        <Link to={`/products/${id}`} className="block">
+          <h3 className="text-[15px] font-semibold text-slate-900 leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+            {product.name}
+          </h3>
+        </Link>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1.5" aria-label={`${product.rating || 0} out of 5 stars`}>
+          <StarRating rating={product.rating} reviews={product.reviews} size={3} />
+          {(product.reviews || 0) > 0 && (
+            <span className="text-xs text-slate-500">({product.reviews})</span>
+          )}
+        </div>
+
+        {/* Price block */}
+        <div className="mt-auto pt-2">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-xl font-bold text-slate-900 tracking-tight">
+              {formatPrice(product.price || 0)}
+            </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-sm text-slate-400 line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+          </div>
+          {discount && (
+            <p className="text-xs font-medium text-emerald-600 mt-0.5">
+              You save {formatPrice((product.originalPrice || 0) - (product.price || 0))}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* CTA — full bleed at card bottom */}
+      <div className="px-4 pb-4 pt-1">
+        <button
+          type="button"
+          onClick={() => addToCart(product)}
+          disabled={outOfStock}
+          className={`inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+            outOfStock
+              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              : 'bg-primary text-white shadow-sm shadow-primary/20 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/30 active:scale-[0.98]'
+          }`}
+        >
+          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+          <span>{outOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+        </button>
+      </div>
+    </article>
+  );
+}

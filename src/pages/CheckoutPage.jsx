@@ -26,12 +26,8 @@ import Footer from '../components/Footer';
 import BottomNav from '../components/BottomNav';
 import { CheckoutModal } from '../components/CheckoutModal';
 import Seo from '../components/Seo';
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '../constants';
 
-// Shipping threshold constant (free shipping kick-in)
-const FREE_SHIPPING_THRESHOLD = 500;
-const SHIPPING_FEE = 50;
-
-// Computes shipping cost and grand total from a given subtotal
 const usePriceBreakdown = (subtotal) => {
   const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_FEE;
   const orderTotal = subtotal + shippingCost;
@@ -59,8 +55,8 @@ function CartItemsList({ compact = false }) {
               <div className="flex items-center gap-2 mt-0.5">
                 <button
                   type="button"
-                  onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
-                  className="h-5 w-5 rounded-full bg-muted hover:bg-accent flex items-center justify-center text-xs font-medium disabled:opacity-40"
+                  onClick={() => updateQuantity(item._id || item.id, item.quantity - 1, item.variantKey || '')}
+                  className="h-11 w-11 min-h-touch min-w-touch rounded-full bg-muted hover:bg-accent flex items-center justify-center text-base font-medium disabled:opacity-40"
                   disabled={item.quantity <= 1}
                 >
                   −
@@ -68,8 +64,8 @@ function CartItemsList({ compact = false }) {
                 <span className="text-xs text-muted-foreground">Qty: {item.quantity}</span>
                 <button
                   type="button"
-                  onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
-                  className="h-5 w-5 rounded-full bg-muted hover:bg-accent flex items-center justify-center text-xs font-medium"
+                  onClick={() => updateQuantity(item._id || item.id, Math.min(item.quantity + 1, item.stock ?? item.quantity + 1), item.variantKey || '')}
+                  className="h-11 w-11 min-h-touch min-w-touch rounded-full bg-muted hover:bg-accent flex items-center justify-center text-base font-medium"
                 >
                   +
                 </button>
@@ -80,7 +76,7 @@ function CartItemsList({ compact = false }) {
             </p>
             <button
               type="button"
-              onClick={() => removeFromCart(item._id || item.id)}
+              onClick={() => removeFromCart(item._id || item.id, item.variantKey || '')}
               className="ml-1 text-muted-foreground hover:text-destructive text-xs"
               title="Remove"
             >

@@ -123,7 +123,7 @@ export default function AdminLogin() {
       captchaId: failedAttempts >= MAX_FAILED_ATTEMPTS ? captchaId : undefined,
       captchaCode: failedAttempts >= MAX_FAILED_ATTEMPTS ? captchaAnswer.trim() : undefined,
     });
-    if (result.success) {
+    if (result?.success) {
       setLoginSuccess(true);
       setFailedAttempts(0);
       setLockoutUntil(null);
@@ -209,6 +209,7 @@ export default function AdminLogin() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -42,11 +43,13 @@ const emptyService = {
 };
 
 export function ServicesManagement() {
+  // ?add=true (from the dashboard quick action) opens the create dialog.
+  const [searchParams] = useSearchParams();
   const [services, setServices] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(searchParams.get('add') === 'true');
   const [editingService, setEditingService] = useState(null);
   const [form, setForm] = useState(emptyService);
   const [submitError, setSubmitError] = useState('');

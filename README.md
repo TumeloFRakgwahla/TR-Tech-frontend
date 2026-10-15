@@ -173,6 +173,7 @@ tr-tech-frontend/
 ├── components.json
 ├── Dockerfile
 ├── nginx.conf
+├── docker-compose.yml
 └── .env
 ```
 
@@ -248,6 +249,27 @@ docker build -t tr-tech-frontend .
 # Run container (exposes port 80)
 docker run -p 80:80 tr-tech-frontend
 ```
+
+Or via compose:
+
+```bash
+docker compose up --build
+```
+
+`VITE_*` variables are inlined by Vite at build time, so the compose file passes them as
+build args and the `Dockerfile` declares matching `ARG` defaults. Declaring them under
+`environment:` has no effect — the nginx image only serves the pre-built `dist/`. Override
+any of them from your shell or a local `.env` next to the compose file:
+
+```bash
+VITE_PAYSTACK_PUBLIC_KEY=pk_live_xxx docker compose up --build
+```
+
+The container joins a network pinned to `tr-tech-network` (declared `external: false`, so
+this stack starts on its own). Start the `tr-tech-backend` stack first: `nginx.conf` proxies
+`/api` and `/uploads` to `http://backend:5000`, which only resolves once a container
+providing that host is on the same network. Compose may warn that `tr-tech-network` was not
+created by this project when the backend stack claims the name first; that is expected.
 
 The production container uses nginx:alpine with:
 - Gzip compression

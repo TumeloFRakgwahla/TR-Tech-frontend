@@ -5,18 +5,26 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # VITE_* values are inlined into the bundle by `npm run build`, so they have to
+      # be passed as build args. Declaring them under `environment:` has no effect:
+      # the runtime image only serves the pre-built dist/ through nginx.
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+        VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost}
+        VITE_WHATSAPP_NUMBER: ${VITE_WHATSAPP_NUMBER:-27791002552}
+        VITE_PAYSTACK_PUBLIC_KEY: ${VITE_PAYSTACK_PUBLIC_KEY:-}
     container_name: tr-tech-frontend
     ports:
       - '80:80'
-    environment:
-      - VITE_API_URL=http://localhost:5000/api/v1
-      - VITE_SITE_URL=http://localhost
-      - VITE_WHATSAPP_NUMBER=2712345678
-      - VITE_PAYSTACK_PUBLIC_KEY=pk_test_REPLACE_WITH_ACTUAL_PUBLIC
     restart: unless-stopped
     networks:
       - tr-tech-network
 
 networks:
+  # Pinned so this stack and the tr-tech-backend stack land on the same network:
+  # nginx.conf proxies /api and /uploads to http://backend:5000, which only
+  # resolves when both containers share a network. Start tr-tech-backend first so
+  # the backend container is registered on the network before nginx serves traffic.
   tr-tech-network:
+    name: tr-tech-network
     driver: bridge

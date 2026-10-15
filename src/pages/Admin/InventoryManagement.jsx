@@ -140,7 +140,7 @@ export function InventoryManagement() {
         <p className="text-slate-300">Monitor and manage product stock levels</p>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KPICard title="Total Products" value={products.length.toLocaleString()} icon={Package} color="text-blue-400" bgColor="bg-blue-600/20" />
         <KPICard title="In Stock" value={inStockItems.length.toLocaleString()} icon={TrendingUp} color="text-green-400" bgColor="bg-green-600/20" />
         <KPICard title="Low Stock" value={lowStockItems.length.toLocaleString()} icon={AlertTriangle} color="text-yellow-400" bgColor="bg-yellow-600/20" />
@@ -157,7 +157,7 @@ export function InventoryManagement() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input placeholder="Search inventory..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-slate-700 border-slate-600 text-white" />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="bg-slate-700 border-slate-600 text-white w-full sm:w-40">
                 <SelectValue placeholder="Category" />

@@ -170,7 +170,7 @@ export default function CategoryChips() {
 
   if (isDesktopGrid) {
     return (
-      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3 max-w-3xl sm:max-w-4xl lg:max-w-6xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3 max-w-3xl sm:max-w-4xl lg:max-w-6xl mx-auto">
         {categories.map((category) => {
           const name = category.name || category;
           const slug = category.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');

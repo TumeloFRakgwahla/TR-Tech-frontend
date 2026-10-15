@@ -86,20 +86,20 @@ export default function SupportPage() {
                   value={lookupId}
                   onChange={(e) => setLookupId(e.target.value)}
                   placeholder="Enter ticket number (e.g., TK-ABC123)"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-background border-input text-foreground"
                 />
-                <Button onClick={handleLookup} disabled={isLookingUp} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleLookup} disabled={isLookingUp} aria-label="Track ticket" className="bg-blue-600 hover:bg-blue-700">
                   {isLookingUp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                 </Button>
               </div>
               {lookupResult && (
-                <div className="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-lg space-y-2">
-                  <p className="text-white font-medium">Ticket #{lookupResult.ticketNumber}</p>
-                  <p className="text-slate-400 text-sm">Subject: {lookupResult.subject}</p>
-                  <p className="text-slate-400 text-sm">Status: {lookupResult.status}</p>
-                  <p className="text-slate-400 text-sm">Priority: {lookupResult.priority}</p>
-                  <p className="text-slate-400 text-sm">Category: {lookupResult.category}</p>
-                  <p className="text-slate-400 text-sm">Messages: {lookupResult.messages?.length || 0}</p>
+                <div className="mt-4 p-4 bg-muted/50 border border-border rounded-lg space-y-2">
+                  <p className="text-foreground font-medium">Ticket #{lookupResult.ticketNumber}</p>
+                  <p className="text-muted-foreground text-sm">Subject: {lookupResult.subject}</p>
+                  <p className="text-muted-foreground text-sm">Status: {lookupResult.status}</p>
+                  <p className="text-muted-foreground text-sm">Priority: {lookupResult.priority}</p>
+                  <p className="text-muted-foreground text-sm">Category: {lookupResult.category}</p>
+                  <p className="text-muted-foreground text-sm">Messages: {lookupResult.messages?.length || 0}</p>
                 </div>
               )}
             </Card>
@@ -109,53 +109,58 @@ export default function SupportPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-white">Full Name</Label>
+                    <Label htmlFor="support-name" className="text-foreground">Full Name</Label>
                     <Input
+                      id="support-name"
                       value={form.customerName}
                       onChange={(e) => setForm({ ...form, customerName: e.target.value })}
                       placeholder="Your full name"
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-background border-input text-foreground"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-white">Email</Label>
+                    <Label htmlFor="support-email" className="text-foreground">Email</Label>
                     <Input
+                      id="support-email"
                       type="email"
                       value={form.customerEmail}
                       onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
                       placeholder="you@example.com"
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-background border-input text-foreground"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Phone (optional)</Label>
+                  <Label htmlFor="support-phone" className="text-foreground">Phone (optional)</Label>
                   <Input
+                    id="support-phone"
                     value={form.customerPhone}
                     onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
                     placeholder="+27 00 000 0000"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-background border-input text-foreground"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Subject</Label>
+                  <Label htmlFor="support-subject" className="text-foreground">Subject</Label>
                   <Input
+                    id="support-subject"
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
                     placeholder="Brief description of the issue"
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-background border-input text-foreground"
                     required
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-white">Category</Label>
+                    <Label htmlFor="support-category" className="text-foreground">Category</Label>
                     <select
+                      id="support-category"
                       value={form.category}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
-                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                      className="w-full min-h-[44px] bg-background border border-input text-foreground rounded-md px-3 py-2"
                     >
                       <option value="General">General</option>
                       <option value="Order">Order</option>
@@ -166,11 +171,12 @@ export default function SupportPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-white">Priority</Label>
+                    <Label htmlFor="support-priority" className="text-foreground">Priority</Label>
                     <select
+                      id="support-priority"
                       value={form.priority}
                       onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                      className="w-full min-h-[44px] bg-background border border-input text-foreground rounded-md px-3 py-2"
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -180,13 +186,14 @@ export default function SupportPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Message</Label>
+                  <Label htmlFor="support-message" className="text-foreground">Message</Label>
                   <Textarea
+                    id="support-message"
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                     placeholder="Please provide as much detail as possible..."
                     rows={6}
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-background border-input text-foreground"
                     required
                   />
                 </div>

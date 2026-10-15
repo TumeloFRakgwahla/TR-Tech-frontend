@@ -8,6 +8,7 @@ import { useCart } from '../components/CartContext';
 import { Check, Package, Phone, MapPin, CreditCard, Copy, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { ordersAPI, paymentsAPI } from '../services/api';
 import { toast } from 'sonner';
+import { getOrderNumber } from '../lib/format';
 
 export default function OrderConfirmationPage() {
   const [searchParams] = useSearchParams();
@@ -181,7 +182,7 @@ export default function OrderConfirmationPage() {
           <div className="bg-card text-card-foreground rounded-lg shadow-md p-6 md:p-8 mb-6">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-foreground">Order #{order._id}</h2>
+                <h2 className="text-xl font-bold text-foreground break-all">Order #{getOrderNumber(order)}</h2>
                 <p className="text-sm text-muted-foreground">
                   Placed on {new Date(order.createdAt).toLocaleDateString('en-ZA', {
                     year: 'numeric',
@@ -231,11 +232,15 @@ export default function OrderConfirmationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Customer Name</p>
-                  <p className="text-sm font-medium text-foreground">{order.customerName}</p>
+                  <p className="text-sm font-medium text-foreground break-words">{order.customer?.name || order.customerName || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Order Number</p>
+                  <p className="text-sm font-medium text-foreground break-words font-mono">{getOrderNumber(order)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone Number</p>
-                  <p className="text-sm font-medium text-foreground">{order.customerPhone}</p>
+                  <p className="text-sm font-medium text-foreground break-words">{order.customer?.phone || order.customerPhone || '—'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Payment Method</p>
@@ -290,16 +295,16 @@ export default function OrderConfirmationPage() {
             <div className="flex items-start gap-3">
               <Phone className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-900 mb-1">Save your order ID for tracking</p>
+                <p className="text-sm font-medium text-blue-900 mb-1">Save your order number for tracking</p>
                 <p className="text-xs text-blue-700 mb-2">
-                  Use this ID to track your order status at any time.
+                  Use this number to track your order status at any time.
                 </p>
                 <button
-                  onClick={() => copyToClipboard(order._id)}
+                  onClick={() => copyToClipboard(getOrderNumber(order))}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 rounded text-xs font-medium text-blue-700 hover:bg-blue-50 transition-colors"
                 >
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  {copied ? 'Copied!' : `Copy Order ID: ${order._id}`}
+                  {copied ? 'Copied!' : `Copy Order Number: ${getOrderNumber(order)}`}
                 </button>
               </div>
             </div>
