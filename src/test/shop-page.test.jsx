@@ -144,10 +144,9 @@ describe('ShopPage', () => {
     });
     const searchInput = screen.getByPlaceholderText(/search products, brands, categories/i);
     fireEvent.change(searchInput, { target: { value: 'iPhone' } });
-    await waitFor(() => {
-      expect(screen.getByText('iPhone 15')).toBeInTheDocument();
-      expect(screen.queryByText('Samsung Galaxy')).not.toBeInTheDocument();
-    });
+    await new Promise(r => setTimeout(r, 300));
+    expect(screen.getByText('iPhone 15')).toBeInTheDocument();
+    expect(screen.queryByText('Samsung Galaxy')).not.toBeInTheDocument();
   });
 
   it('renders "Add to Cart" buttons for products', async () => {
@@ -197,6 +196,22 @@ describe('ShopPage', () => {
       // "Clear All" button should appear once at least one filter is active
       const clearButtons = screen.getAllByText(/clear all/i);
       expect(clearButtons.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('filters products by multiple categories', async () => {
+    render(wrapper({ children: <Shop /> }));
+    await waitFor(() => {
+      expect(screen.getByText('iPhone 15')).toBeInTheDocument();
+    });
+    const smartphonesCheckbox = screen.getByLabelText('Smartphones');
+    fireEvent.click(smartphonesCheckbox);
+    const laptopsCheckbox = screen.getByLabelText('Laptops');
+    fireEvent.click(laptopsCheckbox);
+    await waitFor(() => {
+      expect(screen.getByText('iPhone 15')).toBeInTheDocument();
+      expect(screen.getByText('Samsung Galaxy')).toBeInTheDocument();
+      expect(screen.getByText('MacBook Pro')).toBeInTheDocument();
     });
   });
 
